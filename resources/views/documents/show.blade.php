@@ -8,6 +8,7 @@
 
         <div class="actions">
             <a href="{{ route('documents.index') }}" class="btn btn-secondary">رجوع</a>
+            <a href="{{ route('documents.edit', $document) }}" class="btn btn-primary">تعديل</a>
             <a href="{{ route('documents.print-reference', $document) }}" target="_blank" class="btn btn-warning">طباعة الإشارة</a>
         </div>
     </div>
@@ -41,6 +42,10 @@
                 <td>{{ $document->receiver ?? '-' }}</td>
             </tr>
             <tr>
+                <th>الحالة</th>
+                <td>{{ $document->status_name }}</td>
+            </tr>
+            <tr>
                 <th>درجة السرية</th>
                 <td>{{ $document->confidentiality_name }}</td>
             </tr>
@@ -67,11 +72,29 @@
         <h3>المرفقات</h3>
 
         @forelse($document->attachments as $attachment)
-            <p>
-                <strong>{{ $attachment->original_name }}</strong>
-                -
-                {{ $attachment->file_size_for_humans }}
-            </p>
+            <div style="border-bottom:1px solid #e5e7eb;padding:10px 0;">
+                <p>
+                    <strong>{{ $attachment->original_name }}</strong>
+                </p>
+
+                <p>
+                    النسخة: {{ $attachment->version_no }}
+                    |
+                    الحجم: {{ $attachment->file_size_for_humans }}
+                    |
+                    النوع: {{ $attachment->extension ?? '-' }}
+                    |
+                    @if($attachment->is_main)
+                        <span class="badge">المرفق الحالي</span>
+                    @else
+                        <span class="badge">نسخة سابقة</span>
+                    @endif
+                </p>
+
+                <a href="{{ route('attachments.download', $attachment) }}" class="btn btn-secondary">
+                    تنزيل المرفق
+                </a>
+            </div>
         @empty
             <p>لا توجد مرفقات.</p>
         @endforelse

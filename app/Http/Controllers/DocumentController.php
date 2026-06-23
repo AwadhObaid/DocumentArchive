@@ -15,14 +15,50 @@ use Illuminate\Support\Str;
 
 class DocumentController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
+        $departments = Department::query()
+            ->where('is_active', true)
+            ->orderBy('name')
+            ->get();
+
+        $documentTypes = DocumentType::query()
+            ->where('is_active', true)
+            ->orderBy('name')
+            ->get();
+
         $documents = Document::query()
             ->with(['department', 'documentType', 'mainAttachment'])
-            ->latest()
-            ->paginate(15);
+            ->when($request->filled('q'), function ($query) use ($request) {
+                $q = trim($request->q);
 
-        return view('documents.index', compact('documents'));
+                $query->where(function ($subQuery) use ($q) {
+                    $subQuery
+                        ->where('reference_number', 'like', "%{$q}%")
+                        ->orWhere('title', 'like', "%{$q}%")
+                        ->orWhere('subject', 'like', "%{$q}%")
+                        ->orWhere('sender', 'like', "%{$q}%")
+                        ->orWhere('receiver', 'like', "%{$q}%")
+                        ->orWhere('search_text', 'like', "%{$q}%");
+                });
+            })
+            ->when($request->filled('department_id'), function ($query) use ($request) {
+                $query->where('department_id', $request->department_id);
+            })
+            ->when($request->filled('document_type_id'), function ($query) use ($request) {
+                $query->where('document_type_id', $request->document_type_id);
+            })
+            ->when($request->filled('date_from'), function ($query) use ($request) {
+                $query->whereDate('reference_date', '>=', $request->date_from);
+            })
+            ->when($request->filled('date_to'), function ($query) use ($request) {
+                $query->whereDate('reference_date', '<=', $request->date_to);
+            })
+            ->latest()
+            ->paginate(15)
+            ->withQueryString();
+
+        return view('documents.index', compact('documents', 'departments', 'documentTypes'));
     }
 
     public function create()
@@ -84,44 +120,12 @@ class DocumentController extends Controller
                 'print_top_mm' => Setting::getValue('print_top_mm', '53.30'),
                 'print_left_mm' => Setting::getValue('print_left_mm', '30.80'),
 
-                'search_text' => trim(
-                    ($validated['title'] ?? '') . ' ' .
-                    ($validated['subject'] ?? '') . ' ' .
-                    ($validated['description'] ?? '') . ' ' .
-                    ($validated['sender'] ?? '') . ' ' .
-                    ($validated['receiver'] ?? '')
-                ),
+                'search_text' => $this->buildSearchText($validated),
                 'notes' => $validated['notes'] ?? null,
             ]);
 
             if ($request->hasFile('attachment')) {
-                $file = $request->file('attachment');
-
-                $extension = strtolower($file->getClientOriginalExtension());
-                $safeName = $document->reference_number . '_' . Str::random(12) . '.' . $extension;
-
-                $folder = 'documents/' . $document->reference_year . '/' . $document->reference_number;
-
-                $path = $file->storeAs($folder, $safeName, 'local');
-
-                DocumentAttachment::create([
-                    'document_id' => $document->id,
-                    'attachment_type' => 'main',
-                    'version_no' => 1,
-                    'is_main' => true,
-
-                    'original_name' => $file->getClientOriginalName(),
-                    'file_name' => $safeName,
-                    'file_path' => $path,
-                    'disk' => 'local',
-
-                    'extension' => $extension,
-                    'mime_type' => $file->getMimeType(),
-                    'file_size' => $file->getSize(),
-
-                    'ocr_status' => 'pending',
-                    'uploaded_by' => auth()->id(),
-                ]);
+                $this->storeAttachment($request, $document);
             }
 
             return $document;
@@ -139,8 +143,161 @@ class DocumentController extends Controller
         return view('documents.show', compact('document'));
     }
 
+    public function edit(Document $document)
+    {
+        $departments = Department::query()
+            ->where('is_active', true)
+            ->orderBy('name')
+            ->get();
+
+        $documentTypes = DocumentType::query()
+            ->where('is_active', true)
+            ->orderBy('name')
+            ->get();
+
+        $document->load(['department', 'documentType', 'attachments']);
+
+        return view('documents.edit', compact('document', 'departments', 'documentTypes'));
+    }
+
+    public function update(Request $request, Document $document)
+    {
+        $validated = $request->validate([
+            'reference_date' => ['required', 'date'],
+            'title' => ['required', 'string', 'max:255'],
+            'subject' => ['nullable', 'string'],
+            'description' => ['nullable', 'string'],
+            'sender' => ['nullable', 'string', 'max:255'],
+            'receiver' => ['nullable', 'string', 'max:255'],
+            'department_id' => ['nullable', 'exists:departments,id'],
+            'document_type_id' => ['nullable', 'exists:document_types,id'],
+            'confidentiality' => ['required', 'in:normal,confidential,very_confidential'],
+            'priority' => ['required', 'in:normal,high,urgent'],
+            'status' => ['required', 'in:active,archived,cancelled'],
+            'attachment' => ['nullable', 'file', 'max:20480'],
+            'notes' => ['nullable', 'string'],
+        ]);
+
+        DB::transaction(function () use ($request, $document, $validated) {
+            $document->update([
+                /*
+                |--------------------------------------------------------------------------
+                | مهم
+                |--------------------------------------------------------------------------
+                | لا نعيد توليد الإشارة عند التعديل.
+                | نسمح فقط بتعديل تاريخ الإشارة إذا كان هناك خطأ إدخال.
+                */
+                'reference_date' => $validated['reference_date'],
+
+                'title' => $validated['title'],
+                'subject' => $validated['subject'] ?? null,
+                'description' => $validated['description'] ?? null,
+                'sender' => $validated['sender'] ?? null,
+                'receiver' => $validated['receiver'] ?? null,
+
+                'department_id' => $validated['department_id'] ?? null,
+                'document_type_id' => $validated['document_type_id'] ?? null,
+
+                'status' => $validated['status'],
+                'confidentiality' => $validated['confidentiality'],
+                'priority' => $validated['priority'],
+
+                'search_text' => $this->buildSearchText($validated),
+                'notes' => $validated['notes'] ?? null,
+            ]);
+
+            if ($request->hasFile('attachment')) {
+                DocumentAttachment::query()
+                    ->where('document_id', $document->id)
+                    ->where('is_main', true)
+                    ->update(['is_main' => false]);
+
+                $this->storeAttachment($request, $document);
+            }
+        });
+
+        return redirect()
+            ->route('documents.show', $document)
+            ->with('success', 'تم تحديث بيانات المستند بنجاح.');
+    }
+
+    public function destroy(Document $document)
+    {
+        DB::transaction(function () use ($document) {
+            foreach ($document->attachments as $attachment) {
+                if (Storage::disk($attachment->disk)->exists($attachment->file_path)) {
+                    Storage::disk($attachment->disk)->delete($attachment->file_path);
+                }
+            }
+
+            $document->delete();
+        });
+
+        return redirect()
+            ->route('documents.index')
+            ->with('success', 'تم حذف المستند وجميع مرفقاته بنجاح.');
+    }
+
     public function printReference(Document $document)
     {
         return view('documents.print-reference', compact('document'));
+    }
+
+    public function downloadAttachment(DocumentAttachment $attachment)
+    {
+        if (!Storage::disk($attachment->disk)->exists($attachment->file_path)) {
+            abort(404, 'الملف غير موجود.');
+        }
+
+        return Storage::disk($attachment->disk)->download(
+            $attachment->file_path,
+            $attachment->original_name
+        );
+    }
+
+    private function storeAttachment(Request $request, Document $document): void
+    {
+        $file = $request->file('attachment');
+
+        $extension = strtolower($file->getClientOriginalExtension());
+        $safeName = $document->reference_number . '_' . Str::random(12) . '.' . $extension;
+
+        $folder = 'documents/' . $document->reference_year . '/' . $document->reference_number;
+
+        $path = $file->storeAs($folder, $safeName, 'local');
+
+        $latestVersion = DocumentAttachment::query()
+            ->where('document_id', $document->id)
+            ->max('version_no');
+
+        DocumentAttachment::create([
+            'document_id' => $document->id,
+            'attachment_type' => 'main',
+            'version_no' => ((int) $latestVersion) + 1,
+            'is_main' => true,
+
+            'original_name' => $file->getClientOriginalName(),
+            'file_name' => $safeName,
+            'file_path' => $path,
+            'disk' => 'local',
+
+            'extension' => $extension,
+            'mime_type' => $file->getMimeType(),
+            'file_size' => $file->getSize(),
+
+            'ocr_status' => 'pending',
+            'uploaded_by' => auth()->id(),
+        ]);
+    }
+
+    private function buildSearchText(array $data): string
+    {
+        return trim(
+            ($data['title'] ?? '') . ' ' .
+            ($data['subject'] ?? '') . ' ' .
+            ($data['description'] ?? '') . ' ' .
+            ($data['sender'] ?? '') . ' ' .
+            ($data['receiver'] ?? '')
+        );
     }
 }
