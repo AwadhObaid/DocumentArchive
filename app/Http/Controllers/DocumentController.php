@@ -180,13 +180,6 @@ class DocumentController extends Controller
 
         DB::transaction(function () use ($request, $document, $validated) {
             $document->update([
-                /*
-                |--------------------------------------------------------------------------
-                | مهم
-                |--------------------------------------------------------------------------
-                | لا نعيد توليد الإشارة عند التعديل.
-                | نسمح فقط بتعديل تاريخ الإشارة إذا كان هناك خطأ إدخال.
-                */
                 'reference_date' => $validated['reference_date'],
 
                 'title' => $validated['title'],

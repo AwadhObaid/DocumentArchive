@@ -11,25 +11,20 @@ class Document extends Model
         'reference_year',
         'reference_sequence',
         'reference_date',
-
         'title',
         'subject',
         'description',
         'sender',
         'receiver',
-
         'department_id',
         'document_type_id',
         'created_by',
-
         'status',
         'confidentiality',
         'priority',
-
         'print_title',
         'print_top_mm',
         'print_left_mm',
-
         'search_text',
         'notes',
     ];
@@ -40,7 +35,6 @@ class Document extends Model
             'reference_year' => 'integer',
             'reference_sequence' => 'integer',
             'reference_date' => 'date',
-
             'print_top_mm' => 'decimal:2',
             'print_left_mm' => 'decimal:2',
         ];
@@ -73,9 +67,7 @@ class Document extends Model
 
     public function getFormattedDateAttribute(): string
     {
-        return $this->reference_date
-            ? $this->reference_date->format('d/m/Y')
-            : '';
+        return $this->reference_date ? $this->reference_date->format('d/m/Y') : '';
     }
 
     public function getStatusNameAttribute(): string

@@ -1,6 +1,8 @@
 <?php
 
+use App\Http\Controllers\DepartmentController;
 use App\Http\Controllers\DocumentController;
+use App\Http\Controllers\DocumentTypeController;
 use App\Http\Controllers\SettingsController;
 use Illuminate\Support\Facades\Route;
 
@@ -19,5 +21,13 @@ Route::get('/documents/{document}/print-reference', [DocumentController::class, 
 
 Route::get('/attachments/{attachment}/download', [DocumentController::class, 'downloadAttachment'])
     ->name('attachments.download');
+
+Route::resource('departments', DepartmentController::class)->except(['show']);
+
+Route::resource('document-types', DocumentTypeController::class)
+    ->except(['show'])
+    ->parameters([
+        'document-types' => 'documentType',
+    ]);
 
 Route::resource('documents', DocumentController::class);

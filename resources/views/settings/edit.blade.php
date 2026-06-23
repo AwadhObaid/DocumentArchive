@@ -20,14 +20,8 @@
             <div class="form-grid">
                 <div class="form-group">
                     <label>رقم بداية الإشارة</label>
-                    <input type="number"
-                           name="reference_start_number"
-                           value="{{ old('reference_start_number', $settings['reference_start_number']) }}"
-                           required>
-
-                    <small>
-                        مثال: 251230000. يبدأ منه النظام أول كل سنة.
-                    </small>
+                    <input type="number" name="reference_start_number" value="{{ old('reference_start_number', $settings['reference_start_number']) }}" required>
+                    <small>مثال: 251230000. يبدأ منه النظام أول كل سنة.</small>
                 </div>
             </div>
 
@@ -38,46 +32,24 @@
             <div class="form-grid">
                 <div class="form-group">
                     <label>عنوان الطباعة</label>
-                    <input type="text"
-                           name="print_department_title"
-                           value="{{ old('print_department_title', $settings['print_department_title']) }}"
-                           required>
+                    <input type="text" name="print_department_title" value="{{ old('print_department_title', $settings['print_department_title']) }}" required>
                 </div>
 
                 <div class="form-group">
                     <label>حجم الخط</label>
-                    <input type="number"
-                           name="print_font_size_pt"
-                           value="{{ old('print_font_size_pt', $settings['print_font_size_pt']) }}"
-                           min="6"
-                           max="30"
-                           required>
+                    <input type="number" name="print_font_size_pt" value="{{ old('print_font_size_pt', $settings['print_font_size_pt']) }}" min="6" max="30" required>
                 </div>
 
                 <div class="form-group">
                     <label>الموضع من أعلى الورقة بالملليمتر</label>
-                    <input type="number"
-                           step="0.01"
-                           name="print_top_mm"
-                           value="{{ old('print_top_mm', $settings['print_top_mm']) }}"
-                           required>
-
-                    <small>
-                        زِد الرقم لتحريك الطباعة للأسفل، وقلله لتحريكها للأعلى.
-                    </small>
+                    <input type="number" step="0.01" name="print_top_mm" value="{{ old('print_top_mm', $settings['print_top_mm']) }}" required>
+                    <small>زِد الرقم لتحريك الطباعة للأسفل، وقلله لتحريكها للأعلى.</small>
                 </div>
 
                 <div class="form-group">
                     <label>الموضع من يسار الورقة بالملليمتر</label>
-                    <input type="number"
-                           step="0.01"
-                           name="print_left_mm"
-                           value="{{ old('print_left_mm', $settings['print_left_mm']) }}"
-                           required>
-
-                    <small>
-                        زِد الرقم لتحريك الطباعة يساراً، وقلله لتحريكها يميناً.
-                    </small>
+                    <input type="number" step="0.01" name="print_left_mm" value="{{ old('print_left_mm', $settings['print_left_mm']) }}" required>
+                    <small>زِد الرقم لتحريك الطباعة يساراً، وقلله لتحريكها يميناً.</small>
                 </div>
 
                 <div class="form-group full">
@@ -85,10 +57,7 @@
                         <input type="checkbox" name="apply_to_existing_documents" value="1">
                         تطبيق موضع الطباعة الجديد على المستندات السابقة أيضاً
                     </label>
-
-                    <small>
-                        إذا لم تحدد هذا الخيار، سيتم تطبيق الإعدادات فقط على المستندات الجديدة.
-                    </small>
+                    <small>إذا لم تحدد هذا الخيار، سيتم تطبيق الإعدادات فقط على المستندات الجديدة.</small>
                 </div>
             </div>
 
@@ -102,42 +71,16 @@
 
     <div class="card">
         <h2>معاينة الموضع الحالي</h2>
+        <p>هذه المعاينة تقريبية داخل الشاشة فقط. عند الطباعة الفعلية استخدم: <strong>A4 + Scale 100%</strong></p>
 
-        <p>
-            هذه المعاينة تقريبية داخل الشاشة فقط. عند الطباعة الفعلية استخدم:
-            <strong>A4 + Scale 100%</strong>
-        </p>
-
-        <div style="
-            width: 210mm;
-            height: 297mm;
-            background: white;
-            position: relative;
-            border: 1px solid #d1d5db;
-            transform: scale(.45);
-            transform-origin: top right;
-            margin-bottom: -155mm;
-        ">
-            <div style="
-                position: absolute;
-                top: {{ $settings['print_top_mm'] }}mm;
-                left: {{ $settings['print_left_mm'] }}mm;
-                width: 50mm;
-                font-size: {{ $settings['print_font_size_pt'] }}pt;
-                font-weight: bold;
-                color: #000;
-                direction: rtl;
-            ">
-                <div style="text-align:center; font-size:11pt; margin-bottom:3mm;">
-                    {{ $settings['print_department_title'] }}
-                </div>
-
+        <div style="width: 210mm; height: 297mm; background: white; position: relative; border: 1px solid #d1d5db; transform: scale(.45); transform-origin: top right; margin-bottom: -155mm;">
+            <div style="position: absolute; top: {{ $settings['print_top_mm'] }}mm; left: {{ $settings['print_left_mm'] }}mm; width: 50mm; font-size: {{ $settings['print_font_size_pt'] }}pt; font-weight: bold; color: #000; direction: rtl;">
+                <div style="text-align:center; font-size:11pt; margin-bottom:3mm;">{{ $settings['print_department_title'] }}</div>
                 <div style="display:grid; grid-template-columns:27mm 4mm 19mm; direction:ltr; margin-bottom:1.5mm;">
                     <div style="text-align:left; direction:ltr;">251230000</div>
                     <div style="text-align:center;">:</div>
                     <div style="text-align:right; direction:rtl;">الإشارة</div>
                 </div>
-
                 <div style="display:grid; grid-template-columns:27mm 4mm 19mm; direction:ltr;">
                     <div style="text-align:left; direction:ltr;">04/01/2026</div>
                     <div style="text-align:center;">:</div>

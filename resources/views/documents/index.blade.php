@@ -103,10 +103,10 @@
                             <a class="btn btn-primary" href="{{ route('documents.edit', $document) }}">تعديل</a>
                             <a class="btn btn-warning" target="_blank" href="{{ route('documents.print-reference', $document) }}">طباعة الإشارة</a>
 
-                            <form method="POST" action="{{ route('documents.destroy', $document) }}" onsubmit="return confirm('هل أنت متأكد من حذف هذا المستند؟');">
+                            <form method="POST" action="{{ route('documents.destroy', $document) }}" data-confirm="هل أنت متأكد من حذف هذا المستند؟">
                                 @csrf
                                 @method('DELETE')
-                                <button type="submit" class="btn" style="background:#dc2626;color:white;">
+                                <button type="submit" class="btn btn-danger">
                                     حذف
                                 </button>
                             </form>
@@ -121,7 +121,7 @@
             </tbody>
         </table>
 
-        <div style="margin-top: 16px;">
+        <div class="pagination">
             {{ $documents->links() }}
         </div>
     </div>

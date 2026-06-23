@@ -12,20 +12,16 @@ class DocumentAttachment extends Model
         'attachment_type',
         'version_no',
         'is_main',
-
         'original_name',
         'file_name',
         'file_path',
         'disk',
-
         'extension',
         'mime_type',
         'file_size',
-
         'ocr_status',
         'ocr_text',
         'ocr_error',
-
         'uploaded_by',
     ];
 

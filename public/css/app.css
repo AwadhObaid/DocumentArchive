@@ -26,6 +26,7 @@ body {
     display: flex;
     gap: 10px;
     font-size: 14px;
+    flex-wrap: wrap;
 }
 
 .container {

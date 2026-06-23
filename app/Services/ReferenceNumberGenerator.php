@@ -13,13 +13,9 @@ class ReferenceNumberGenerator
     {
         return DB::transaction(function () use ($date) {
             $referenceDate = $date ? Carbon::parse($date) : now();
-
             $year = (int) $referenceDate->year;
 
-            $startNumber = (int) Setting::getValue(
-                'reference_start_number',
-                251230000
-            );
+            $startNumber = (int) Setting::getValue('reference_start_number', 251230000);
 
             DB::table('reference_counters')->insertOrIgnore([
                 'reference_year' => $year,
@@ -36,7 +32,6 @@ class ReferenceNumberGenerator
                 ->firstOrFail();
 
             $nextSequence = ((int) $counter->last_sequence) + 1;
-
             $referenceNumber = (string) (((int) $counter->start_number) + $nextSequence);
 
             $counter->update([

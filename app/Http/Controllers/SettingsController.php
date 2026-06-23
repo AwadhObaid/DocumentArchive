@@ -32,45 +32,11 @@ class SettingsController extends Controller
             'apply_to_existing_documents' => ['nullable', 'boolean'],
         ]);
 
-        Setting::setValue(
-            'reference_start_number',
-            $validated['reference_start_number'],
-            'references',
-            'number',
-            'رقم بداية الإشارة في بداية كل سنة'
-        );
-
-        Setting::setValue(
-            'print_department_title',
-            $validated['print_department_title'],
-            'printing',
-            'text',
-            'العنوان الثابت الذي يظهر أعلى الإشارة'
-        );
-
-        Setting::setValue(
-            'print_top_mm',
-            $validated['print_top_mm'],
-            'printing',
-            'decimal',
-            'موضع كتلة الطباعة من أعلى ورقة A4 بالملليمتر'
-        );
-
-        Setting::setValue(
-            'print_left_mm',
-            $validated['print_left_mm'],
-            'printing',
-            'decimal',
-            'موضع كتلة الطباعة من يسار ورقة A4 بالملليمتر'
-        );
-
-        Setting::setValue(
-            'print_font_size_pt',
-            $validated['print_font_size_pt'],
-            'printing',
-            'number',
-            'حجم خط الإشارة والتاريخ عند الطباعة'
-        );
+        Setting::setValue('reference_start_number', $validated['reference_start_number'], 'references', 'number', 'رقم بداية الإشارة في بداية كل سنة');
+        Setting::setValue('print_department_title', $validated['print_department_title'], 'printing', 'text', 'العنوان الثابت الذي يظهر أعلى الإشارة');
+        Setting::setValue('print_top_mm', $validated['print_top_mm'], 'printing', 'decimal', 'موضع كتلة الطباعة من أعلى ورقة A4 بالملليمتر');
+        Setting::setValue('print_left_mm', $validated['print_left_mm'], 'printing', 'decimal', 'موضع كتلة الطباعة من يسار ورقة A4 بالملليمتر');
+        Setting::setValue('print_font_size_pt', $validated['print_font_size_pt'], 'printing', 'number', 'حجم خط الإشارة والتاريخ عند الطباعة');
 
         if ($request->boolean('apply_to_existing_documents')) {
             Document::query()->update([

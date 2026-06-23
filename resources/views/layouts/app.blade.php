@@ -14,6 +14,8 @@
 
     <div class="topbar-links">
         <a href="{{ route('documents.index') }}">المستندات</a>
+        <a href="{{ route('departments.index') }}">الإدارات</a>
+        <a href="{{ route('document-types.index') }}">أنواع المستندات</a>
         <a href="{{ route('settings.edit') }}">الإعدادات</a>
     </div>
 </div>
