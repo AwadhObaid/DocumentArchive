@@ -34,7 +34,7 @@
             left: {{ $document->print_left_mm }}mm;
             width: 50mm;
             color: #000;
-            font-size: 12pt;
+            font-size: {{ \App\Models\Setting::getValue('print_font_size_pt', 12) }}pt;
             font-weight: bold;
             direction: rtl;
         }

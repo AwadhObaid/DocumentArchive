@@ -1,123 +1,149 @@
 @extends('layouts.app')
 
-@section('title', 'تعديل مستند')
+@section('title', 'الإعدادات')
 
 @section('content')
     <div class="page-title">
-        <h1>تعديل المستند</h1>
+        <h1>الإعدادات</h1>
 
-        <div class="actions">
-            <a href="{{ route('documents.show', $document) }}" class="btn btn-secondary">عرض</a>
-            <a href="{{ route('documents.index') }}" class="btn btn-secondary">رجوع</a>
-        </div>
+        <a href="{{ route('documents.index') }}" class="btn btn-secondary">
+            رجوع للمستندات
+        </a>
     </div>
 
     <div class="card">
-        <h2>الإشارة: {{ $document->reference_number }}</h2>
-
-        <form method="POST" action="{{ route('documents.update', $document) }}" enctype="multipart/form-data">
+        <form method="POST" action="{{ route('settings.update') }}">
             @csrf
-            @method('PUT')
+
+            <h2>إعدادات الإشارة</h2>
 
             <div class="form-grid">
                 <div class="form-group">
-                    <label>تاريخ الإشارة</label>
-                    <input type="date" name="reference_date" value="{{ old('reference_date', $document->reference_date->format('Y-m-d')) }}" required>
+                    <label>رقم بداية الإشارة</label>
+                    <input type="number"
+                           name="reference_start_number"
+                           value="{{ old('reference_start_number', $settings['reference_start_number']) }}"
+                           required>
+
+                    <small>
+                        مثال: 251230000. يبدأ منه النظام أول كل سنة.
+                    </small>
+                </div>
+            </div>
+
+            <hr style="margin: 25px 0; border: 0; border-top: 1px solid #e5e7eb;">
+
+            <h2>إعدادات طباعة الإشارة على ورقة A4</h2>
+
+            <div class="form-grid">
+                <div class="form-group">
+                    <label>عنوان الطباعة</label>
+                    <input type="text"
+                           name="print_department_title"
+                           value="{{ old('print_department_title', $settings['print_department_title']) }}"
+                           required>
                 </div>
 
                 <div class="form-group">
-                    <label>عنوان المستند</label>
-                    <input type="text" name="title" value="{{ old('title', $document->title) }}" required>
+                    <label>حجم الخط</label>
+                    <input type="number"
+                           name="print_font_size_pt"
+                           value="{{ old('print_font_size_pt', $settings['print_font_size_pt']) }}"
+                           min="6"
+                           max="30"
+                           required>
                 </div>
 
                 <div class="form-group">
-                    <label>الإدارة</label>
-                    <select name="department_id">
-                        <option value="">-- اختر الإدارة --</option>
-                        @foreach($departments as $department)
-                            <option value="{{ $department->id }}" @selected(old('department_id', $document->department_id) == $department->id)>
-                                {{ $department->name }}
-                            </option>
-                        @endforeach
-                    </select>
+                    <label>الموضع من أعلى الورقة بالملليمتر</label>
+                    <input type="number"
+                           step="0.01"
+                           name="print_top_mm"
+                           value="{{ old('print_top_mm', $settings['print_top_mm']) }}"
+                           required>
+
+                    <small>
+                        زِد الرقم لتحريك الطباعة للأسفل، وقلله لتحريكها للأعلى.
+                    </small>
                 </div>
 
                 <div class="form-group">
-                    <label>نوع المستند</label>
-                    <select name="document_type_id">
-                        <option value="">-- اختر النوع --</option>
-                        @foreach($documentTypes as $type)
-                            <option value="{{ $type->id }}" @selected(old('document_type_id', $document->document_type_id) == $type->id)>
-                                {{ $type->name }}
-                            </option>
-                        @endforeach
-                    </select>
-                </div>
+                    <label>الموضع من يسار الورقة بالملليمتر</label>
+                    <input type="number"
+                           step="0.01"
+                           name="print_left_mm"
+                           value="{{ old('print_left_mm', $settings['print_left_mm']) }}"
+                           required>
 
-                <div class="form-group">
-                    <label>المرسل</label>
-                    <input type="text" name="sender" value="{{ old('sender', $document->sender) }}">
-                </div>
-
-                <div class="form-group">
-                    <label>المستلم</label>
-                    <input type="text" name="receiver" value="{{ old('receiver', $document->receiver) }}">
-                </div>
-
-                <div class="form-group">
-                    <label>الحالة</label>
-                    <select name="status" required>
-                        <option value="active" @selected(old('status', $document->status) === 'active')>نشط</option>
-                        <option value="archived" @selected(old('status', $document->status) === 'archived')>مؤرشف</option>
-                        <option value="cancelled" @selected(old('status', $document->status) === 'cancelled')>ملغي</option>
-                    </select>
-                </div>
-
-                <div class="form-group">
-                    <label>درجة السرية</label>
-                    <select name="confidentiality" required>
-                        <option value="normal" @selected(old('confidentiality', $document->confidentiality) === 'normal')>عادي</option>
-                        <option value="confidential" @selected(old('confidentiality', $document->confidentiality) === 'confidential')>سري</option>
-                        <option value="very_confidential" @selected(old('confidentiality', $document->confidentiality) === 'very_confidential')>سري للغاية</option>
-                    </select>
-                </div>
-
-                <div class="form-group">
-                    <label>الأولوية</label>
-                    <select name="priority" required>
-                        <option value="normal" @selected(old('priority', $document->priority) === 'normal')>عادي</option>
-                        <option value="high" @selected(old('priority', $document->priority) === 'high')>هام</option>
-                        <option value="urgent" @selected(old('priority', $document->priority) === 'urgent')>عاجل</option>
-                    </select>
+                    <small>
+                        زِد الرقم لتحريك الطباعة يساراً، وقلله لتحريكها يميناً.
+                    </small>
                 </div>
 
                 <div class="form-group full">
-                    <label>الموضوع</label>
-                    <textarea name="subject">{{ old('subject', $document->subject) }}</textarea>
-                </div>
+                    <label style="display:flex; gap:8px; align-items:center;">
+                        <input type="checkbox" name="apply_to_existing_documents" value="1">
+                        تطبيق موضع الطباعة الجديد على المستندات السابقة أيضاً
+                    </label>
 
-                <div class="form-group full">
-                    <label>الوصف</label>
-                    <textarea name="description">{{ old('description', $document->description) }}</textarea>
-                </div>
-
-                <div class="form-group full">
-                    <label>رفع مرفق جديد</label>
-                    <input type="file" name="attachment">
-                    <small>عند رفع مرفق جديد سيتم حفظه كنسخة جديدة، ولن يتم حذف النسخ السابقة.</small>
-                </div>
-
-                <div class="form-group full">
-                    <label>ملاحظات</label>
-                    <textarea name="notes">{{ old('notes', $document->notes) }}</textarea>
+                    <small>
+                        إذا لم تحدد هذا الخيار، سيتم تطبيق الإعدادات فقط على المستندات الجديدة.
+                    </small>
                 </div>
             </div>
 
             <div style="margin-top: 20px;">
                 <button type="submit" class="btn btn-success">
-                    حفظ التعديلات
+                    حفظ الإعدادات
                 </button>
             </div>
         </form>
+    </div>
+
+    <div class="card">
+        <h2>معاينة الموضع الحالي</h2>
+
+        <p>
+            هذه المعاينة تقريبية داخل الشاشة فقط، أما الطباعة الفعلية فتكون حسب إعدادات الطابعة:
+            <strong>A4 + Scale 100%</strong>
+        </p>
+
+        <div style="
+            width: 210mm;
+            height: 297mm;
+            background: white;
+            position: relative;
+            border: 1px solid #d1d5db;
+            transform: scale(.45);
+            transform-origin: top right;
+            margin-bottom: -155mm;
+        ">
+            <div style="
+                position: absolute;
+                top: {{ $settings['print_top_mm'] }}mm;
+                left: {{ $settings['print_left_mm'] }}mm;
+                width: 50mm;
+                font-size: {{ $settings['print_font_size_pt'] }}pt;
+                font-weight: bold;
+                color: #000;
+                direction: rtl;
+            ">
+                <div style="text-align:center; font-size:11pt; margin-bottom:3mm;">
+                    {{ $settings['print_department_title'] }}
+                </div>
+
+                <div style="display:grid; grid-template-columns:27mm 4mm 19mm; direction:ltr; margin-bottom:1.5mm;">
+                    <div style="text-align:left; direction:ltr;">251230000</div>
+                    <div style="text-align:center;">:</div>
+                    <div style="text-align:right; direction:rtl;">الإشارة</div>
+                </div>
+
+                <div style="display:grid; grid-template-columns:27mm 4mm 19mm; direction:ltr;">
+                    <div style="text-align:left; direction:ltr;">04/01/2026</div>
+                    <div style="text-align:center;">:</div>
+                    <div style="text-align:right; direction:rtl;">التاريخ</div>
+                </div>
+            </div>
+        </div>
     </div>
 @endsection

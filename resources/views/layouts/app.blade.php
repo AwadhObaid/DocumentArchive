@@ -177,8 +177,13 @@
 </head>
 <body>
 
-<div class="topbar">
-    نظام أرشفة المستندات
+<div class="topbar" style="display:flex; justify-content:space-between; align-items:center; gap:12px;">
+    <span>نظام أرشفة المستندات</span>
+
+    <div style="display:flex; gap:10px; font-size:14px;">
+        <a href="{{ route('documents.index') }}" style="color:white; text-decoration:none;">المستندات</a>
+        <a href="{{ route('settings.edit') }}" style="color:white; text-decoration:none;">الإعدادات</a>
+    </div>
 </div>
 
 <div class="container">
