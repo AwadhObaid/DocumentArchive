@@ -1,0 +1,146 @@
+<?php
+
+namespace App\Http\Controllers;
+
+use App\Models\Department;
+use App\Models\Document;
+use App\Models\DocumentAttachment;
+use App\Models\DocumentType;
+use App\Models\Setting;
+use App\Services\ReferenceNumberGenerator;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Str;
+
+class DocumentController extends Controller
+{
+    public function index()
+    {
+        $documents = Document::query()
+            ->with(['department', 'documentType', 'mainAttachment'])
+            ->latest()
+            ->paginate(15);
+
+        return view('documents.index', compact('documents'));
+    }
+
+    public function create()
+    {
+        $departments = Department::query()
+            ->where('is_active', true)
+            ->orderBy('name')
+            ->get();
+
+        $documentTypes = DocumentType::query()
+            ->where('is_active', true)
+            ->orderBy('name')
+            ->get();
+
+        return view('documents.create', compact('departments', 'documentTypes'));
+    }
+
+    public function store(Request $request)
+    {
+        $validated = $request->validate([
+            'reference_date' => ['required', 'date'],
+            'title' => ['required', 'string', 'max:255'],
+            'subject' => ['nullable', 'string'],
+            'description' => ['nullable', 'string'],
+            'sender' => ['nullable', 'string', 'max:255'],
+            'receiver' => ['nullable', 'string', 'max:255'],
+            'department_id' => ['nullable', 'exists:departments,id'],
+            'document_type_id' => ['nullable', 'exists:document_types,id'],
+            'confidentiality' => ['required', 'in:normal,confidential,very_confidential'],
+            'priority' => ['required', 'in:normal,high,urgent'],
+            'attachment' => ['nullable', 'file', 'max:20480'],
+            'notes' => ['nullable', 'string'],
+        ]);
+
+        $document = DB::transaction(function () use ($request, $validated) {
+            $reference = ReferenceNumberGenerator::generate($validated['reference_date']);
+
+            $document = Document::create([
+                'reference_number' => $reference['reference_number'],
+                'reference_year' => $reference['reference_year'],
+                'reference_sequence' => $reference['reference_sequence'],
+                'reference_date' => $reference['reference_date'],
+
+                'title' => $validated['title'],
+                'subject' => $validated['subject'] ?? null,
+                'description' => $validated['description'] ?? null,
+                'sender' => $validated['sender'] ?? null,
+                'receiver' => $validated['receiver'] ?? null,
+
+                'department_id' => $validated['department_id'] ?? null,
+                'document_type_id' => $validated['document_type_id'] ?? null,
+                'created_by' => auth()->id(),
+
+                'status' => 'active',
+                'confidentiality' => $validated['confidentiality'],
+                'priority' => $validated['priority'],
+
+                'print_title' => Setting::getValue('print_department_title', 'الشحن والتأمين'),
+                'print_top_mm' => Setting::getValue('print_top_mm', '53.30'),
+                'print_left_mm' => Setting::getValue('print_left_mm', '30.80'),
+
+                'search_text' => trim(
+                    ($validated['title'] ?? '') . ' ' .
+                    ($validated['subject'] ?? '') . ' ' .
+                    ($validated['description'] ?? '') . ' ' .
+                    ($validated['sender'] ?? '') . ' ' .
+                    ($validated['receiver'] ?? '')
+                ),
+                'notes' => $validated['notes'] ?? null,
+            ]);
+
+            if ($request->hasFile('attachment')) {
+                $file = $request->file('attachment');
+
+                $extension = strtolower($file->getClientOriginalExtension());
+                $safeName = $document->reference_number . '_' . Str::random(12) . '.' . $extension;
+
+                $folder = 'documents/' . $document->reference_year . '/' . $document->reference_number;
+
+                $path = $file->storeAs($folder, $safeName, 'local');
+
+                DocumentAttachment::create([
+                    'document_id' => $document->id,
+                    'attachment_type' => 'main',
+                    'version_no' => 1,
+                    'is_main' => true,
+
+                    'original_name' => $file->getClientOriginalName(),
+                    'file_name' => $safeName,
+                    'file_path' => $path,
+                    'disk' => 'local',
+
+                    'extension' => $extension,
+                    'mime_type' => $file->getMimeType(),
+                    'file_size' => $file->getSize(),
+
+                    'ocr_status' => 'pending',
+                    'uploaded_by' => auth()->id(),
+                ]);
+            }
+
+            return $document;
+        });
+
+        return redirect()
+            ->route('documents.show', $document)
+            ->with('success', 'تم إنشاء المستند وتوليد الإشارة بنجاح.');
+    }
+
+    public function show(Document $document)
+    {
+        $document->load(['department', 'documentType', 'attachments']);
+
+        return view('documents.show', compact('document'));
+    }
+
+    public function printReference(Document $document)
+    {
+        return view('documents.print-reference', compact('document'));
+    }
+}
