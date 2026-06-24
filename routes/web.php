@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\ActivityLogController;
 use App\Http\Controllers\AuthController;
+use App\Http\Controllers\BackupController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\DepartmentController;
 use App\Http\Controllers\DocumentController;
@@ -63,6 +64,24 @@ Route::middleware('auth')->group(function () {
 
     Route::get('/attachments/{attachment}/inline', [DocumentController::class, 'inlineAttachment'])
         ->name('attachments.inline');
+
+    Route::get('/backups', [BackupController::class, 'index'])
+        ->name('backups.index');
+
+    Route::post('/backups/database', [BackupController::class, 'createDatabaseBackup'])
+        ->name('backups.database');
+
+    Route::post('/backups/files', [BackupController::class, 'createFilesBackup'])
+        ->name('backups.files');
+
+    Route::post('/backups/full', [BackupController::class, 'createFullBackup'])
+        ->name('backups.full');
+
+    Route::get('/backups/{fileName}/download', [BackupController::class, 'download'])
+        ->name('backups.download');
+
+    Route::delete('/backups/{fileName}', [BackupController::class, 'destroy'])
+        ->name('backups.destroy');
 
     Route::resource('departments', DepartmentController::class)->except(['show']);
 

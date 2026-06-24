@@ -28,7 +28,13 @@
             <a href="{{ route('activity-logs.index') }}" class="{{ request()->routeIs('activity-logs.*') || request()->routeIs('documents.activity') ? 'active' : '' }}">🧾 سجل النشاط</a>
             <a href="{{ route('departments.index') }}" class="{{ request()->routeIs('departments.*') ? 'active' : '' }}">🏢 الإدارات</a>
             <a href="{{ route('document-types.index') }}" class="{{ request()->routeIs('document-types.*') ? 'active' : '' }}">📑 أنواع الكتب</a>
-            <a href="{{ route('settings.edit') }}" class="{{ request()->routeIs('settings.*') ? 'active' : '' }}">⚙️ الإعدادات</a>
+            
+{{-- BACKUP-SIDEBAR-LINK --}}
+<a href="{{ url('/backups') }}" class="sidebar-link {{ request()->is('backups*') ? 'active' : '' }}">
+    <span class="sidebar-icon">&#128190;</span>
+    <span>&#1575;&#1604;&#1606;&#1587;&#1582; &#1575;&#1604;&#1575;&#1581;&#1578;&#1610;&#1575;&#1591;&#1610;</span>
+</a>
+<a href="{{ route('settings.edit') }}" class="{{ request()->routeIs('settings.*') ? 'active' : '' }}">⚙️ الإعدادات</a>
 
             @if(auth()->user()?->role === 'admin')
                 <a href="{{ route('users.index') }}" class="{{ request()->routeIs('users.*') ? 'active' : '' }}">👥 المستخدمون</a>
@@ -87,4 +93,5 @@
 <script src="{{ asset('js/app.js') }}"></script>
 </body>
 </html>
+
 
