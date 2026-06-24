@@ -16,8 +16,15 @@ class BackupController extends Controller
     private string $backupDisk = 'local';
     private string $backupFolder = 'backups';
 
+    private function ensureAdmin(): void
+    {
+        abort_unless(auth()->check() && auth()->user()->role === 'admin', 403, 'هذه الصفحة متاحة لمدير النظام فقط.');
+    }
+
     public function index(): View
     {
+        $this->ensureAdmin();
+
         $backups = $this->listBackups();
 
         return view('backups.index', [
@@ -28,6 +35,8 @@ class BackupController extends Controller
 
     public function createDatabaseBackup(Request $request): RedirectResponse
     {
+        $this->ensureAdmin();
+
         try {
             $fileName = 'database-backup-' . now()->format('Ymd-His') . '.zip';
             $zipPath = $this->absoluteBackupPath($fileName);
@@ -53,6 +62,8 @@ class BackupController extends Controller
 
     public function createFilesBackup(Request $request): RedirectResponse
     {
+        $this->ensureAdmin();
+
         try {
             $fileName = 'files-backup-' . now()->format('Ymd-His') . '.zip';
             $zipPath = $this->absoluteBackupPath($fileName);
@@ -76,6 +87,8 @@ class BackupController extends Controller
 
     public function createFullBackup(Request $request): RedirectResponse
     {
+        $this->ensureAdmin();
+
         try {
             $fileName = 'full-backup-' . now()->format('Ymd-His') . '.zip';
             $zipPath = $this->absoluteBackupPath($fileName);
@@ -101,6 +114,8 @@ class BackupController extends Controller
 
     public function download(string $fileName)
     {
+        $this->ensureAdmin();
+
         $fileName = basename($fileName);
         $path = $this->absoluteBackupPath($fileName);
 
@@ -113,6 +128,8 @@ class BackupController extends Controller
 
     public function destroy(string $fileName): RedirectResponse
     {
+        $this->ensureAdmin();
+
         $fileName = basename($fileName);
         $path = $this->absoluteBackupPath($fileName);
 
