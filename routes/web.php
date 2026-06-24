@@ -1,4 +1,4 @@
-<?php
+﻿<?php
 
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\DashboardController;
@@ -8,6 +8,7 @@ use App\Http\Controllers\DocumentTypeController;
 use App\Http\Controllers\SettingsController;
 use App\Http\Controllers\UserController;
 use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\AttachmentPreviewController;
 
 Route::middleware('guest')->group(function () {
     Route::get('/login', [AuthController::class, 'showLoginForm'])->name('login');
@@ -45,8 +46,17 @@ Route::middleware('auth')->group(function () {
     Route::get('/documents/{document}/print-reference', [DocumentController::class, 'printReference'])
         ->name('documents.print-reference');
 
+    Route::get('/attachments/{attachment}/preview', [DocumentController::class, 'previewAttachment'])
+    ->name('attachments.preview');
+
+    Route::get('/attachments/{attachment}/data', [DocumentController::class, 'attachmentData'])
+        ->name('attachments.data');
+
     Route::get('/attachments/{attachment}/download', [DocumentController::class, 'downloadAttachment'])
         ->name('attachments.download');
+
+    Route::get('/attachments/{attachment}/inline', [DocumentController::class, 'inlineAttachment'])
+        ->name('attachments.inline');
 
     Route::resource('departments', DepartmentController::class)->except(['show']);
 
@@ -72,3 +82,4 @@ Route::middleware('auth')->group(function () {
 
     Route::resource('documents', DocumentController::class);
 });
+

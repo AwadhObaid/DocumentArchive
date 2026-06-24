@@ -9,6 +9,7 @@ use App\Models\DocumentType;
 use App\Models\Setting;
 use App\Services\ReferenceNumberGenerator;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
@@ -30,7 +31,7 @@ class DocumentController extends Controller
         $documents = Document::query()
             ->with(['department', 'documentType', 'mainAttachment'])
             ->when($request->filled('q'), function ($query) use ($request) {
-                $q = trim($request->q);
+                $q = trim((string) $request->q);
 
                 $query->where(function ($subQuery) use ($q) {
                     $subQuery
@@ -61,16 +62,6 @@ class DocumentController extends Controller
             ->withQueryString();
 
         return view('documents.index', compact('documents', 'departments', 'documentTypes'));
-    }
-
-    public function trash()
-    {
-        $documents = Document::onlyTrashed()
-            ->with(['department', 'documentType', 'mainAttachment'])
-            ->latest('deleted_at')
-            ->paginate(15);
-
-        return view('documents.trash', compact('documents'));
     }
 
     public function create()
@@ -127,9 +118,9 @@ class DocumentController extends Controller
 
                 'department_id' => $validated['department_id'] ?? null,
                 'document_type_id' => $validated['document_type_id'] ?? null,
-                'created_by' => auth()->id(),
+                'created_by' => Auth::id(),
 
-                'status' => $request->hasFile('attachment') ? 'archived' : 'registered',
+                'status' => 'active',
                 'confidentiality' => $validated['confidentiality'],
                 'priority' => $validated['priority'],
 
@@ -192,36 +183,26 @@ class DocumentController extends Controller
             'document_type_id' => ['nullable', 'exists:document_types,id'],
             'confidentiality' => ['required', 'in:normal,confidential,very_confidential'],
             'priority' => ['required', 'in:normal,high,urgent'],
-            'status' => ['required', 'in:registered,archived,active,cancelled'],
+            'status' => ['required', 'in:active,archived,cancelled'],
             'attachment' => ['nullable', 'file', 'max:20480'],
             'notes' => ['nullable', 'string'],
         ]);
 
         DB::transaction(function () use ($request, $document, $validated) {
-            $status = $validated['status'];
-
-            if ($request->hasFile('attachment')) {
-                $status = 'archived';
-            }
-
             $document->update([
                 'reference_date' => $validated['reference_date'],
                 'main_policy_number' => $validated['main_policy_number'] ?? null,
                 'sub_policy_number' => $validated['sub_policy_number'] ?? null,
-
                 'title' => $validated['title'],
                 'subject' => $validated['subject'] ?? null,
                 'description' => $validated['description'] ?? null,
                 'sender' => $validated['sender'] ?? null,
                 'receiver' => $validated['receiver'] ?? null,
-
                 'department_id' => $validated['department_id'] ?? null,
                 'document_type_id' => $validated['document_type_id'] ?? null,
-
-                'status' => $status,
+                'status' => $validated['status'],
                 'confidentiality' => $validated['confidentiality'],
                 'priority' => $validated['priority'],
-
                 'search_text' => $this->buildSearchText($validated),
                 'notes' => $validated['notes'] ?? null,
             ]);
@@ -250,7 +231,17 @@ class DocumentController extends Controller
             ->with('success', 'تم حذف الكتاب ونقله إلى سلة المحذوفات.');
     }
 
-    public function restore($id)
+    public function trash()
+    {
+        $documents = Document::onlyTrashed()
+            ->with(['department', 'documentType'])
+            ->latest('deleted_at')
+            ->paginate(15);
+
+        return view('documents.trash', compact('documents'));
+    }
+
+    public function restore(int $id)
     {
         $document = Document::onlyTrashed()->findOrFail($id);
         $document->restore();
@@ -260,19 +251,21 @@ class DocumentController extends Controller
             ->with('success', 'تمت استعادة الكتاب بنجاح.');
     }
 
-    public function forceDelete($id)
+    public function forceDelete(int $id)
     {
-        $document = Document::onlyTrashed()->with('attachments')->findOrFail($id);
+        $document = Document::onlyTrashed()
+            ->with('attachments')
+            ->findOrFail($id);
 
-        DB::transaction(function () use ($document) {
-            foreach ($document->attachments as $attachment) {
-                if (Storage::disk($attachment->disk)->exists($attachment->file_path)) {
-                    Storage::disk($attachment->disk)->delete($attachment->file_path);
-                }
+        foreach ($document->attachments as $attachment) {
+            $disk = Storage::disk($attachment->disk);
+
+            if ($disk->exists($attachment->file_path)) {
+                $disk->delete($attachment->file_path);
             }
+        }
 
-            $document->forceDelete();
-        });
+        $document->forceDelete();
 
         return redirect()
             ->route('documents.trash')
@@ -284,16 +277,114 @@ class DocumentController extends Controller
         return view('documents.print-reference', compact('document'));
     }
 
-    public function downloadAttachment(DocumentAttachment $attachment)
+    public function previewAttachment(DocumentAttachment $attachment)
     {
-        if (!Storage::disk($attachment->disk)->exists($attachment->file_path)) {
+        $attachment->load('document');
+
+        return view('attachments.preview', compact('attachment'));
+    }
+
+    public function attachmentData(DocumentAttachment $attachment)
+    {
+        $disk = Storage::disk($attachment->disk);
+
+        if (!$disk->exists($attachment->file_path)) {
             abort(404, 'الملف غير موجود.');
         }
 
-        return Storage::disk($attachment->disk)->download(
-            $attachment->file_path,
-            $attachment->original_name
+        $extension = strtolower(
+            $attachment->extension ?: pathinfo($attachment->original_name, PATHINFO_EXTENSION)
         );
+
+        $mimeType = match ($extension) {
+            'pdf' => 'application/pdf',
+            'jpg', 'jpeg' => 'image/jpeg',
+            'png' => 'image/png',
+            'gif' => 'image/gif',
+            'webp' => 'image/webp',
+            default => $attachment->mime_type ?: 'application/octet-stream',
+        };
+
+        $binary = $disk->get($attachment->file_path);
+
+        return response()->json([
+            'id' => $attachment->id,
+            'name' => $attachment->original_name ?: $attachment->file_name,
+            'extension' => $extension,
+            'mime_type' => $mimeType,
+            'size' => $attachment->file_size,
+            'base64' => base64_encode($binary),
+        ]);
+    }
+
+    public function inlineAttachment(DocumentAttachment $attachment)
+    {
+        $disk = Storage::disk($attachment->disk);
+
+        if (!$disk->exists($attachment->file_path)) {
+            abort(404, 'الملف غير موجود.');
+        }
+
+        $extension = strtolower(
+            $attachment->extension ?: pathinfo($attachment->original_name, PATHINFO_EXTENSION)
+        );
+
+        $mimeType = match ($extension) {
+            'pdf' => 'application/pdf',
+            'jpg', 'jpeg' => 'image/jpeg',
+            'png' => 'image/png',
+            'gif' => 'image/gif',
+            'webp' => 'image/webp',
+            default => $attachment->mime_type ?: 'application/octet-stream',
+        };
+
+        $headers = [
+            'Content-Type' => $mimeType,
+            'Content-Disposition' => 'inline; filename="preview.' . $extension . '"',
+            'Cache-Control' => 'private, max-age=0, must-revalidate',
+            'Pragma' => 'public',
+            'X-Content-Type-Options' => 'nosniff',
+        ];
+
+        if (method_exists($disk, 'path')) {
+            return response()->file($disk->path($attachment->file_path), $headers);
+        }
+
+        return response()->stream(function () use ($disk, $attachment) {
+            $stream = $disk->readStream($attachment->file_path);
+
+            if ($stream) {
+                fpassthru($stream);
+                fclose($stream);
+            }
+        }, 200, $headers);
+    }
+
+    public function downloadAttachment(DocumentAttachment $attachment)
+    {
+        $disk = Storage::disk($attachment->disk);
+
+        if (!$disk->exists($attachment->file_path)) {
+            abort(404, 'الملف غير موجود.');
+        }
+
+        $fileName = $attachment->original_name ?: $attachment->file_name;
+
+        if (method_exists($disk, 'path')) {
+            return response()->download(
+                $disk->path($attachment->file_path),
+                $fileName
+            );
+        }
+
+        return response()->streamDownload(function () use ($disk, $attachment) {
+            $stream = $disk->readStream($attachment->file_path);
+
+            if ($stream) {
+                fpassthru($stream);
+                fclose($stream);
+            }
+        }, $fileName);
     }
 
     private function storeAttachment(Request $request, Document $document): void
@@ -302,9 +393,7 @@ class DocumentController extends Controller
 
         $extension = strtolower($file->getClientOriginalExtension());
         $safeName = $document->reference_number . '_' . Str::random(12) . '.' . $extension;
-
         $folder = 'documents/' . $document->reference_year . '/' . $document->reference_number;
-
         $path = $file->storeAs($folder, $safeName, 'local');
 
         $latestVersion = DocumentAttachment::query()
@@ -316,31 +405,28 @@ class DocumentController extends Controller
             'attachment_type' => 'main',
             'version_no' => ((int) $latestVersion) + 1,
             'is_main' => true,
-
             'original_name' => $file->getClientOriginalName(),
             'file_name' => $safeName,
             'file_path' => $path,
             'disk' => 'local',
-
             'extension' => $extension,
             'mime_type' => $file->getMimeType(),
             'file_size' => $file->getSize(),
-
             'ocr_status' => 'pending',
-            'uploaded_by' => auth()->id(),
+            'uploaded_by' => Auth::id(),
         ]);
     }
 
     private function buildSearchText(array $data): string
     {
         return trim(
-            ($data['main_policy_number'] ?? '') . ' ' .
-            ($data['sub_policy_number'] ?? '') . ' ' .
             ($data['title'] ?? '') . ' ' .
             ($data['subject'] ?? '') . ' ' .
             ($data['description'] ?? '') . ' ' .
             ($data['sender'] ?? '') . ' ' .
-            ($data['receiver'] ?? '')
+            ($data['receiver'] ?? '') . ' ' .
+            ($data['main_policy_number'] ?? '') . ' ' .
+            ($data['sub_policy_number'] ?? '')
         );
     }
 }

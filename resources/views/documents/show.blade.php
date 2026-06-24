@@ -1,6 +1,8 @@
 @extends('layouts.app')
 
 @section('title', 'عرض الكتاب')
+@section('page_title', 'عرض الكتاب')
+@section('page_subtitle', 'بيانات الكتاب، البوالص، المرفقات، وطباعة رقم الكتاب')
 
 @section('content')
     <div class="page-title">
@@ -38,19 +40,25 @@
         <h3>المرفقات</h3>
 
         @forelse($document->attachments as $attachment)
-            <div style="border-bottom:1px solid #e5e7eb;padding:10px 0;">
-                <p><strong>{{ $attachment->original_name }}</strong></p>
-                <p>
-                    النسخة: {{ $attachment->version_no }} |
-                    الحجم: {{ $attachment->file_size_for_humans }} |
-                    النوع: {{ $attachment->extension ?? '-' }} |
-                    @if($attachment->is_main)
-                        <span class="badge">المرفق الحالي</span>
-                    @else
-                        <span class="badge">نسخة سابقة</span>
-                    @endif
-                </p>
-                <a href="{{ route('attachments.download', $attachment) }}" class="btn btn-secondary">تنزيل المرفق</a>
+            <div class="attachment-row">
+                <div>
+                    <p><strong>{{ $attachment->original_name }}</strong></p>
+                    <p class="muted">
+                        النسخة: {{ $attachment->version_no }} |
+                        الحجم: {{ $attachment->file_size_for_humans }} |
+                        النوع: {{ $attachment->extension ?? '-' }} |
+                        @if($attachment->is_main)
+                            <span class="badge">المرفق الحالي</span>
+                        @else
+                            <span class="badge">نسخة سابقة</span>
+                        @endif
+                    </p>
+                </div>
+
+                <div class="actions">
+                    <a href="{{ route('attachments.preview', $attachment) }}" class="btn btn-info">استعراض</a>
+                    <a href="{{ route('attachments.download', $attachment) }}" class="btn btn-secondary">تنزيل المرفق</a>
+                </div>
             </div>
         @empty
             <p>لا توجد مرفقات.</p>

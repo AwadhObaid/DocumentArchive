@@ -1,6 +1,8 @@
 @extends('layouts.app')
 
 @section('title', 'الكتب')
+@section('page_title', 'الكتب')
+@section('page_subtitle', 'البحث في الكتب، البوالص، المرفقات، وطباعة رقم الكتاب')
 
 @section('content')
     <div class="page-title">
@@ -96,6 +98,7 @@
                             <a class="btn btn-warning" target="_blank" href="{{ route('documents.print-reference', $document) }}">طباعة رقم الكتاب</a>
 
                             @if($document->mainAttachment)
+                                <a href="{{ route('attachments.preview', $document->mainAttachment) }}" class="btn btn-info">استعراض</a>
                                 <a href="{{ route('attachments.download', $document->mainAttachment) }}" class="btn btn-secondary">تنزيل</a>
                             @endif
 
