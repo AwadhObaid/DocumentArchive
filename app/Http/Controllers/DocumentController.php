@@ -8,6 +8,7 @@ use App\Models\DocumentAttachment;
 use App\Models\DocumentType;
 use App\Models\Setting;
 use App\Services\ReferenceNumberGenerator;
+use App\Services\ActivityLogger;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -139,6 +140,13 @@ class DocumentController extends Controller
             return $document;
         });
 
+        ActivityLogger::log(
+            'document.created',
+            'تم إنشاء الكتاب رقم ' . $document->reference_number,
+            $document,
+            ['reference_number' => $document->reference_number]
+        );
+
         return redirect()
             ->route('documents.show', $document)
             ->with('success', 'تم إنشاء الكتاب وتوليد رقم الكتاب بنجاح.');
@@ -217,6 +225,13 @@ class DocumentController extends Controller
             }
         });
 
+        ActivityLogger::log(
+            'document.updated',
+            'تم تعديل بيانات الكتاب رقم ' . $document->reference_number,
+            $document,
+            ['reference_number' => $document->reference_number]
+        );
+
         return redirect()
             ->route('documents.show', $document)
             ->with('success', 'تم تحديث بيانات الكتاب بنجاح.');
@@ -224,6 +239,13 @@ class DocumentController extends Controller
 
     public function destroy(Document $document)
     {
+        ActivityLogger::log(
+            'document.deleted',
+            'تم حذف الكتاب رقم ' . $document->reference_number . ' ونقله إلى سلة المحذوفات',
+            $document,
+            ['reference_number' => $document->reference_number]
+        );
+
         $document->delete();
 
         return redirect()
@@ -246,6 +268,13 @@ class DocumentController extends Controller
         $document = Document::onlyTrashed()->findOrFail($id);
         $document->restore();
 
+        ActivityLogger::log(
+            'document.restored',
+            'تمت استعادة الكتاب رقم ' . $document->reference_number,
+            $document,
+            ['reference_number' => $document->reference_number]
+        );
+
         return redirect()
             ->route('documents.trash')
             ->with('success', 'تمت استعادة الكتاب بنجاح.');
@@ -265,6 +294,13 @@ class DocumentController extends Controller
             }
         }
 
+        ActivityLogger::log(
+            'document.force_deleted',
+            'تم حذف الكتاب رقم ' . $document->reference_number . ' نهائياً',
+            $document,
+            ['reference_number' => $document->reference_number]
+        );
+
         $document->forceDelete();
 
         return redirect()
@@ -274,12 +310,29 @@ class DocumentController extends Controller
 
     public function printReference(Document $document)
     {
+        ActivityLogger::log(
+            'document.printed',
+            'تمت طباعة رقم الكتاب ' . $document->reference_number,
+            $document,
+            ['reference_number' => $document->reference_number]
+        );
+
         return view('documents.print-reference', compact('document'));
     }
 
     public function previewAttachment(DocumentAttachment $attachment)
     {
         $attachment->load('document');
+
+        ActivityLogger::log(
+            'attachment.previewed',
+            'تمت معاينة المرفق: ' . ($attachment->original_name ?: $attachment->file_name),
+            $attachment,
+            [
+                'document_id' => $attachment->document_id,
+                'reference_number' => $attachment->document?->reference_number,
+            ]
+        );
 
         return view('attachments.preview', compact('attachment'));
     }
@@ -362,6 +415,18 @@ class DocumentController extends Controller
 
     public function downloadAttachment(DocumentAttachment $attachment)
     {
+        $attachment->load('document');
+
+        ActivityLogger::log(
+            'attachment.downloaded',
+            'تم تنزيل المرفق: ' . ($attachment->original_name ?: $attachment->file_name),
+            $attachment,
+            [
+                'document_id' => $attachment->document_id,
+                'reference_number' => $attachment->document?->reference_number,
+            ]
+        );
+
         $disk = Storage::disk($attachment->disk);
 
         if (!$disk->exists($attachment->file_path)) {
@@ -400,7 +465,7 @@ class DocumentController extends Controller
             ->where('document_id', $document->id)
             ->max('version_no');
 
-        DocumentAttachment::create([
+        $attachment = DocumentAttachment::create([
             'document_id' => $document->id,
             'attachment_type' => 'main',
             'version_no' => ((int) $latestVersion) + 1,
@@ -415,6 +480,17 @@ class DocumentController extends Controller
             'ocr_status' => 'pending',
             'uploaded_by' => Auth::id(),
         ]);
+
+        ActivityLogger::log(
+            'attachment.uploaded',
+            'تم رفع مرفق للكتاب رقم ' . $document->reference_number,
+            $attachment,
+            [
+                'document_id' => $document->id,
+                'reference_number' => $document->reference_number,
+                'original_name' => $attachment->original_name,
+            ]
+        );
     }
 
     private function buildSearchText(array $data): string

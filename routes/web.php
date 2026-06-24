@@ -1,5 +1,6 @@
-﻿<?php
+<?php
 
+use App\Http\Controllers\ActivityLogController;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\DepartmentController;
@@ -8,7 +9,6 @@ use App\Http\Controllers\DocumentTypeController;
 use App\Http\Controllers\SettingsController;
 use App\Http\Controllers\UserController;
 use Illuminate\Support\Facades\Route;
-use App\Http\Controllers\AttachmentPreviewController;
 
 Route::middleware('guest')->group(function () {
     Route::get('/login', [AuthController::class, 'showLoginForm'])->name('login');
@@ -32,6 +32,12 @@ Route::middleware('auth')->group(function () {
     Route::post('/settings', [SettingsController::class, 'update'])
         ->name('settings.update');
 
+    Route::get('/activity-logs', [ActivityLogController::class, 'index'])
+        ->name('activity-logs.index');
+
+    Route::get('/documents/{document}/activity', [ActivityLogController::class, 'document'])
+        ->name('documents.activity');
+
     Route::get('/documents/trash', [DocumentController::class, 'trash'])
         ->name('documents.trash');
 
@@ -47,7 +53,7 @@ Route::middleware('auth')->group(function () {
         ->name('documents.print-reference');
 
     Route::get('/attachments/{attachment}/preview', [DocumentController::class, 'previewAttachment'])
-    ->name('attachments.preview');
+        ->name('attachments.preview');
 
     Route::get('/attachments/{attachment}/data', [DocumentController::class, 'attachmentData'])
         ->name('attachments.data');
@@ -82,4 +88,3 @@ Route::middleware('auth')->group(function () {
 
     Route::resource('documents', DocumentController::class);
 });
-

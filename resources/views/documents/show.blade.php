@@ -2,7 +2,7 @@
 
 @section('title', 'عرض الكتاب')
 @section('page_title', 'عرض الكتاب')
-@section('page_subtitle', 'بيانات الكتاب، البوالص، المرفقات، وطباعة رقم الكتاب')
+@section('page_subtitle', 'بيانات الكتاب، البوالص، المرفقات، وسجل الحركة')
 
 @section('content')
     <div class="page-title">
@@ -11,6 +11,7 @@
         <div class="actions">
             <a href="{{ route('documents.index') }}" class="btn btn-secondary">رجوع</a>
             <a href="{{ route('documents.edit', $document) }}" class="btn btn-primary">تعديل</a>
+            <a href="{{ route('documents.activity', $document) }}" class="btn btn-info">سجل الحركة</a>
             <a href="{{ route('documents.print-reference', $document) }}" target="_blank" class="btn btn-warning">طباعة رقم الكتاب</a>
         </div>
     </div>
