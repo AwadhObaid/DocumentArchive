@@ -1,10 +1,10 @@
 @extends('layouts.app')
 
-@section('title', 'إضافة مستند')
+@section('title', 'إضافة كتاب')
 
 @section('content')
     <div class="page-title">
-        <h1>إضافة مستند جديد</h1>
+        <h1>إضافة كتاب جديد</h1>
 
         <a href="{{ route('documents.index') }}" class="btn btn-secondary">
             رجوع
@@ -17,13 +17,28 @@
 
             <div class="form-grid">
                 <div class="form-group">
-                    <label>تاريخ الإشارة</label>
+                    <label>تاريخ الكتاب</label>
                     <input type="date" name="reference_date" value="{{ old('reference_date', date('Y-m-d')) }}" required>
                 </div>
 
                 <div class="form-group">
-                    <label>عنوان المستند</label>
+                    <label>عنوان الكتاب</label>
                     <input type="text" name="title" value="{{ old('title') }}" required>
+                </div>
+
+                <div class="form-group">
+                    <label>البوليصة الرئيسية</label>
+                    <input type="text" name="main_policy_number" value="{{ old('main_policy_number') }}">
+                </div>
+
+                <div class="form-group">
+                    <label>البوليصة الفرعية</label>
+                    <input type="text" name="sub_policy_number" value="{{ old('sub_policy_number') }}">
+                </div>
+
+                <div class="form-group full">
+                    <label>موضوع الكتاب</label>
+                    <textarea name="subject" required>{{ old('subject') }}</textarea>
                 </div>
 
                 <div class="form-group">
@@ -39,7 +54,7 @@
                 </div>
 
                 <div class="form-group">
-                    <label>نوع المستند</label>
+                    <label>نوع الكتاب</label>
                     <select name="document_type_id">
                         <option value="">-- اختر النوع --</option>
                         @foreach($documentTypes as $type)
@@ -79,18 +94,14 @@
                 </div>
 
                 <div class="form-group full">
-                    <label>الموضوع</label>
-                    <textarea name="subject">{{ old('subject') }}</textarea>
-                </div>
-
-                <div class="form-group full">
                     <label>الوصف</label>
                     <textarea name="description">{{ old('description') }}</textarea>
                 </div>
 
                 <div class="form-group full">
-                    <label>مرفق المستند PDF / صورة / ملف</label>
+                    <label>نسخة الكتاب الممسوحة ضوئياً / مرفق اختياري</label>
                     <input type="file" name="attachment">
+                    <small>يمكن إنشاء الكتاب أولاً وطباعة رقمه، ثم رفع النسخة الممسوحة لاحقاً بعد رجوع المندوب.</small>
                 </div>
 
                 <div class="form-group full">
@@ -101,7 +112,7 @@
 
             <div style="margin-top: 20px;">
                 <button type="submit" class="btn btn-success">
-                    حفظ وتوليد الإشارة
+                    حفظ وتوليد رقم الكتاب
                 </button>
             </div>
         </form>

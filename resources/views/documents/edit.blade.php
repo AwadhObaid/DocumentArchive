@@ -1,10 +1,10 @@
 @extends('layouts.app')
 
-@section('title', 'تعديل مستند')
+@section('title', 'تعديل كتاب')
 
 @section('content')
     <div class="page-title">
-        <h1>تعديل المستند</h1>
+        <h1>تعديل الكتاب</h1>
 
         <div class="actions">
             <a href="{{ route('documents.show', $document) }}" class="btn btn-secondary">عرض</a>
@@ -13,7 +13,7 @@
     </div>
 
     <div class="card">
-        <h2>الإشارة: {{ $document->reference_number }}</h2>
+        <h2>رقم الكتاب: {{ $document->reference_number }}</h2>
 
         <form method="POST" action="{{ route('documents.update', $document) }}" enctype="multipart/form-data">
             @csrf
@@ -21,13 +21,28 @@
 
             <div class="form-grid">
                 <div class="form-group">
-                    <label>تاريخ الإشارة</label>
+                    <label>تاريخ الكتاب</label>
                     <input type="date" name="reference_date" value="{{ old('reference_date', $document->reference_date->format('Y-m-d')) }}" required>
                 </div>
 
                 <div class="form-group">
-                    <label>عنوان المستند</label>
+                    <label>عنوان الكتاب</label>
                     <input type="text" name="title" value="{{ old('title', $document->title) }}" required>
+                </div>
+
+                <div class="form-group">
+                    <label>البوليصة الرئيسية</label>
+                    <input type="text" name="main_policy_number" value="{{ old('main_policy_number', $document->main_policy_number) }}">
+                </div>
+
+                <div class="form-group">
+                    <label>البوليصة الفرعية</label>
+                    <input type="text" name="sub_policy_number" value="{{ old('sub_policy_number', $document->sub_policy_number) }}">
+                </div>
+
+                <div class="form-group full">
+                    <label>موضوع الكتاب</label>
+                    <textarea name="subject" required>{{ old('subject', $document->subject) }}</textarea>
                 </div>
 
                 <div class="form-group">
@@ -43,7 +58,7 @@
                 </div>
 
                 <div class="form-group">
-                    <label>نوع المستند</label>
+                    <label>نوع الكتاب</label>
                     <select name="document_type_id">
                         <option value="">-- اختر النوع --</option>
                         @foreach($documentTypes as $type)
@@ -67,8 +82,9 @@
                 <div class="form-group">
                     <label>الحالة</label>
                     <select name="status" required>
-                        <option value="active" @selected(old('status', $document->status) === 'active')>نشط</option>
+                        <option value="registered" @selected(old('status', $document->status) === 'registered')>مسجل</option>
                         <option value="archived" @selected(old('status', $document->status) === 'archived')>مؤرشف</option>
+                        <option value="active" @selected(old('status', $document->status) === 'active')>نشط</option>
                         <option value="cancelled" @selected(old('status', $document->status) === 'cancelled')>ملغي</option>
                     </select>
                 </div>
@@ -92,17 +108,12 @@
                 </div>
 
                 <div class="form-group full">
-                    <label>الموضوع</label>
-                    <textarea name="subject">{{ old('subject', $document->subject) }}</textarea>
-                </div>
-
-                <div class="form-group full">
                     <label>الوصف</label>
                     <textarea name="description">{{ old('description', $document->description) }}</textarea>
                 </div>
 
                 <div class="form-group full">
-                    <label>رفع مرفق جديد</label>
+                    <label>رفع نسخة كتاب ممسوحة / مرفق جديد</label>
                     <input type="file" name="attachment">
                     <small>عند رفع مرفق جديد سيتم حفظه كنسخة جديدة، ولن يتم حذف النسخ السابقة.</small>
                 </div>

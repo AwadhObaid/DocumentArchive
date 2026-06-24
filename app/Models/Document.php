@@ -3,28 +3,39 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Document extends Model
 {
+    use SoftDeletes;
+
     protected $fillable = [
         'reference_number',
         'reference_year',
         'reference_sequence',
         'reference_date',
+
+        'main_policy_number',
+        'sub_policy_number',
+
         'title',
         'subject',
         'description',
         'sender',
         'receiver',
+
         'department_id',
         'document_type_id',
         'created_by',
+
         'status',
         'confidentiality',
         'priority',
+
         'print_title',
         'print_top_mm',
         'print_left_mm',
+
         'search_text',
         'notes',
     ];
@@ -35,6 +46,8 @@ class Document extends Model
             'reference_year' => 'integer',
             'reference_sequence' => 'integer',
             'reference_date' => 'date',
+            'deleted_at' => 'datetime',
+
             'print_top_mm' => 'decimal:2',
             'print_left_mm' => 'decimal:2',
         ];
@@ -67,16 +80,19 @@ class Document extends Model
 
     public function getFormattedDateAttribute(): string
     {
-        return $this->reference_date ? $this->reference_date->format('d/m/Y') : '';
+        return $this->reference_date
+            ? $this->reference_date->format('d/m/Y')
+            : '';
     }
 
     public function getStatusNameAttribute(): string
     {
         return match ($this->status) {
-            'active' => 'نشط',
+            'registered' => 'مسجل',
             'archived' => 'مؤرشف',
+            'active' => 'نشط',
             'cancelled' => 'ملغي',
-            default => 'نشط',
+            default => 'مسجل',
         };
     }
 

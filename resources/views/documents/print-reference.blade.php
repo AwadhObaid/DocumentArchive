@@ -2,13 +2,10 @@
 <html lang="ar" dir="rtl">
 <head>
     <meta charset="UTF-8">
-    <title>طباعة الإشارة {{ $document->reference_number }}</title>
+    <title>طباعة رقم الكتاب {{ $document->reference_number }}</title>
 
     <style>
-        @page {
-            size: A4;
-            margin: 0;
-        }
+        @page { size: A4; margin: 0; }
 
         html, body {
             margin: 0;
@@ -55,22 +52,9 @@
             margin-bottom: 1.5mm;
         }
 
-        .value {
-            direction: ltr;
-            text-align: left;
-            font-weight: bold;
-        }
-
-        .separator {
-            text-align: center;
-            font-weight: bold;
-        }
-
-        .label {
-            direction: rtl;
-            text-align: right;
-            font-weight: bold;
-        }
+        .value { direction: ltr; text-align: left; font-weight: bold; }
+        .separator { text-align: center; font-weight: bold; }
+        .label { direction: rtl; text-align: right; font-weight: bold; }
 
         .screen-actions {
             position: fixed;
@@ -94,27 +78,12 @@
             font-size: 14px;
         }
 
-        .screen-actions a {
-            background: #6b7280;
-        }
+        .screen-actions a { background: #6b7280; }
 
         @media print {
-            html, body {
-                background: white;
-                width: 210mm;
-                height: 297mm;
-            }
-
-            .page {
-                margin: 0;
-                box-shadow: none;
-                width: 210mm;
-                height: 297mm;
-            }
-
-            .screen-actions {
-                display: none;
-            }
+            html, body { background: white; width: 210mm; height: 297mm; }
+            .page { margin: 0; box-shadow: none; width: 210mm; height: 297mm; }
+            .screen-actions { display: none; }
         }
     </style>
 </head>
@@ -132,13 +101,13 @@
         <div class="print-row">
             <div class="value">{{ $document->reference_number }}</div>
             <div class="separator">:</div>
-            <div class="label">الإشارة</div>
+            <div class="label">رقم الكتاب</div>
         </div>
 
         <div class="print-row">
             <div class="value">{{ $document->reference_date->format('d/m/Y') }}</div>
             <div class="separator">:</div>
-            <div class="label">التاريخ</div>
+            <div class="label">تاريخ الكتاب</div>
         </div>
     </div>
 </div>

@@ -35,6 +35,8 @@ class DocumentController extends Controller
                 $query->where(function ($subQuery) use ($q) {
                     $subQuery
                         ->where('reference_number', 'like', "%{$q}%")
+                        ->orWhere('main_policy_number', 'like', "%{$q}%")
+                        ->orWhere('sub_policy_number', 'like', "%{$q}%")
                         ->orWhere('title', 'like', "%{$q}%")
                         ->orWhere('subject', 'like', "%{$q}%")
                         ->orWhere('sender', 'like', "%{$q}%")
@@ -61,6 +63,16 @@ class DocumentController extends Controller
         return view('documents.index', compact('documents', 'departments', 'documentTypes'));
     }
 
+    public function trash()
+    {
+        $documents = Document::onlyTrashed()
+            ->with(['department', 'documentType', 'mainAttachment'])
+            ->latest('deleted_at')
+            ->paginate(15);
+
+        return view('documents.trash', compact('documents'));
+    }
+
     public function create()
     {
         $departments = Department::query()
@@ -80,6 +92,8 @@ class DocumentController extends Controller
     {
         $validated = $request->validate([
             'reference_date' => ['required', 'date'],
+            'main_policy_number' => ['nullable', 'string', 'max:255'],
+            'sub_policy_number' => ['nullable', 'string', 'max:255'],
             'title' => ['required', 'string', 'max:255'],
             'subject' => ['nullable', 'string'],
             'description' => ['nullable', 'string'],
@@ -102,6 +116,9 @@ class DocumentController extends Controller
                 'reference_sequence' => $reference['reference_sequence'],
                 'reference_date' => $reference['reference_date'],
 
+                'main_policy_number' => $validated['main_policy_number'] ?? null,
+                'sub_policy_number' => $validated['sub_policy_number'] ?? null,
+
                 'title' => $validated['title'],
                 'subject' => $validated['subject'] ?? null,
                 'description' => $validated['description'] ?? null,
@@ -112,7 +129,7 @@ class DocumentController extends Controller
                 'document_type_id' => $validated['document_type_id'] ?? null,
                 'created_by' => auth()->id(),
 
-                'status' => 'active',
+                'status' => $request->hasFile('attachment') ? 'archived' : 'registered',
                 'confidentiality' => $validated['confidentiality'],
                 'priority' => $validated['priority'],
 
@@ -133,7 +150,7 @@ class DocumentController extends Controller
 
         return redirect()
             ->route('documents.show', $document)
-            ->with('success', 'تم إنشاء المستند وتوليد الإشارة بنجاح.');
+            ->with('success', 'تم إنشاء الكتاب وتوليد رقم الكتاب بنجاح.');
     }
 
     public function show(Document $document)
@@ -164,6 +181,8 @@ class DocumentController extends Controller
     {
         $validated = $request->validate([
             'reference_date' => ['required', 'date'],
+            'main_policy_number' => ['nullable', 'string', 'max:255'],
+            'sub_policy_number' => ['nullable', 'string', 'max:255'],
             'title' => ['required', 'string', 'max:255'],
             'subject' => ['nullable', 'string'],
             'description' => ['nullable', 'string'],
@@ -173,14 +192,22 @@ class DocumentController extends Controller
             'document_type_id' => ['nullable', 'exists:document_types,id'],
             'confidentiality' => ['required', 'in:normal,confidential,very_confidential'],
             'priority' => ['required', 'in:normal,high,urgent'],
-            'status' => ['required', 'in:active,archived,cancelled'],
+            'status' => ['required', 'in:registered,archived,active,cancelled'],
             'attachment' => ['nullable', 'file', 'max:20480'],
             'notes' => ['nullable', 'string'],
         ]);
 
         DB::transaction(function () use ($request, $document, $validated) {
+            $status = $validated['status'];
+
+            if ($request->hasFile('attachment')) {
+                $status = 'archived';
+            }
+
             $document->update([
                 'reference_date' => $validated['reference_date'],
+                'main_policy_number' => $validated['main_policy_number'] ?? null,
+                'sub_policy_number' => $validated['sub_policy_number'] ?? null,
 
                 'title' => $validated['title'],
                 'subject' => $validated['subject'] ?? null,
@@ -191,7 +218,7 @@ class DocumentController extends Controller
                 'department_id' => $validated['department_id'] ?? null,
                 'document_type_id' => $validated['document_type_id'] ?? null,
 
-                'status' => $validated['status'],
+                'status' => $status,
                 'confidentiality' => $validated['confidentiality'],
                 'priority' => $validated['priority'],
 
@@ -211,11 +238,32 @@ class DocumentController extends Controller
 
         return redirect()
             ->route('documents.show', $document)
-            ->with('success', 'تم تحديث بيانات المستند بنجاح.');
+            ->with('success', 'تم تحديث بيانات الكتاب بنجاح.');
     }
 
     public function destroy(Document $document)
     {
+        $document->delete();
+
+        return redirect()
+            ->route('documents.index')
+            ->with('success', 'تم حذف الكتاب ونقله إلى سلة المحذوفات.');
+    }
+
+    public function restore($id)
+    {
+        $document = Document::onlyTrashed()->findOrFail($id);
+        $document->restore();
+
+        return redirect()
+            ->route('documents.trash')
+            ->with('success', 'تمت استعادة الكتاب بنجاح.');
+    }
+
+    public function forceDelete($id)
+    {
+        $document = Document::onlyTrashed()->with('attachments')->findOrFail($id);
+
         DB::transaction(function () use ($document) {
             foreach ($document->attachments as $attachment) {
                 if (Storage::disk($attachment->disk)->exists($attachment->file_path)) {
@@ -223,12 +271,12 @@ class DocumentController extends Controller
                 }
             }
 
-            $document->delete();
+            $document->forceDelete();
         });
 
         return redirect()
-            ->route('documents.index')
-            ->with('success', 'تم حذف المستند وجميع مرفقاته بنجاح.');
+            ->route('documents.trash')
+            ->with('success', 'تم حذف الكتاب نهائياً.');
     }
 
     public function printReference(Document $document)
@@ -286,6 +334,8 @@ class DocumentController extends Controller
     private function buildSearchText(array $data): string
     {
         return trim(
+            ($data['main_policy_number'] ?? '') . ' ' .
+            ($data['sub_policy_number'] ?? '') . ' ' .
             ($data['title'] ?? '') . ' ' .
             ($data['subject'] ?? '') . ' ' .
             ($data['description'] ?? '') . ' ' .

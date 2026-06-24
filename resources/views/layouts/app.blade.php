@@ -2,7 +2,7 @@
 <html lang="ar" dir="rtl">
 <head>
     <meta charset="UTF-8">
-    <title>@yield('title', 'نظام أرشفة المستندات')</title>
+    <title>@yield('title', 'نظام الأرشيف الإلكتروني الخاص بقسم الشحن والتأمين')</title>
     <meta name="viewport" content="width=device-width, initial-scale=1">
 
     <link rel="stylesheet" href="{{ asset('css/app.css') }}">
@@ -10,12 +10,14 @@
 <body>
 
 <div class="topbar">
-    <span>نظام أرشفة المستندات</span>
+    <span>نظام الأرشيف الإلكتروني - الشحن والتأمين</span>
 
     <div class="topbar-links">
-        <a href="{{ route('documents.index') }}">المستندات</a>
+        <a href="{{ route('documents.index') }}">الكتب</a>
+        <a href="{{ route('documents.create') }}">إضافة كتاب</a>
+        <a href="{{ route('documents.trash') }}">سلة المحذوفات</a>
         <a href="{{ route('departments.index') }}">الإدارات</a>
-        <a href="{{ route('document-types.index') }}">أنواع المستندات</a>
+        <a href="{{ route('document-types.index') }}">أنواع الكتب</a>
         <a href="{{ route('settings.edit') }}">الإعدادات</a>
     </div>
 </div>

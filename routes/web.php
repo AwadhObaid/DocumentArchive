@@ -16,6 +16,15 @@ Route::get('/settings', [SettingsController::class, 'edit'])
 Route::post('/settings', [SettingsController::class, 'update'])
     ->name('settings.update');
 
+Route::get('/documents/trash', [DocumentController::class, 'trash'])
+    ->name('documents.trash');
+
+Route::post('/documents/{id}/restore', [DocumentController::class, 'restore'])
+    ->name('documents.restore');
+
+Route::delete('/documents/{id}/force-delete', [DocumentController::class, 'forceDelete'])
+    ->name('documents.force-delete');
+
 Route::get('/documents/{document}/print-reference', [DocumentController::class, 'printReference'])
     ->name('documents.print-reference');
 
