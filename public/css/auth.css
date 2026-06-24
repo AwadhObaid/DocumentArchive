@@ -1,0 +1,130 @@
+* {
+    box-sizing: border-box;
+}
+
+body {
+    margin: 0;
+    font-family: Tahoma, Arial, sans-serif;
+    background:
+        radial-gradient(circle at top right, rgba(37, 99, 235, .20), transparent 34%),
+        linear-gradient(135deg, #0f172a 0%, #1e293b 45%, #334155 100%);
+    min-height: 100vh;
+    color: #111827;
+}
+
+.login-page {
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 24px;
+}
+
+.login-card {
+    width: min(420px, 100%);
+    background: rgba(255, 255, 255, .96);
+    border-radius: 22px;
+    padding: 34px;
+    box-shadow: 0 24px 70px rgba(0, 0, 0, .28);
+    border: 1px solid rgba(255, 255, 255, .55);
+}
+
+.brand-mark {
+    width: 64px;
+    height: 64px;
+    border-radius: 18px;
+    display: grid;
+    place-items: center;
+    margin: 0 auto 16px;
+    background: #1d4ed8;
+    color: white;
+    font-size: 30px;
+    font-weight: 900;
+}
+
+h1 {
+    margin: 0;
+    text-align: center;
+    font-size: 23px;
+    color: #0f172a;
+}
+
+.subtitle {
+    margin: 10px 0 26px;
+    text-align: center;
+    color: #64748b;
+    font-size: 14px;
+}
+
+.form-group {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    margin-bottom: 16px;
+}
+
+label {
+    font-weight: 700;
+    color: #334155;
+    font-size: 14px;
+}
+
+input[type="text"],
+input[type="password"] {
+    width: 100%;
+    border: 1px solid #cbd5e1;
+    border-radius: 12px;
+    padding: 13px 14px;
+    font-size: 15px;
+    font-family: Tahoma, Arial, sans-serif;
+    outline: none;
+    background: #f8fafc;
+}
+
+input:focus {
+    border-color: #2563eb;
+    box-shadow: 0 0 0 4px rgba(37, 99, 235, .12);
+    background: white;
+}
+
+.remember-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin: 4px 0 20px;
+    color: #475569;
+}
+
+.login-btn {
+    width: 100%;
+    border: 0;
+    border-radius: 12px;
+    background: #1d4ed8;
+    color: white;
+    padding: 13px 16px;
+    cursor: pointer;
+    font-size: 16px;
+    font-weight: 800;
+    font-family: Tahoma, Arial, sans-serif;
+}
+
+.login-btn:hover {
+    background: #1e40af;
+}
+
+.login-error {
+    background: #fee2e2;
+    color: #991b1b;
+    border: 1px solid #fecaca;
+    padding: 11px;
+    border-radius: 12px;
+    margin-bottom: 18px;
+    font-size: 14px;
+}
+
+.login-footer {
+    margin-top: 22px;
+    text-align: center;
+    color: #94a3b8;
+    font-size: 12px;
+}
