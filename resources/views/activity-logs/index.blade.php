@@ -34,7 +34,9 @@
                     <select name="action">
                         <option value="">كل العمليات</option>
                         @foreach($actions as $action)
-                            <option value="{{ $action }}" @selected(request('action') === $action)>{{ $action }}</option>
+                            <option value="{{ $action }}" @selected(request('action') === $action)>
+                                {{ \App\Models\ActivityLog::actionLabel($action) }}
+                            </option>
                         @endforeach
                     </select>
                 </div>
@@ -76,15 +78,9 @@
                 <tr>
                     <td>{{ $log->created_at?->format('Y-m-d H:i:s') }}</td>
                     <td>{{ $log->user?->name ?? 'النظام' }}</td>
-                    <td><span class="badge">{{ $log->action }}</span></td>
+                    <td><span class="badge">{{ $log->action_label }}</span></td>
                     <td>{{ $log->description ?? '-' }}</td>
-                    <td>
-                        @if($log->model_type)
-                            {{ class_basename($log->model_type) }} #{{ $log->model_id }}
-                        @else
-                            -
-                        @endif
-                    </td>
+                    <td>{{ $log->model_label }}</td>
                 </tr>
             @empty
                 <tr>

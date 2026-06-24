@@ -22,6 +22,7 @@
                 <th>المستخدم</th>
                 <th>العملية</th>
                 <th>الوصف</th>
+                <th>العنصر</th>
             </tr>
             </thead>
             <tbody>
@@ -29,12 +30,13 @@
                 <tr>
                     <td>{{ $log->created_at?->format('Y-m-d H:i:s') }}</td>
                     <td>{{ $log->user?->name ?? 'النظام' }}</td>
-                    <td><span class="badge">{{ $log->action }}</span></td>
+                    <td><span class="badge">{{ $log->action_label }}</span></td>
                     <td>{{ $log->description ?? '-' }}</td>
+                    <td>{{ $log->model_label }}</td>
                 </tr>
             @empty
                 <tr>
-                    <td colspan="4">لا توجد عمليات مسجلة على هذا الكتاب حتى الآن.</td>
+                    <td colspan="5">لا توجد عمليات مسجلة على هذا الكتاب حتى الآن.</td>
                 </tr>
             @endforelse
             </tbody>

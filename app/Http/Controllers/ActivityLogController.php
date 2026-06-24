@@ -20,8 +20,9 @@ class ActivityLogController extends Controller
             ->select('action')
             ->whereNotNull('action')
             ->distinct()
-            ->orderBy('action')
-            ->pluck('action');
+            ->pluck('action')
+            ->sortBy(fn ($action) => ActivityLog::actionLabel($action))
+            ->values();
 
         $logs = ActivityLog::query()
             ->with('user')
