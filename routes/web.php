@@ -110,5 +110,6 @@ Route::middleware('auth')->group(function () {
     // Reports routes
     Route::get('/reports', [ReportController::class, 'index'])->name('reports.index');
     Route::get('/reports/export', [ReportController::class, 'export'])->name('reports.export');
-    Route::resource('documents', DocumentController::class);
+        Route::get('/reports/pdf', [ReportController::class, 'pdf'])->name('reports.pdf');
+Route::resource('documents', DocumentController::class);
 });

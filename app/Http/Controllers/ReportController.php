@@ -9,53 +9,19 @@ use App\Models\DocumentType;
 use Illuminate\Contracts\View\View;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\Request;
+use Illuminate\Http\Response;
 use Illuminate\Support\Facades\Schema;
+use Mpdf\Mpdf;
+use Mpdf\Output\Destination;
 use Symfony\Component\HttpFoundation\StreamedResponse;
 
 class ReportController extends Controller
 {
     public function index(Request $request): View
     {
-        $filters = $this->normalizeFilters($request);
+        $payload = $this->buildReportPayload($request, true);
 
-        $query = $this->baseDocumentsQuery($filters);
-
-        $documents = (clone $query)
-            ->latest($this->dateColumn())
-            ->paginate(25)
-            ->withQueryString();
-
-        $statsQuery = $this->baseDocumentsQuery($filters);
-
-        $stats = [
-            'total_documents' => (clone $statsQuery)->count(),
-            'deleted_documents' => $this->supportsSoftDeletes()
-                ? (clone $this->baseDocumentsQuery($filters, true))->onlyTrashed()->count()
-                : 0,
-            'attachments_count' => class_exists(DocumentAttachment::class) ? DocumentAttachment::query()->count() : 0,
-            'this_month' => $this->documentsThisMonthCount(),
-        ];
-
-        $byDepartment = $this->groupDocumentsBy('department_id', $filters);
-        $byType = $this->groupDocumentsBy('document_type_id', $filters);
-
-        $departments = class_exists(Department::class)
-            ? Department::query()->orderBy('name')->get()
-            : collect();
-
-        $documentTypes = class_exists(DocumentType::class)
-            ? DocumentType::query()->orderBy('name')->get()
-            : collect();
-
-        return view('reports.index', compact(
-            'documents',
-            'stats',
-            'byDepartment',
-            'byType',
-            'departments',
-            'documentTypes',
-            'filters'
-        ));
+        return view('reports.index', $payload);
     }
 
     public function export(Request $request): StreamedResponse
@@ -101,6 +67,92 @@ class ReportController extends Controller
         }, $fileName, [
             'Content-Type' => 'text/csv; charset=UTF-8',
         ]);
+    }
+
+    public function pdf(Request $request): Response
+    {
+        if (!class_exists(Mpdf::class)) {
+            return back()->with(
+                'error',
+                'تصدير PDF يحتاج تثبيت مكتبة mPDF أولاً. نفّذ: composer require mpdf/mpdf'
+            );
+        }
+
+        $payload = $this->buildReportPayload($request, false);
+        $html = view('reports.pdf', $payload)->render();
+
+        $mpdf = new Mpdf([
+            'mode' => 'utf-8',
+            'format' => 'A4',
+            'orientation' => 'P',
+            'margin_left' => 8,
+            'margin_right' => 8,
+            'margin_top' => 8,
+            'margin_bottom' => 8,
+            'default_font' => 'dejavusans',
+            'tempDir' => storage_path('app/mpdf-temp'),
+        ]);
+
+        $mpdf->autoScriptToLang = true;
+        $mpdf->autoLangToFont = true;
+        $mpdf->SetDirectionality('rtl');
+        $mpdf->SetTitle('تقرير الكتب');
+        $mpdf->WriteHTML($html);
+
+        $fileName = 'documents-report-' . now()->format('Ymd-His') . '.pdf';
+        $pdfContent = $mpdf->Output($fileName, Destination::STRING_RETURN);
+
+        return response($pdfContent, 200, [
+            'Content-Type' => 'application/pdf',
+            'Content-Disposition' => 'attachment; filename="' . $fileName . '"',
+            'Cache-Control' => 'private, max-age=0, must-revalidate',
+            'Pragma' => 'public',
+        ]);
+    }
+
+    private function buildReportPayload(Request $request, bool $paginate): array
+    {
+        $filters = $this->normalizeFilters($request);
+        $query = $this->baseDocumentsQuery($filters);
+
+        $documents = $paginate
+            ? (clone $query)->latest($this->dateColumn())->paginate(25)->withQueryString()
+            : (clone $query)->latest($this->dateColumn())->get();
+
+        $statsQuery = $this->baseDocumentsQuery($filters);
+
+        $stats = [
+            'total_documents' => (clone $statsQuery)->count(),
+            'deleted_documents' => $this->supportsSoftDeletes()
+                ? (clone $this->baseDocumentsQuery($filters, true))->onlyTrashed()->count()
+                : 0,
+            'attachments_count' => class_exists(DocumentAttachment::class) ? DocumentAttachment::query()->count() : 0,
+            'this_month' => $this->documentsThisMonthCount(),
+        ];
+
+        $byDepartment = $this->groupDocumentsBy('department_id', $filters);
+        $byType = $this->groupDocumentsBy('document_type_id', $filters);
+
+        $departments = class_exists(Department::class)
+            ? Department::query()->orderBy('name')->get()
+            : collect();
+
+        $documentTypes = class_exists(DocumentType::class)
+            ? DocumentType::query()->orderBy('name')->get()
+            : collect();
+
+        $filterSummary = $this->filterSummary($filters, $departments, $documentTypes);
+
+        return compact(
+            'documents',
+            'stats',
+            'byDepartment',
+            'byType',
+            'departments',
+            'documentTypes',
+            'filters',
+            'filterSummary'
+        );
     }
 
     private function baseDocumentsQuery(array $filters, bool $includeDeletedForStats = false): Builder
@@ -168,6 +220,43 @@ class ReportController extends Controller
             'keyword' => $request->filled('keyword') ? $request->input('keyword') : null,
             'include_deleted' => $request->boolean('include_deleted'),
         ];
+    }
+
+    private function filterSummary($filters, $departments, $documentTypes): array
+    {
+        $summary = [];
+
+        if (!empty($filters['date_from'])) {
+            $summary[] = 'من تاريخ: ' . $filters['date_from'];
+        }
+
+        if (!empty($filters['date_to'])) {
+            $summary[] = 'إلى تاريخ: ' . $filters['date_to'];
+        }
+
+        if (!empty($filters['department_id'])) {
+            $selectedDepartment = $departments->firstWhere('id', (int) $filters['department_id']);
+            if ($selectedDepartment) {
+                $summary[] = 'الإدارة: ' . $selectedDepartment->name;
+            }
+        }
+
+        if (!empty($filters['document_type_id'])) {
+            $selectedType = $documentTypes->firstWhere('id', (int) $filters['document_type_id']);
+            if ($selectedType) {
+                $summary[] = 'نوع الكتاب: ' . $selectedType->name;
+            }
+        }
+
+        if (!empty($filters['keyword'])) {
+            $summary[] = 'بحث: ' . $filters['keyword'];
+        }
+
+        if (!empty($filters['include_deleted'])) {
+            $summary[] = 'يشمل المحذوفات';
+        }
+
+        return $summary;
     }
 
     private function dateColumn(): string

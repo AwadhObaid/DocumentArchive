@@ -53,6 +53,7 @@
                 </div>
             </div>
             <div class="page-actions no-print">
+                <a href="{{ route('reports.pdf', request()->query()) }}" class="btn btn-danger">📄 تصدير PDF</a>
                 <a href="{{ route('reports.export', request()->query()) }}" class="btn btn-primary">⬇️ تصدير Excel/CSV</a>
                 <button type="button" class="btn btn-secondary" onclick="window.print()">🖨️ طباعة التقرير</button>
             </div>
