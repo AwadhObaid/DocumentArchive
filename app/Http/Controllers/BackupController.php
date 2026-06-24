@@ -6,29 +6,35 @@ use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\File;
-use Illuminate\Support\Facades\Storage;
 use Illuminate\View\View;
-use ZipArchive;
 use Throwable;
+use ZipArchive;
 
 class BackupController extends Controller
 {
-    private string $backupDisk = 'local';
     private string $backupFolder = 'backups';
 
     private function ensureAdmin(): void
     {
-        abort_unless(auth()->check() && auth()->user()->role === 'admin', 403, 'هذه الصفحة متاحة لمدير النظام فقط.');
+        $role = trim((string) (auth()->user()->role ?? ''));
+
+        $adminRoles = [
+            'admin',
+            'administrator',
+            'super_admin',
+            'مدير النظام',
+            'مدير',
+        ];
+
+        abort_unless(auth()->check() && in_array($role, $adminRoles, true), 403, 'هذه الصفحة متاحة لمدير النظام فقط.');
     }
 
     public function index(): View
     {
         $this->ensureAdmin();
 
-        $backups = $this->listBackups();
-
         return view('backups.index', [
-            'backups' => $backups,
+            'backups' => $this->listBackups(),
             'backupPath' => storage_path('app/private/backups'),
         ]);
     }
@@ -48,8 +54,7 @@ class BackupController extends Controller
             }
 
             $driver = config('database.default');
-            $sqlContent = $this->buildDatabaseDump();
-            $zip->addFromString('database-' . $driver . '-' . now()->format('Ymd-His') . '.sql', $sqlContent);
+            $zip->addFromString('database-' . $driver . '-' . now()->format('Ymd-His') . '.sql', $this->buildDatabaseDump());
             $zip->addFromString('README.txt', $this->backupReadme('نسخة قاعدة البيانات'));
             $zip->close();
 
@@ -112,6 +117,81 @@ class BackupController extends Controller
         }
     }
 
+    public function inspect(string $fileName): View
+    {
+        $this->ensureAdmin();
+
+        $fileName = basename($fileName);
+        $path = $this->absoluteBackupPath($fileName);
+
+        if (!File::exists($path)) {
+            abort(404, 'ملف النسخة الاحتياطية غير موجود.');
+        }
+
+        $zip = new ZipArchive();
+        if ($zip->open($path) !== true) {
+            abort(422, 'تعذر فتح ملف النسخة الاحتياطية للفحص.');
+        }
+
+        $entries = [];
+        $sqlFiles = [];
+        $documentFiles = [];
+        $readmeContent = null;
+        $totalUncompressedSize = 0;
+
+        for ($i = 0; $i < $zip->numFiles; $i++) {
+            $stat = $zip->statIndex($i);
+            if (!$stat) {
+                continue;
+            }
+
+            $name = str_replace('\\', '/', (string) $stat['name']);
+            $size = (int) ($stat['size'] ?? 0);
+            $totalUncompressedSize += $size;
+
+            $lowerName = strtolower($name);
+            if (str_ends_with($lowerName, '.sql')) {
+                $sqlFiles[] = $name;
+            }
+
+            if (str_starts_with($name, 'documents/') && !str_ends_with($name, '/')) {
+                $documentFiles[] = $name;
+            }
+
+            if ($lowerName === 'readme.txt') {
+                $readmeContent = $zip->getFromIndex($i) ?: null;
+            }
+
+            if (count($entries) < 300) {
+                $entries[] = [
+                    'name' => $name,
+                    'size' => $this->formatBytes($size),
+                    'raw_size' => $size,
+                ];
+            }
+        }
+
+        $zip->close();
+
+        $inferredType = $this->inferBackupType($fileName, count($sqlFiles), count($documentFiles));
+        $warnings = $this->buildInspectionWarnings($inferredType, count($sqlFiles), count($documentFiles));
+
+        return view('backups.inspect', [
+            'fileName' => $fileName,
+            'fileSize' => $this->formatBytes((int) File::size($path)),
+            'createdAt' => date('Y-m-d H:i:s', File::lastModified($path)),
+            'inferredType' => $inferredType,
+            'entries' => $entries,
+            'totalEntries' => count($entries),
+            'totalZipEntries' => $this->countZipEntries($path),
+            'totalUncompressedSize' => $this->formatBytes($totalUncompressedSize),
+            'sqlFiles' => $sqlFiles,
+            'documentFilesCount' => count($documentFiles),
+            'readmeContent' => $readmeContent,
+            'warnings' => $warnings,
+        ]);
+    }
+
     public function download(string $fileName)
     {
         $this->ensureAdmin();
@@ -142,28 +222,24 @@ class BackupController extends Controller
 
     private function listBackups(): array
     {
-        $folder = storage_path('app/private/backups');
+        $folder = storage_path('app/private/' . $this->backupFolder);
         File::ensureDirectoryExists($folder);
 
-        $files = collect(File::files($folder))
+        return collect(File::files($folder))
             ->filter(fn ($file) => strtolower($file->getExtension()) === 'zip')
             ->sortByDesc(fn ($file) => $file->getMTime())
-            ->map(function ($file) {
-                return [
-                    'name' => $file->getFilename(),
-                    'size' => $this->formatBytes($file->getSize()),
-                    'created_at' => date('Y-m-d H:i:s', $file->getMTime()),
-                ];
-            })
+            ->map(fn ($file) => [
+                'name' => $file->getFilename(),
+                'size' => $this->formatBytes($file->getSize()),
+                'created_at' => date('Y-m-d H:i:s', $file->getMTime()),
+            ])
             ->values()
             ->all();
-
-        return $files;
     }
 
     private function absoluteBackupPath(string $fileName): string
     {
-        return storage_path('app/private/backups/' . basename($fileName));
+        return storage_path('app/private/' . $this->backupFolder . '/' . basename($fileName));
     }
 
     private function buildDatabaseDump(): string
@@ -196,20 +272,21 @@ class BackupController extends Controller
             ->values();
 
         foreach ($tables as $table) {
+            $escapedTable = str_replace('`', '``', (string) $table);
             $sql[] = '-- Table: ' . $table;
-            $sql[] = 'DROP TABLE IF EXISTS `' . str_replace('`', '``', $table) . '`;';
+            $sql[] = 'DROP TABLE IF EXISTS `' . $escapedTable . '`;';
 
-            $createRow = DB::select('SHOW CREATE TABLE `' . str_replace('`', '``', $table) . '`')[0] ?? null;
+            $createRow = DB::select('SHOW CREATE TABLE `' . $escapedTable . '`')[0] ?? null;
             $createArray = (array) $createRow;
             $createSql = $createArray['Create Table'] ?? array_values($createArray)[1] ?? '';
             $sql[] = $createSql . ';';
 
-            DB::table($table)->orderByRaw('1')->chunk(500, function ($rows) use (&$sql, $table) {
+            DB::table($table)->orderByRaw('1')->chunk(500, function ($rows) use (&$sql, $table, $escapedTable) {
                 foreach ($rows as $row) {
                     $data = (array) $row;
                     $columns = array_map(fn ($col) => '`' . str_replace('`', '``', $col) . '`', array_keys($data));
                     $values = array_map(fn ($value) => $this->sqlValue($value), array_values($data));
-                    $sql[] = 'INSERT INTO `' . str_replace('`', '``', $table) . '` (' . implode(', ', $columns) . ') VALUES (' . implode(', ', $values) . ');';
+                    $sql[] = 'INSERT INTO `' . $escapedTable . '` (' . implode(', ', $columns) . ') VALUES (' . implode(', ', $values) . ');';
                 }
             });
 
@@ -227,19 +304,21 @@ class BackupController extends Controller
             ->values();
 
         foreach ($tables as $table) {
+            $escapedTable = str_replace('"', '""', (string) $table);
             $sql[] = '-- Table: ' . $table;
+
             $createRow = DB::select("SELECT sql FROM sqlite_master WHERE type='table' AND name = ?", [$table])[0] ?? null;
             if ($createRow && !empty($createRow->sql)) {
-                $sql[] = 'DROP TABLE IF EXISTS "' . str_replace('"', '""', $table) . '";';
+                $sql[] = 'DROP TABLE IF EXISTS "' . $escapedTable . '";';
                 $sql[] = $createRow->sql . ';';
             }
 
-            DB::table($table)->orderByRaw('1')->chunk(500, function ($rows) use (&$sql, $table) {
+            DB::table($table)->orderByRaw('1')->chunk(500, function ($rows) use (&$sql, $escapedTable) {
                 foreach ($rows as $row) {
                     $data = (array) $row;
                     $columns = array_map(fn ($col) => '"' . str_replace('"', '""', $col) . '"', array_keys($data));
                     $values = array_map(fn ($value) => $this->sqlValue($value), array_values($data));
-                    $sql[] = 'INSERT INTO "' . str_replace('"', '""', $table) . '" (' . implode(', ', $columns) . ') VALUES (' . implode(', ', $values) . ');';
+                    $sql[] = 'INSERT INTO "' . $escapedTable . '" (' . implode(', ', $columns) . ') VALUES (' . implode(', ', $values) . ');';
                 }
             });
 
@@ -303,6 +382,72 @@ class BackupController extends Controller
             'هذا الملف يحتوي على نسخة احتياطية من النظام حسب نوع النسخة.',
             'احتفظ به في مكان آمن خارج جهاز التشغيل الأساسي.',
         ]) . PHP_EOL;
+    }
+
+    private function inferBackupType(string $fileName, int $sqlCount, int $documentCount): string
+    {
+        if (str_starts_with($fileName, 'full-backup-')) {
+            return 'نسخة كاملة';
+        }
+
+        if (str_starts_with($fileName, 'database-backup-')) {
+            return 'نسخة قاعدة بيانات';
+        }
+
+        if (str_starts_with($fileName, 'files-backup-')) {
+            return 'نسخة ملفات';
+        }
+
+        if ($sqlCount > 0 && $documentCount > 0) {
+            return 'نسخة كاملة';
+        }
+
+        if ($sqlCount > 0) {
+            return 'نسخة قاعدة بيانات';
+        }
+
+        if ($documentCount > 0) {
+            return 'نسخة ملفات';
+        }
+
+        return 'غير محدد';
+    }
+
+    private function buildInspectionWarnings(string $type, int $sqlCount, int $documentCount): array
+    {
+        $warnings = [];
+
+        if ($type === 'نسخة قاعدة بيانات' && $sqlCount === 0) {
+            $warnings[] = 'لم يتم العثور على ملف SQL داخل النسخة.';
+        }
+
+        if ($type === 'نسخة ملفات' && $documentCount === 0) {
+            $warnings[] = 'لم يتم العثور على ملفات مرفقات داخل مجلد documents.';
+        }
+
+        if ($type === 'نسخة كاملة') {
+            if ($sqlCount === 0) {
+                $warnings[] = 'النسخة الكاملة لا تحتوي على ملف قاعدة البيانات SQL.';
+            }
+            if ($documentCount === 0) {
+                $warnings[] = 'النسخة الكاملة لا تحتوي على ملفات مرفقات داخل مجلد documents.';
+            }
+        }
+
+        return $warnings;
+    }
+
+    private function countZipEntries(string $path): int
+    {
+        $zip = new ZipArchive();
+        if ($zip->open($path) !== true) {
+            return 0;
+        }
+
+        $count = $zip->numFiles;
+        $zip->close();
+
+        return $count;
     }
 
     private function formatBytes(int $bytes): string

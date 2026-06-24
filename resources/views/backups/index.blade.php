@@ -47,6 +47,11 @@
     </div>
 </div>
 
+<div class="alert alert-info backup-note">
+    <strong>ملاحظة:</strong>
+    قبل استخدام أي نسخة للاستعادة مستقبلاً، استخدم زر <strong>فحص</strong> للتأكد من أن النسخة تحتوي على ملف قاعدة البيانات و/أو ملفات المرفقات حسب نوعها.
+</div>
+
 <div class="card mt-4">
     <div class="card-header d-flex justify-content-between align-items-center">
         <h3>ملفات النسخ الاحتياطية</h3>
@@ -66,10 +71,11 @@
             <tbody>
                 @forelse($backups as $backup)
                     <tr>
-                        <td>{{ $backup['name'] }}</td>
+                        <td class="backup-file-name">{{ $backup['name'] }}</td>
                         <td>{{ $backup['size'] }}</td>
                         <td>{{ $backup['created_at'] }}</td>
                         <td class="table-actions">
+                            <a href="{{ route('backups.inspect', $backup['name']) }}" class="btn btn-sm btn-info">فحص</a>
                             <a href="{{ route('backups.download', $backup['name']) }}" class="btn btn-sm btn-primary">تنزيل</a>
                             <form method="POST" action="{{ route('backups.destroy', $backup['name']) }}" class="d-inline" onsubmit="return confirm('هل تريد حذف ملف النسخة الاحتياطية؟')">
                                 @csrf
@@ -103,6 +109,14 @@
 .backup-actions p {
     color: #64748b;
     min-height: 48px;
+}
+.backup-note {
+    margin-top: 16px;
+}
+.backup-file-name {
+    direction: ltr;
+    text-align: left;
+    font-weight: 700;
 }
 .table-actions {
     display: flex;

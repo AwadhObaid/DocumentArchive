@@ -113,3 +113,7 @@ Route::middleware('auth')->group(function () {
         Route::get('/reports/pdf', [ReportController::class, 'pdf'])->name('reports.pdf');
 Route::resource('documents', DocumentController::class);
 });
+
+Route::middleware(['auth'])->group(function () {
+    Route::get('/backups/{fileName}/inspect', [BackupController::class, 'inspect'])->name('backups.inspect');
+});
