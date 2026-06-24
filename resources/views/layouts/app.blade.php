@@ -29,6 +29,11 @@
             <a href="{{ route('departments.index') }}" class="{{ request()->routeIs('departments.*') ? 'active' : '' }}">🏢 الإدارات</a>
             <a href="{{ route('document-types.index') }}" class="{{ request()->routeIs('document-types.*') ? 'active' : '' }}">📑 أنواع الكتب</a>
 <a href="{{ route('settings.edit') }}" class="{{ request()->routeIs('settings.*') ? 'active' : '' }}">⚙️ الإعدادات</a>
+                {{-- REPORTS-SIDEBAR-LINK --}}
+                <a href="{{ route('reports.index') }}" class="sidebar-link nav-link {{ request()->routeIs('reports.*') ? 'active' : '' }}">
+                    <span class="nav-icon">📊</span>
+                    <span>التقارير</span>
+                </a>
 
             
             {{-- BACKUP-SIDEBAR-ADMIN-ONLY --}}
