@@ -1,0 +1,43 @@
+/* Cairo global font - DocumentArchive */
+@import url('https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;500;600;700;800;900&display=swap');
+
+html,
+body,
+body *,
+button,
+input,
+select,
+textarea,
+table,
+th,
+td,
+a,
+label,
+.btn,
+.card,
+.alert,
+.badge,
+.sidebar,
+.side-nav,
+.nav-menu,
+.topbar,
+.page-header,
+.form-control,
+.form-select,
+.dropdown-menu,
+.modal,
+.swal2-popup {
+    font-family: "Cairo", Tahoma, Arial, sans-serif !important;
+}
+
+body {
+    line-height: 1.65;
+}
+
+button,
+input,
+select,
+textarea {
+    letter-spacing: 0;
+}
+/* End Cairo global font - DocumentArchive */
