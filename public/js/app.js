@@ -11,12 +11,29 @@ document.addEventListener('DOMContentLoaded', function () {
         });
     });
 
-    const sidebarToggle = document.querySelector('[data-sidebar-toggle]');
     const sidebar = document.getElementById('sidebar');
+    const sidebarButton = document.querySelector('[data-toggle-sidebar]');
 
-    if (sidebarToggle && sidebar) {
-        sidebarToggle.addEventListener('click', function () {
-            sidebar.classList.toggle('is-open');
+    if (sidebar && sidebarButton) {
+        sidebarButton.addEventListener('click', function () {
+            sidebar.classList.toggle('open');
+        });
+    }
+
+    const themeButton = document.querySelector('[data-toggle-theme]');
+    const savedTheme = localStorage.getItem('archive_theme');
+
+    if (savedTheme) {
+        document.documentElement.setAttribute('data-theme', savedTheme);
+    }
+
+    if (themeButton) {
+        themeButton.addEventListener('click', function () {
+            const current = document.documentElement.getAttribute('data-theme') || 'light';
+            const next = current === 'light' ? 'dark' : 'light';
+
+            document.documentElement.setAttribute('data-theme', next);
+            localStorage.setItem('archive_theme', next);
         });
     }
 });

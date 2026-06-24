@@ -1,53 +1,67 @@
 <!DOCTYPE html>
-<html lang="ar" dir="rtl">
+<html lang="ar" dir="rtl" data-theme="light">
 <head>
     <meta charset="UTF-8">
     <title>@yield('title', 'نظام الأرشيف الإلكتروني')</title>
     <meta name="viewport" content="width=device-width, initial-scale=1">
+
     <link rel="stylesheet" href="{{ asset('css/app.css') }}">
 </head>
 <body>
+
 <div class="app-shell">
     <aside class="sidebar" id="sidebar">
-        <div class="sidebar-brand">
-            <div class="brand-icon">أ</div>
+        <div class="brand">
+            <div class="brand-icon">📁</div>
             <div>
-                <strong>الأرشيف الإلكتروني</strong>
-                <span>الشحن والتأمين</span>
+                <div class="brand-title">الأرشيف الإلكتروني</div>
+                <div class="brand-subtitle">الشحن والتأمين</div>
             </div>
         </div>
 
-        <nav class="sidebar-nav">
-            <a href="{{ route('dashboard') }}">🏠 لوحة التحكم</a>
-            <a href="{{ route('documents.index') }}">📁 الكتب</a>
-            <a href="{{ route('documents.create') }}">➕ إضافة كتاب</a>
-            <a href="{{ route('documents.trash') }}">🗑️ سلة المحذوفات</a>
-            <a href="{{ route('departments.index') }}">🏢 الإدارات</a>
-            <a href="{{ route('document-types.index') }}">📑 أنواع الكتب</a>
-            <a href="{{ route('settings.edit') }}">⚙️ الإعدادات</a>
+        <nav class="side-nav">
+            <a href="{{ route('dashboard') }}" class="{{ request()->routeIs('dashboard') ? 'active' : '' }}">🏠 لوحة التحكم</a>
+            <a href="{{ route('documents.index') }}" class="{{ request()->routeIs('documents.index') ? 'active' : '' }}">📄 الكتب</a>
+            <a href="{{ route('documents.create') }}" class="{{ request()->routeIs('documents.create') ? 'active' : '' }}">➕ إضافة كتاب</a>
+            <a href="{{ route('documents.trash') }}" class="{{ request()->routeIs('documents.trash') ? 'active' : '' }}">🗑️ سلة المحذوفات</a>
+            <a href="{{ route('departments.index') }}" class="{{ request()->routeIs('departments.*') ? 'active' : '' }}">🏢 الإدارات</a>
+            <a href="{{ route('document-types.index') }}" class="{{ request()->routeIs('document-types.*') ? 'active' : '' }}">📑 أنواع الكتب</a>
+            <a href="{{ route('settings.edit') }}" class="{{ request()->routeIs('settings.*') ? 'active' : '' }}">⚙️ الإعدادات</a>
+
+            @if(auth()->user()?->role === 'admin')
+                <a href="{{ route('users.index') }}" class="{{ request()->routeIs('users.*') ? 'active' : '' }}">👥 المستخدمون</a>
+            @endif
         </nav>
-    </aside>
 
-    <main class="main-content">
-        <header class="topbar">
-            <button class="sidebar-toggle" type="button" data-sidebar-toggle>☰</button>
-
-            <div class="topbar-title">
-                نظام الأرشيف الإلكتروني الخاص بقسم الشحن والتأمين
+        <div class="sidebar-footer">
+            <div class="user-mini">
+                <div class="avatar">{{ mb_substr(auth()->user()?->name ?? 'م', 0, 1) }}</div>
+                <div>
+                    <strong>{{ auth()->user()?->name }}</strong>
+                    <span>{{ auth()->user()?->role_name }}</span>
+                </div>
             </div>
 
-            @auth
-                <div class="user-menu">
-                    <span>{{ auth()->user()->name }}</span>
-                    <form method="POST" action="{{ route('logout') }}">
-                        @csrf
-                        <button type="submit" class="logout-btn">تسجيل خروج</button>
-                    </form>
-                </div>
-            @endauth
+            <form method="POST" action="{{ route('logout') }}">
+                @csrf
+                <button type="submit" class="logout-btn">تسجيل الخروج</button>
+            </form>
+        </div>
+    </aside>
+
+    <main class="main-area">
+        <header class="topbar">
+            <button class="menu-toggle" type="button" data-toggle-sidebar>☰</button>
+
+            <div>
+                <h1>@yield('page_title', 'نظام الأرشيف الإلكتروني الخاص بقسم الشحن والتأمين')</h1>
+                <p>@yield('page_subtitle', 'إدارة الكتب، المرفقات، البوالص، والطباعة الرسمية')</p>
+            </div>
+
+            <button class="theme-toggle" type="button" data-toggle-theme>🌙</button>
         </header>
 
-        <section class="content-container">
+        <section class="content-area">
             @if(session('success'))
                 <div class="alert-success">{{ session('success') }}</div>
             @endif

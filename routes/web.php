@@ -6,28 +6,41 @@ use App\Http\Controllers\DepartmentController;
 use App\Http\Controllers\DocumentController;
 use App\Http\Controllers\DocumentTypeController;
 use App\Http\Controllers\SettingsController;
+use App\Http\Controllers\UserController;
 use Illuminate\Support\Facades\Route;
 
 Route::middleware('guest')->group(function () {
-    Route::get('/login', [AuthController::class, 'showLogin'])->name('login');
+    Route::get('/login', [AuthController::class, 'showLoginForm'])->name('login');
     Route::post('/login', [AuthController::class, 'login'])->name('login.post');
 });
 
-Route::middleware('auth')->group(function () {
-    Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
+Route::post('/logout', [AuthController::class, 'logout'])
+    ->middleware('auth')
+    ->name('logout');
 
+Route::middleware('auth')->group(function () {
     Route::get('/', function () {
         return redirect()->route('dashboard');
     });
 
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
 
-    Route::get('/settings', [SettingsController::class, 'edit'])->name('settings.edit');
-    Route::post('/settings', [SettingsController::class, 'update'])->name('settings.update');
+    Route::get('/settings', [SettingsController::class, 'edit'])
+        ->name('settings.edit');
 
-    Route::get('/documents/trash', [DocumentController::class, 'trash'])->name('documents.trash');
-    Route::post('/documents/{id}/restore', [DocumentController::class, 'restore'])->name('documents.restore');
-    Route::delete('/documents/{id}/force-delete', [DocumentController::class, 'forceDelete'])->name('documents.force-delete');
+    Route::post('/settings', [SettingsController::class, 'update'])
+        ->name('settings.update');
+
+    Route::get('/documents/trash', [DocumentController::class, 'trash'])
+        ->name('documents.trash');
+
+    Route::post('/documents/{document}/restore', [DocumentController::class, 'restore'])
+        ->withTrashed()
+        ->name('documents.restore');
+
+    Route::delete('/documents/{document}/force-delete', [DocumentController::class, 'forceDelete'])
+        ->withTrashed()
+        ->name('documents.force-delete');
 
     Route::get('/documents/{document}/print-reference', [DocumentController::class, 'printReference'])
         ->name('documents.print-reference');
@@ -42,6 +55,20 @@ Route::middleware('auth')->group(function () {
         ->parameters([
             'document-types' => 'documentType',
         ]);
+
+    Route::get('/users/{user}/password', [UserController::class, 'editPassword'])
+        ->name('users.password.edit');
+
+    Route::put('/users/{user}/password', [UserController::class, 'updatePassword'])
+        ->name('users.password.update');
+
+    Route::patch('/users/{user}/activate', [UserController::class, 'activate'])
+        ->name('users.activate');
+
+    Route::patch('/users/{user}/deactivate', [UserController::class, 'deactivate'])
+        ->name('users.deactivate');
+
+    Route::resource('users', UserController::class)->except(['show']);
 
     Route::resource('documents', DocumentController::class);
 });
