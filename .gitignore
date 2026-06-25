@@ -25,3 +25,17 @@ _ide_helper.php
 Homestead.json
 Homestead.yaml
 Thumbs.db
+
+# DocumentArchive local script backup artifacts
+# These folders/files are generated temporarily by update scripts and must not be autoloaded or committed.
+app/**/_backup*/
+app/**/.backup*/
+app/**/*.bak
+resources/**/_backup*/
+resources/**/.backup*/
+resources/**/*.bak
+routes/**/_backup*/
+routes/**/.backup*/
+routes/**/*.bak
+*.before-*.bak
+*.backup
