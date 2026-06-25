@@ -53,18 +53,13 @@
                 </div>
             </div>
             <div class="page-actions no-print">
-                @if(auth()->user()?->hasPermission('reports.export'))
                 <a href="{{ route('reports.pdf', request()->query()) }}" class="btn btn-danger">📄 تصدير PDF</a>
-                @endif
                 <a href="{{ route('reports.export', request()->query()) }}" class="btn btn-primary">⬇️ تصدير Excel/CSV</a>
-                @if(auth()->user()?->hasPermission('reports.print'))
                 <button type="button" class="btn btn-secondary" onclick="window.print()">🖨️ طباعة التقرير</button>
-                @endif
             </div>
         </div>
 
         <div class="report-filter-box no-print">
-            @if(auth()->user()?->hasPermission('reports.view'))
             <form method="GET" action="{{ route('reports.index') }}" class="report-filter-grid">
                 <div>
                     <label>من تاريخ</label>
@@ -110,7 +105,6 @@
                     <a class="btn btn-secondary" href="{{ route('reports.index') }}">تصفير</a>
                 </div>
             </form>
-            @endif
         </div>
 
         <div class="reports-grid">
@@ -193,9 +187,7 @@
                                     <div>فرعية: {{ $document->sub_policy_number ?? '-' }}</div>
                                 </td>
                                 <td class="no-print">
-                                    @if(auth()->user()?->hasPermission('documents.view'))
                                     <a class="btn btn-sm btn-secondary" href="{{ route('documents.show', $document) }}">عرض</a>
-                                    @endif
                                 </td>
                             </tr>
                         @empty

@@ -9,12 +9,8 @@
         <p>فحص محتويات ملف النسخة قبل الاعتماد عليه أو استخدامه في الاستعادة.</p>
     </div>
     <div class="page-actions">
-        @if(auth()->user()?->hasPermission('backups.restore'))
         <a href="{{ route('backups.restore', $fileName) }}" class="btn btn-warning">استعادة هذه النسخة</a>
-        @endif
-        @if(auth()->user()?->hasPermission('backups.view'))
         <a href="{{ route('backups.index') }}" class="btn btn-light">رجوع للنسخ الاحتياطي</a>
-        @endif
     </div>
 </div>
 
@@ -24,9 +20,7 @@
             <h3>{{ $fileName }}</h3>
             <p>نوع النسخة المتوقع: <strong>{{ $inferredType }}</strong></p>
         </div>
-        @if(auth()->user()?->hasPermission('backups.download'))
         <a href="{{ route('backups.download', $fileName) }}" class="btn btn-primary">تنزيل النسخة</a>
-        @endif
     </div>
 
     <div class="backup-stats-grid">

@@ -5,9 +5,7 @@
 @section('content')
     <div class="page-title">
         <h1>تعديل نوع مستند</h1>
-        @if(auth()->user()?->hasPermission('document_types.manage'))
         <a href="{{ route('document-types.index') }}" class="btn btn-secondary">رجوع</a>
-        @endif
     </div>
 
     <div class="card">

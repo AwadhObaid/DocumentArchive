@@ -5,9 +5,7 @@
 @section('content')
     <div class="page-title">
         <h1>أنواع المستندات</h1>
-        @if(auth()->user()?->hasPermission('document_types.manage'))
         <a href="{{ route('document-types.create') }}" class="btn btn-primary">+ إضافة نوع</a>
-        @endif
     </div>
 
     <div class="card">
@@ -38,9 +36,7 @@
                     <td>{{ $type->documents_count }}</td>
                     <td>
                         <div class="actions">
-                            @if(auth()->user()?->hasPermission('document_types.manage'))
                             <a href="{{ route('document-types.edit', $type) }}" class="btn btn-primary">تعديل</a>
-                            @endif
                             <form method="POST" action="{{ route('document-types.destroy', $type) }}" data-confirm="هل أنت متأكد من حذف أو تعطيل هذا النوع؟">
                                 @csrf
                                 @method('DELETE')

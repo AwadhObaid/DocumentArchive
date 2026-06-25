@@ -8,15 +8,12 @@
     <div class="page-title">
         <h1>الكتب</h1>
 
-        @if(auth()->user()?->hasPermission('documents.create'))
         <a href="{{ route('documents.create') }}" class="btn btn-primary">
             + إضافة كتاب جديد
         </a>
-        @endif
     </div>
 
     <div class="card">
-        @if(auth()->user()?->hasPermission('documents.view'))
         <form method="GET" action="{{ route('documents.index') }}">
             <div class="form-grid">
                 <div class="form-group">
@@ -67,7 +64,6 @@
                 </div>
             </div>
         </form>
-        @endif
     </div>
 
     <div class="card">
@@ -97,32 +93,20 @@
                     <td><span class="badge">{{ $document->status_name }}</span></td>
                     <td>
                         <div class="actions">
-                            @if(auth()->user()?->hasPermission('documents.view'))
                             <a class="btn btn-secondary" href="{{ route('documents.show', $document) }}">عرض</a>
-                            @endif
-                            @if(auth()->user()?->hasPermission('documents.update'))
                             <a class="btn btn-primary" href="{{ route('documents.edit', $document) }}">تعديل</a>
-                            @endif
-                            @if(auth()->user()?->hasPermission('documents.print_reference'))
                             <a class="btn btn-warning" target="_blank" href="{{ route('documents.print-reference', $document) }}">طباعة رقم الكتاب</a>
-                            @endif
 
                             @if($document->mainAttachment)
-                                @if(auth()->user()?->hasPermission('attachments.preview'))
                                 <a href="{{ route('attachments.preview', $document->mainAttachment) }}" class="btn btn-info">استعراض</a>
-                                @endif
-                                @if(auth()->user()?->hasPermission('attachments.download'))
                                 <a href="{{ route('attachments.download', $document->mainAttachment) }}" class="btn btn-secondary">تنزيل</a>
-                                @endif
                             @endif
 
-                            @if(auth()->user()?->hasPermission('documents.delete'))
                             <form method="POST" action="{{ route('documents.destroy', $document) }}" data-confirm="هل أنت متأكد من حذف هذا الكتاب؟ سيتم نقله إلى سلة المحذوفات.">
                                 @csrf
                                 @method('DELETE')
                                 <button type="submit" class="btn btn-danger">حذف</button>
                             </form>
-                            @endif
                         </div>
                     </td>
                 </tr>

@@ -7,7 +7,9 @@
 @section('content')
     <div class="page-title">
         <h2>إضافة مستخدم</h2>
+        @if(auth()->user()?->hasPermission('users.manage'))
         <a href="{{ route('users.index') }}" class="btn btn-secondary">رجوع</a>
+        @endif
     </div>
 
     <div class="card">

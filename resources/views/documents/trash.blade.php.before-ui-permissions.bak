@@ -6,9 +6,7 @@
     <div class="page-title">
         <h1>سلة المحذوفات</h1>
 
-        @if(auth()->user()?->hasPermission('documents.view'))
         <a href="{{ route('documents.index') }}" class="btn btn-secondary">رجوع للكتب</a>
-        @endif
     </div>
 
     <div class="card">
@@ -33,20 +31,16 @@
                     <td>{{ $document->deleted_at?->format('d/m/Y H:i') }}</td>
                     <td>
                         <div class="actions">
-                            @if(auth()->user()?->hasPermission('documents.restore'))
                             <form method="POST" action="{{ route('documents.restore', $document->id) }}">
                                 @csrf
                                 <button type="submit" class="btn btn-success">استعادة</button>
                             </form>
-                            @endif
 
-                            @if(auth()->user()?->hasPermission('documents.force_delete'))
                             <form method="POST" action="{{ route('documents.force-delete', $document->id) }}" data-confirm="تحذير: سيتم حذف الكتاب ومرفقاته نهائياً. هل أنت متأكد؟">
                                 @csrf
                                 @method('DELETE')
                                 <button type="submit" class="btn btn-danger">حذف نهائي</button>
                             </form>
-                            @endif
                         </div>
                     </td>
                 </tr>

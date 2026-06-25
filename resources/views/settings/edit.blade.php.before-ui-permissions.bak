@@ -6,15 +6,12 @@
     <div class="page-title">
         <h1>الإعدادات</h1>
 
-        @if(auth()->user()?->hasPermission('documents.view'))
         <a href="{{ route('documents.index') }}" class="btn btn-secondary">
             رجوع للمستندات
         </a>
-        @endif
     </div>
 
     <div class="card">
-        @if(auth()->user()?->hasPermission('settings.manage'))
         <form method="POST" action="{{ route('settings.update') }}">
             @csrf
 
@@ -70,7 +67,6 @@
                 </button>
             </div>
         </form>
-        @endif
     </div>
 
     <div class="card">

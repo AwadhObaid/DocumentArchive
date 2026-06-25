@@ -17,18 +17,12 @@
 
         <div class="actions">
             @if($attachment->document && !$attachment->document->trashed())
-                @if(auth()->user()?->hasPermission('documents.view'))
                 <a href="{{ route('documents.show', $attachment->document) }}" class="btn btn-secondary">رجوع للكتاب</a>
-                @endif
             @else
-                @if(auth()->user()?->hasPermission('documents.restore'))
                 <a href="{{ route('documents.trash') }}" class="btn btn-secondary">رجوع لسلة المحذوفات</a>
-                @endif
             @endif
 
-            @if(auth()->user()?->hasPermission('attachments.download'))
             <a href="{{ route('attachments.download', $attachment) }}" class="btn btn-primary">تنزيل المرفق</a>
-            @endif
             <a href="{{ $inlineUrl }}" target="_blank" class="btn btn-warning">فتح في تبويب جديد</a>
         </div>
     </div>
@@ -73,9 +67,7 @@
             <div class="empty-state">
                 <h3>لا يمكن معاينة هذا النوع مباشرة داخل المتصفح</h3>
                 <p>يمكنك تنزيل الملف وفتحه من جهازك.</p>
-                @if(auth()->user()?->hasPermission('attachments.download'))
                 <a href="{{ route('attachments.download', $attachment) }}" class="btn btn-primary">تنزيل المرفق</a>
-                @endif
             </div>
         @endif
     </div>

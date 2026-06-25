@@ -22,34 +22,28 @@
     <div class="card">
         <h3>نسخة قاعدة البيانات</h3>
         <p>تصدير جداول النظام إلى ملف SQL داخل ZIP.</p>
-        @if(auth()->user()?->hasPermission('backups.create'))
         <form method="POST" action="{{ route('backups.database') }}">
             @csrf
             <button type="submit" class="btn btn-primary">إنشاء نسخة قاعدة البيانات</button>
         </form>
-        @endif
     </div>
 
     <div class="card">
         <h3>نسخة ملفات المرفقات</h3>
         <p>نسخ ملفات الكتب والمرفقات من التخزين الخاص.</p>
-        @if(auth()->user()?->hasPermission('backups.create'))
         <form method="POST" action="{{ route('backups.files') }}">
             @csrf
             <button type="submit" class="btn btn-secondary">إنشاء نسخة الملفات</button>
         </form>
-        @endif
     </div>
 
     <div class="card">
         <h3>نسخة كاملة</h3>
         <p>قاعدة البيانات + ملفات المرفقات في ملف ZIP واحد.</p>
-        @if(auth()->user()?->hasPermission('backups.create'))
         <form method="POST" action="{{ route('backups.full') }}">
             @csrf
             <button type="submit" class="btn btn-success">إنشاء نسخة كاملة</button>
         </form>
-        @endif
     </div>
 </div>
 
@@ -81,22 +75,14 @@
                         <td>{{ $backup['size'] }}</td>
                         <td>{{ $backup['created_at'] }}</td>
                         <td class="table-actions">
-                            @if(auth()->user()?->hasPermission('backups.view'))
                             <a href="{{ route('backups.inspect', $backup['name']) }}" class="btn btn-sm btn-info">فحص</a>
-                            @endif
-                            @if(auth()->user()?->hasPermission('backups.restore'))
                             <a href="{{ route('backups.restore', $backup['name']) }}" class="btn btn-sm btn-warning">استعادة</a>
-                            @endif
-                            @if(auth()->user()?->hasPermission('backups.download'))
                             <a href="{{ route('backups.download', $backup['name']) }}" class="btn btn-sm btn-primary">تنزيل</a>
-                            @endif
-                            @if(auth()->user()?->hasPermission('backups.delete'))
                             <form method="POST" action="{{ route('backups.destroy', $backup['name']) }}" class="d-inline" onsubmit="return confirm('هل تريد حذف ملف النسخة الاحتياطية؟')">
                                 @csrf
                                 @method('DELETE')
                                 <button type="submit" class="btn btn-sm btn-danger">حذف</button>
                             </form>
-                            @endif
                         </td>
                     </tr>
                 @empty

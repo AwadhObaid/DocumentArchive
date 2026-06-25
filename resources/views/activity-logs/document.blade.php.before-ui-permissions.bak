@@ -9,12 +9,8 @@
         <h1>سجل حركة الكتاب رقم {{ $document->reference_number }}</h1>
 
         <div class="actions">
-            @if(auth()->user()?->hasPermission('documents.view'))
             <a href="{{ route('documents.show', $document) }}" class="btn btn-secondary">رجوع للكتاب</a>
-            @endif
-            @if(auth()->user()?->hasPermission('activity_logs.view'))
             <a href="{{ route('activity-logs.index') }}" class="btn btn-primary">سجل النشاط العام</a>
-            @endif
         </div>
     </div>
 

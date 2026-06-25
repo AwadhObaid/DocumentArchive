@@ -9,18 +9,10 @@
         <h1>عرض الكتاب</h1>
 
         <div class="actions">
-            @if(auth()->user()?->hasPermission('documents.view'))
             <a href="{{ route('documents.index') }}" class="btn btn-secondary">رجوع</a>
-            @endif
-            @if(auth()->user()?->hasPermission('documents.update'))
             <a href="{{ route('documents.edit', $document) }}" class="btn btn-primary">تعديل</a>
-            @endif
-            @if(auth()->user()?->hasPermission('activity_logs.view'))
             <a href="{{ route('documents.activity', $document) }}" class="btn btn-info">سجل الحركة</a>
-            @endif
-            @if(auth()->user()?->hasPermission('documents.print_reference'))
             <a href="{{ route('documents.print-reference', $document) }}" target="_blank" class="btn btn-warning">طباعة رقم الكتاب</a>
-            @endif
         </div>
     </div>
 
@@ -65,12 +57,8 @@
                 </div>
 
                 <div class="actions">
-                    @if(auth()->user()?->hasPermission('attachments.preview'))
                     <a href="{{ route('attachments.preview', $attachment) }}" class="btn btn-info">استعراض</a>
-                    @endif
-                    @if(auth()->user()?->hasPermission('attachments.download'))
                     <a href="{{ route('attachments.download', $attachment) }}" class="btn btn-secondary">تنزيل المرفق</a>
-                    @endif
                 </div>
             </div>
         @empty

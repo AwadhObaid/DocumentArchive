@@ -7,9 +7,7 @@
         <h1>تعديل الكتاب</h1>
 
         <div class="actions">
-            @if(auth()->user()?->hasPermission('documents.view'))
             <a href="{{ route('documents.show', $document) }}" class="btn btn-secondary">عرض</a>
-            @endif
             <a href="{{ route('documents.index') }}" class="btn btn-secondary">رجوع</a>
         </div>
     </div>
@@ -17,7 +15,6 @@
     <div class="card">
         <h2>رقم الكتاب: {{ $document->reference_number }}</h2>
 
-        @if(auth()->user()?->hasPermission('documents.update'))
         <form method="POST" action="{{ route('documents.update', $document) }}" enctype="multipart/form-data">
             @csrf
             @method('PUT')
@@ -133,6 +130,5 @@
                 </button>
             </div>
         </form>
-        @endif
     </div>
 @endsection

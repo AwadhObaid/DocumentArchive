@@ -218,16 +218,12 @@
 
 <div class="mb-3 d-flex flex-wrap gap-2">
     @if($document)
-        @if(auth()->user()?->hasPermission('documents.view'))
         <a href="{{ route('documents.show', $document) }}" class="btn btn-light">رجوع للكتاب</a>
-        @endif
     @else
         <a href="{{ url()->previous() }}" class="btn btn-light">رجوع</a>
     @endif
 
-    @if(auth()->user()?->hasPermission('attachments.download'))
     <a href="{{ route('attachments.download', $attachment) }}" class="btn btn-primary">تنزيل المرفق</a>
-    @endif
 </div>
 
 <div class="attachment-preview-shell">
@@ -247,9 +243,7 @@
         <button type="button" class="btn-soft-muted" id="zoomOutBtn">- تصغير</button>
         <button type="button" class="btn-soft-muted" id="zoomInBtn">+ تكبير</button>
         <button type="button" class="btn-soft-muted" id="reloadPreviewBtn">↻ تحديث</button>
-        @if(auth()->user()?->hasPermission('attachments.download'))
         <a class="btn-soft-primary" href="{{ route('attachments.download', $attachment) }}">⬇ تنزيل</a>
-        @endif
     </div>
 
     <div class="attachment-viewer-box" id="attachmentViewerBox">

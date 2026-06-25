@@ -8,11 +8,9 @@
     <div class="page-title">
         <h2>المستخدمون</h2>
 
-        @if(auth()->user()?->hasPermission('users.manage'))
         <a href="{{ route('users.create') }}" class="btn btn-primary">
             + إضافة مستخدم
         </a>
-        @endif
     </div>
 
     <div class="card">
@@ -46,9 +44,7 @@
                     <label>&nbsp;</label>
                     <div class="actions">
                         <button class="btn btn-primary">بحث</button>
-                        @if(auth()->user()?->hasPermission('users.manage'))
                         <a href="{{ route('users.index') }}" class="btn btn-secondary">إلغاء</a>
-                        @endif
                     </div>
                 </div>
             </div>
@@ -84,9 +80,7 @@
                     <td>{{ $user->last_login_at?->format('d/m/Y H:i') ?? '-' }}</td>
                     <td>
                         <div class="actions">
-                            @if(auth()->user()?->hasPermission('users.manage'))
                             <a href="{{ route('users.edit', $user) }}" class="btn btn-primary">تعديل</a>
-                            @endif
                             <a href="{{ route('users.password.edit', $user) }}" class="btn btn-warning">كلمة المرور</a>
 
                             @if($user->is_active)
@@ -96,13 +90,11 @@
                                     <button class="btn btn-danger" type="submit">تعطيل</button>
                                 </form>
                             @else
-                                @if(auth()->user()?->hasPermission('users.manage'))
                                 <form method="POST" action="{{ route('users.activate', $user) }}">
                                     @csrf
                                     @method('PATCH')
                                     <button class="btn btn-success" type="submit">تفعيل</button>
                                 </form>
-                                @endif
                             @endif
                         </div>
                     </td>

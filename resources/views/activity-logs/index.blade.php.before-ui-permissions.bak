@@ -10,7 +10,6 @@
     </div>
 
     <div class="card">
-        @if(auth()->user()?->hasPermission('activity_logs.view'))
         <form method="GET" action="{{ route('activity-logs.index') }}">
             <div class="form-grid">
                 <div class="form-group">
@@ -61,7 +60,6 @@
                 </div>
             </div>
         </form>
-        @endif
     </div>
 
     <div class="card">

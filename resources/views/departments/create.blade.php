@@ -5,7 +5,9 @@
 @section('content')
     <div class="page-title">
         <h1>إضافة إدارة</h1>
+        @if(auth()->user()?->hasPermission('departments.manage'))
         <a href="{{ route('departments.index') }}" class="btn btn-secondary">رجوع</a>
+        @endif
     </div>
 
     <div class="card">

@@ -91,9 +91,7 @@
 
 <div class="screen-actions">
     <button onclick="window.print()">طباعة</button>
-    @if(auth()->user()?->hasPermission('documents.view'))
     <a href="{{ route('documents.show', $document) }}">رجوع</a>
-    @endif
 </div>
 
 <div class="page">

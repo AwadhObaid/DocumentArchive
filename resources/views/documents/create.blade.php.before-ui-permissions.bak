@@ -6,15 +6,12 @@
     <div class="page-title">
         <h1>إضافة كتاب جديد</h1>
 
-        @if(auth()->user()?->hasPermission('documents.view'))
         <a href="{{ route('documents.index') }}" class="btn btn-secondary">
             رجوع
         </a>
-        @endif
     </div>
 
     <div class="card">
-        @if(auth()->user()?->hasPermission('documents.create'))
         <form method="POST" action="{{ route('documents.store') }}" enctype="multipart/form-data">
             @csrf
 
@@ -119,6 +116,5 @@
                 </button>
             </div>
         </form>
-        @endif
     </div>
 @endsection

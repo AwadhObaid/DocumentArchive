@@ -9,9 +9,7 @@
         <p>اختر نوع الاستعادة بعد مراجعة محتويات النسخة. سيتم إنشاء نسخة أمان تلقائياً قبل الاستعادة.</p>
     </div>
     <div class="page-actions">
-        @if(auth()->user()?->hasPermission('backups.view'))
         <a href="{{ route('backups.inspect', $fileName) }}" class="btn btn-info">فحص النسخة</a>
-        @endif
         <a href="{{ route('backups.index') }}" class="btn btn-light">رجوع</a>
     </div>
 </div>
@@ -51,13 +49,11 @@
         <h3>استعادة قاعدة البيانات</h3>
         <p>تستبدل جداول النظام الحالية بالبيانات الموجودة داخل ملف SQL في النسخة.</p>
         @if(count($sqlFiles) > 0)
-            @if(auth()->user()?->hasPermission('backups.restore'))
             <form method="POST" action="{{ route('backups.restore.database', $fileName) }}" onsubmit="return confirm('تأكيد نهائي: هل تريد استعادة قاعدة البيانات؟')">
                 @csrf
                 @include('backups.restore-confirm-fields')
                 <button type="submit" class="btn btn-danger">استعادة قاعدة البيانات</button>
             </form>
-            @endif
         @else
             <div class="alert alert-warning">لا يوجد ملف SQL داخل هذه النسخة.</div>
         @endif
@@ -67,13 +63,11 @@
         <h3>استعادة ملفات المرفقات</h3>
         <p>تستبدل مجلد المرفقات الحالي بمجلد <strong>documents</strong> الموجود داخل النسخة.</p>
         @if($documentFilesCount > 0)
-            @if(auth()->user()?->hasPermission('backups.restore'))
             <form method="POST" action="{{ route('backups.restore.files', $fileName) }}" onsubmit="return confirm('تأكيد نهائي: هل تريد استعادة ملفات المرفقات؟')">
                 @csrf
                 @include('backups.restore-confirm-fields')
                 <button type="submit" class="btn btn-danger">استعادة ملفات المرفقات</button>
             </form>
-            @endif
         @else
             <div class="alert alert-warning">لا توجد ملفات مرفقات داخل هذه النسخة.</div>
         @endif
@@ -83,13 +77,11 @@
         <h3>استعادة نسخة كاملة</h3>
         <p>تستعيد قاعدة البيانات وملفات المرفقات معاً. استخدم هذا الخيار للنسخ الكاملة فقط.</p>
         @if(count($sqlFiles) > 0 && $documentFilesCount > 0)
-            @if(auth()->user()?->hasPermission('backups.restore'))
             <form method="POST" action="{{ route('backups.restore.full', $fileName) }}" onsubmit="return confirm('تأكيد نهائي: هل تريد استعادة النسخة الكاملة؟')">
                 @csrf
                 @include('backups.restore-confirm-fields')
                 <button type="submit" class="btn btn-danger">استعادة النسخة الكاملة</button>
             </form>
-            @endif
         @else
             <div class="alert alert-warning">هذه النسخة لا تحتوي على قاعدة بيانات ومرفقات معاً.</div>
         @endif

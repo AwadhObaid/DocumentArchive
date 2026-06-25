@@ -38,7 +38,7 @@
             </div>
         </div>
 
-        @if(auth()->user()?->hasPermission('users.manage'))
+        @if(auth()->user()?->role === 'admin')
             <div class="stat-card">
                 <span>👥</span>
                 <div>
@@ -52,9 +52,7 @@
     <div class="card">
         <div class="page-title">
             <h2>آخر الكتب</h2>
-            @if(auth()->user()?->hasPermission('documents.create'))
             <a href="{{ route('documents.create') }}" class="btn btn-primary">+ إضافة كتاب</a>
-            @endif
         </div>
 
         <table>
@@ -78,9 +76,7 @@
                     <td>{{ $document->main_policy_number ?? '-' }}</td>
                     <td>{{ $document->department?->name ?? '-' }}</td>
                     <td>
-                        @if(auth()->user()?->hasPermission('documents.view'))
                         <a class="btn btn-secondary" href="{{ route('documents.show', $document) }}">عرض</a>
-                        @endif
                     </td>
                 </tr>
             @empty
