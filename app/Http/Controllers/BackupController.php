@@ -6,9 +6,6 @@ use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\File;
-use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\Hash;
-use Illuminate\Support\Facades\Schema;
 use Illuminate\View\View;
 use Throwable;
 use ZipArchive;
@@ -162,15 +159,13 @@ class BackupController extends Controller
         try {
             $this->createPreRestoreDatabaseBackup();
             $this->restoreDatabaseFromZip($fileName);
-            $this->ensureDefaultAdminAfterRestore();
 
-            return $this->finishRestoreAndLogout(
-                $request,
-                'تمت استعادة قاعدة البيانات بنجاح. تم إنشاء نسخة أمان قبل الاستعادة، وتم ضبط حساب المدير الافتراضي. الرجاء تسجيل الدخول من جديد.'
-            );
+            return redirect()
+                ->route('backups.index')
+                ->with('success', 'تمت استعادة بيانات الأرشيف بنجاح. لم يتم تغيير المستخدمين أو كلمات المرور.');
         } catch (Throwable $e) {
             report($e);
-            return back()->with('error', 'فشلت استعادة قاعدة البيانات: ' . $e->getMessage());
+            return back()->with('error', 'فشلت استعادة بيانات الأرشيف: ' . $e->getMessage());
         }
     }
 
@@ -205,13 +200,11 @@ class BackupController extends Controller
             $this->createPreRestoreDatabaseBackup();
             $this->createPreRestoreFilesBackup();
             $this->restoreDatabaseFromZip($fileName);
-            $this->ensureDefaultAdminAfterRestore();
             $this->restoreDocumentsFromZip($fileName);
 
-            return $this->finishRestoreAndLogout(
-                $request,
-                'تمت استعادة النسخة الكاملة بنجاح. تم إنشاء نسخ أمان قبل الاستعادة، وتم ضبط حساب المدير الافتراضي. الرجاء تسجيل الدخول من جديد.'
-            );
+            return redirect()
+                ->route('backups.index')
+                ->with('success', 'تمت استعادة بيانات الأرشيف والمرفقات بنجاح. المستخدمون وكلمات المرور لم يتم تغييرهم.');
         } catch (Throwable $e) {
             report($e);
             return back()->with('error', 'فشلت استعادة النسخة الكاملة: ' . $e->getMessage());
@@ -373,8 +366,11 @@ class BackupController extends Controller
         }
 
         $this->assertRestorableDatabaseDump($sql, $currentDriver);
+        $this->assertArchiveSchemaReady($currentDriver);
 
-        $this->runSqlDump($sql, $currentDriver);
+        // استعادة بيانات الأرشيف فقط بدون حذف أو إعادة إنشاء جداول النظام.
+        // هذا يحافظ على users / sessions / cache / jobs / migrations كما هي.
+        $this->restoreArchiveDataOnly($sql, $currentDriver);
     }
 
     private function restoreDocumentsFromZip(string $fileName): void
@@ -452,62 +448,11 @@ class BackupController extends Controller
 
     private function runSqlDump(string $sql, string $driver): void
     {
-        $statements = $this->splitSqlStatements($sql);
-
-        if ($driver === 'mysql') {
-            DB::statement('SET FOREIGN_KEY_CHECKS=0');
-
-            try {
-                // MySQL DDL statements auto-commit, so a normal transaction is not a safe rollback mechanism here.
-                // We validate the dump before reaching this point, then replace the existing tables.
-                $this->dropExistingTablesBeforeRestore($driver);
-
-                foreach ($statements as $statement) {
-                    $statement = $this->removeLeadingSqlComments(trim($statement));
-
-                    if ($this->shouldSkipRestoreStatement($statement)) {
-                        continue;
-                    }
-
-                    DB::unprepared($statement);
-                }
-            } finally {
-                DB::statement('SET FOREIGN_KEY_CHECKS=1');
-            }
-
-            return;
-        }
-
-        if ($driver === 'sqlite') {
-            // Keep SQLite support only as a fallback. Project production/local target is MySQL.
-            DB::statement('PRAGMA foreign_keys = OFF');
-            DB::beginTransaction();
-
-            try {
-                $this->dropExistingTablesBeforeRestore($driver);
-
-                foreach ($statements as $statement) {
-                    $statement = $this->removeLeadingSqlComments(trim($statement));
-
-                    if ($this->shouldSkipRestoreStatement($statement)) {
-                        continue;
-                    }
-
-                    DB::unprepared($statement);
-                }
-
-                DB::commit();
-            } catch (Throwable $e) {
-                DB::rollBack();
-                throw $e;
-            } finally {
-                DB::statement('PRAGMA foreign_keys = ON');
-            }
-
-            return;
-        }
-
-        throw new \RuntimeException('نوع قاعدة البيانات غير مدعوم في الاستعادة: ' . $driver);
+        // لم تعد الاستعادة اليومية تعيد إنشاء الجداول أو تحذف جداول النظام.
+        // نستخدم هذه الدالة كغلاف آمن لاستعادة بيانات الأرشيف فقط.
+        $this->assertRestorableDatabaseDump($sql, $driver);
+        $this->assertArchiveSchemaReady($driver);
+        $this->restoreArchiveDataOnly($sql, $driver);
     }
 
     private function shouldSkipRestoreStatement(string $statement): bool
@@ -558,27 +503,140 @@ class BackupController extends Controller
             throw new \RuntimeException(
                 'لا يمكن إنشاء نسخة احتياطية لأن قاعدة البيانات الحالية غير مكتملة. الجداول الناقصة: '
                 . implode(', ', $missingTables)
-                . '. أعد بناء قاعدة MySQL أولاً ثم أنشئ نسخة جديدة. لا تعتمد على نسخة أُنشئت أثناء فشل استعادة سابق.'
+                . '. نفّذ php artisan migrate أو استعد نسخة سليمة أولاً.'
             );
         }
     }
 
     private function requiredTablesForSafeRestore(string $driver): array
     {
-        // Core application tables only.
-        // Session/cache/queue tables are not required here because the project runtime is configured as:
-        // SESSION_DRIVER=file, CACHE_STORE=file, QUEUE_CONNECTION=sync.
+        return $this->archiveDataTables();
+    }
+
+    private function archiveDataTables(): array
+    {
         return [
-            'migrations',
-            'users',
             'departments',
             'document_types',
-            'documents',
-            'document_attachments',
             'settings',
             'reference_counters',
+            'documents',
+            'document_attachments',
             'activity_logs',
         ];
+    }
+
+    private function archiveDataDeleteOrder(): array
+    {
+        return [
+            'activity_logs',
+            'document_attachments',
+            'documents',
+            'reference_counters',
+            'settings',
+            'document_types',
+            'departments',
+        ];
+    }
+
+    private function assertArchiveSchemaReady(string $driver): void
+    {
+        $existingTables = $this->currentDatabaseTables($driver);
+        $missingTables = [];
+
+        foreach ($this->archiveDataTables() as $table) {
+            if (!in_array($table, $existingTables, true)) {
+                $missingTables[] = $table;
+            }
+        }
+
+        if (!empty($missingTables)) {
+            throw new \RuntimeException(
+                'قاعدة البيانات الحالية غير مكتملة ولا يمكن الاستعادة فوقها بأمان. الجداول الناقصة: '
+                . implode(', ', $missingTables)
+                . '. أعد بناء القاعدة بالأوامر: php artisan db:wipe --force ثم php artisan migrate ثم php artisan db:seed --class=AdminUserSeeder.'
+            );
+        }
+    }
+
+    private function restoreArchiveDataOnly(string $sql, string $driver): void
+    {
+        if (!in_array($driver, ['mysql', 'sqlite'], true)) {
+            throw new \RuntimeException('نوع قاعدة البيانات غير مدعوم في الاستعادة: ' . $driver);
+        }
+
+        $statements = $this->splitSqlStatements($sql);
+        $insertStatements = [];
+
+        foreach ($statements as $statement) {
+            $statement = $this->removeLeadingSqlComments(trim($statement));
+
+            if ($statement === '') {
+                continue;
+            }
+
+            $table = $this->extractInsertTableName($statement, $driver);
+            if ($table !== null && in_array($table, $this->archiveDataTables(), true)) {
+                $insertStatements[] = $statement;
+            }
+        }
+
+        DB::beginTransaction();
+
+        try {
+            if ($driver === 'mysql') {
+                DB::statement('SET FOREIGN_KEY_CHECKS=0');
+            } elseif ($driver === 'sqlite') {
+                DB::statement('PRAGMA foreign_keys = OFF');
+            }
+
+            foreach ($this->archiveDataDeleteOrder() as $table) {
+                DB::table($table)->delete();
+            }
+
+            foreach ($insertStatements as $statement) {
+                DB::unprepared($statement);
+            }
+
+            if ($driver === 'mysql') {
+                DB::statement('SET FOREIGN_KEY_CHECKS=1');
+            } elseif ($driver === 'sqlite') {
+                DB::statement('PRAGMA foreign_keys = ON');
+            }
+
+            DB::commit();
+        } catch (Throwable $e) {
+            DB::rollBack();
+
+            try {
+                if ($driver === 'mysql') {
+                    DB::statement('SET FOREIGN_KEY_CHECKS=1');
+                } elseif ($driver === 'sqlite') {
+                    DB::statement('PRAGMA foreign_keys = ON');
+                }
+            } catch (Throwable) {
+                // تجاهل أي خطأ إضافي أثناء إعادة تفعيل فحص العلاقات.
+            }
+
+            throw $e;
+        }
+    }
+
+    private function extractInsertTableName(string $statement, string $driver): ?string
+    {
+        if ($driver === 'mysql') {
+            if (preg_match('/^INSERT\s+INTO\s+`([^`]+)`/i', $statement, $matches)) {
+                return $matches[1];
+            }
+        }
+
+        if ($driver === 'sqlite') {
+            if (preg_match('/^INSERT\s+INTO\s+"([^"]+)"/i', $statement, $matches)) {
+                return $matches[1];
+            }
+        }
+
+        return null;
     }
 
     private function dumpContainsCreateTable(string $sql, string $table, string $driver): bool
@@ -876,15 +934,11 @@ class BackupController extends Controller
 
     private function buildMysqlDump(array $sql, string $database): string
     {
-        $tables = collect(DB::select('SHOW TABLES'))
-            ->map(function ($row) use ($database) {
-                $key = 'Tables_in_' . $database;
-                return $row->{$key} ?? array_values((array) $row)[0] ?? null;
-            })
-            ->filter()
-            ->values();
-
-        $tables = $this->sortTablesForDump($tables->all());
+        $existingTables = $this->currentDatabaseTables('mysql');
+        $tables = array_values(array_filter(
+            $this->sortTablesForDump($this->archiveDataTables()),
+            fn (string $table) => in_array($table, $existingTables, true)
+        ));
 
         foreach ($tables as $table) {
             $escapedTable = str_replace('`', '``', (string) $table);
@@ -914,11 +968,11 @@ class BackupController extends Controller
 
     private function buildSqliteDump(array $sql): string
     {
-        $tables = collect(DB::select("SELECT name FROM sqlite_master WHERE type='table' AND name NOT LIKE 'sqlite_%'"))
-            ->pluck('name')
-            ->values();
-
-        $tables = $this->sortTablesForDump($tables->all());
+        $existingTables = $this->currentDatabaseTables('sqlite');
+        $tables = array_values(array_filter(
+            $this->sortTablesForDump($this->archiveDataTables()),
+            fn (string $table) => in_array($table, $existingTables, true)
+        ));
 
         foreach ($tables as $table) {
             $escapedTable = str_replace('"', '""', (string) $table);
@@ -1077,58 +1131,13 @@ class BackupController extends Controller
 
     /**
      * يمنع قفل النظام بعد استعادة قاعدة البيانات.
-     * بعد أي استعادة لقاعدة البيانات يتم ضمان وجود حساب مدير ثابت باللغة الإنجليزية
-     * لتجنب مشاكل ترميز الأدوار العربية داخل PowerShell أو النسخ الاحتياطية.
+     * بعد أي استعادة لقاعدة البيانات يتم التأكد من وجود حساب المدير الافتراضي
+     * بكلمة مرور معروفة، مع عدم التأثير على باقي المستخدمين.
      */
     private function ensureDefaultAdminAfterRestore(): void
     {
-        if (!Schema::hasTable('users')) {
-            throw new \RuntimeException('تمت قراءة ملف الاستعادة، لكن جدول users غير موجود بعد الاستعادة.');
-        }
-
-        $now = now();
-
-        $adminData = [
-            'name' => 'Admin',
-            'email' => null,
-            'phone' => null,
-            'role' => 'admin',
-            'is_active' => 1,
-            'password' => Hash::make('12345678'),
-            'remember_token' => null,
-            'updated_at' => $now,
-        ];
-
-        $existingAdmin = DB::table('users')->where('username', 'admin')->first();
-
-        if ($existingAdmin) {
-            DB::table('users')
-                ->where('username', 'admin')
-                ->update($adminData);
-
-            return;
-        }
-
-        $adminData['username'] = 'admin';
-        $adminData['created_at'] = $now;
-
-        DB::table('users')->insert($adminData);
-    }
-
-    /**
-     * بعد استعادة قاعدة البيانات يجب إنهاء الجلسة القديمة لأن جدول المستخدمين تغيّر.
-     * هذا يمنع بقاء Session مرتبطة بمستخدم تم استبداله أثناء الاستعادة.
-     */
-    private function finishRestoreAndLogout(Request $request, string $message): RedirectResponse
-    {
-        Auth::logout();
-
-        $request->session()->invalidate();
-        $request->session()->regenerateToken();
-
-        return redirect()
-            ->route('login')
-            ->with('success', $message);
+        // لم تعد الاستعادة اليومية تغير جدول users نهائياً.
+        // تبقى الدالة موجودة للتوافق مع أي استدعاءات قديمة فقط.
     }
     private function formatBytes(int $bytes): string
     {
