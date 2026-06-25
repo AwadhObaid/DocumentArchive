@@ -1,0 +1,45 @@
+.da-invalid-field,
+.is-invalid.da-invalid-field {
+    border-color: #ef4444 !important;
+    box-shadow: 0 0 0 0.15rem rgba(239, 68, 68, 0.18) !important;
+}
+
+.da-validation-message {
+    margin-top: 7px;
+    color: #fecaca;
+    background: rgba(127, 29, 29, 0.35);
+    border: 1px solid rgba(248, 113, 113, 0.45);
+    border-radius: 10px;
+    padding: 8px 10px;
+    font-size: 13px;
+    line-height: 1.7;
+    text-align: right;
+    direction: rtl;
+}
+
+.da-validation-toast {
+    position: fixed;
+    z-index: 99999;
+    top: 22px;
+    left: 50%;
+    transform: translate(-50%, -20px);
+    opacity: 0;
+    pointer-events: none;
+    min-width: min(420px, calc(100vw - 28px));
+    max-width: calc(100vw - 28px);
+    background: #7f1d1d;
+    color: #fff;
+    border: 1px solid rgba(248, 113, 113, 0.7);
+    box-shadow: 0 18px 45px rgba(0, 0, 0, 0.28);
+    border-radius: 16px;
+    padding: 13px 16px;
+    text-align: center;
+    direction: rtl;
+    font-weight: 800;
+    transition: opacity .18s ease, transform .18s ease;
+}
+
+.da-validation-toast.show {
+    opacity: 1;
+    transform: translate(-50%, 0);
+}

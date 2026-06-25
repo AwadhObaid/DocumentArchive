@@ -8,8 +8,6 @@
     <link rel="stylesheet" href="{{ asset('css/app.css') }}">
     <link rel="stylesheet" href="{{ asset('css/cairo-global.css') }}">
     <link rel="stylesheet" href="{{ asset('css/arabic-file-input.css') }}">
-    {{-- Arabic browser/form validation messages --}}
-    <link rel="stylesheet" href="{{ asset('css/arabic-validation.css') }}">
 </head>
 <body>
 
@@ -121,8 +119,6 @@
 <script src="{{ asset('js/app.js') }}"></script>
     <script src="{{ asset('js/arabic-file-input.js') }}" defer></script>
 
-    {{-- Arabic browser/form validation messages --}}
-    <script src="{{ asset('js/arabic-form-validation.js') }}" defer></script>
 </body>
 </html>
 
