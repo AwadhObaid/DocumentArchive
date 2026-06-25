@@ -570,15 +570,7 @@ class DocumentController extends Controller
      * فحص تكرار رقم البوليصة الرئيسية/الفرعية أثناء الإدخال.
      * ملاحظة: لا يمنع التكرار في قاعدة البيانات، بل يعطي الواجهة قرار نعم/لا للمستخدم.
      */
-        /**
-     * فحص تكرار رقم البوليصة الرئيسية/الفرعية أثناء الإدخال.
-     * لا يمنع التكرار من قاعدة البيانات؛ الواجهة تسأل المستخدم: نعم/لا.
-     */
-        /**
-     * فحص تكرار رقم البوليصة الرئيسية/الفرعية أثناء الإدخال.
-     * لا يمنع التكرار من قاعدة البيانات؛ الواجهة تسأل المستخدم: نعم/لا.
-     */
-    public function checkPolicyDuplicate(\Illuminate\Http\Request $request)
+    public function checkPolicyDuplicate(Request $request)
     {
         $validated = $request->validate([
             'field' => ['nullable', 'in:main_policy_number,sub_policy_number'],
@@ -590,27 +582,40 @@ class DocumentController extends Controller
         $value = trim((string) $validated['value']);
 
         if ($value === '') {
-            return response()->json(['exists' => false, 'message' => null, 'document' => null]);
+            return response()->json([
+                'exists' => false,
+                'message' => null,
+                'document' => null,
+            ]);
         }
 
         try {
             if (!\Illuminate\Support\Facades\Schema::hasTable('documents')) {
-                return response()->json(['exists' => false, 'message' => null, 'document' => null]);
+                return response()->json([
+                    'exists' => false,
+                    'message' => null,
+                    'document' => null,
+                ]);
             }
 
             $hasMain = \Illuminate\Support\Facades\Schema::hasColumn('documents', 'main_policy_number');
             $hasSub = \Illuminate\Support\Facades\Schema::hasColumn('documents', 'sub_policy_number');
 
             if (!$hasMain && !$hasSub) {
-                return response()->json(['exists' => false, 'message' => null, 'document' => null]);
+                return response()->json([
+                    'exists' => false,
+                    'message' => null,
+                    'document' => null,
+                ]);
             }
 
-            $query = \App\Models\Document::query();
+            $query = Document::query();
 
             if (!empty($validated['document_id'])) {
                 $query->where('id', '<>', (int) $validated['document_id']);
             }
 
+            // نفحص الرقم في الحقلين معاً حتى لو أُدخل كرئيسية وكان موجوداً سابقاً كفرعية أو العكس.
             $query->where(function ($q) use ($value, $hasMain, $hasSub) {
                 if ($hasMain) {
                     $q->orWhereRaw("TRIM(COALESCE(main_policy_number, '')) = ?", [$value]);
@@ -623,7 +628,11 @@ class DocumentController extends Controller
             $document = $query->orderByDesc('id')->first();
 
             if (!$document) {
-                return response()->json(['exists' => false, 'message' => null, 'document' => null]);
+                return response()->json([
+                    'exists' => false,
+                    'message' => null,
+                    'document' => null,
+                ]);
             }
 
             $referenceDate = null;

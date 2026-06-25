@@ -124,7 +124,6 @@ Route::middleware(['auth', ApplyRoutePermissions::class])->group(function () {
     Route::get('/reports', [ReportController::class, 'index'])->name('reports.index');
     Route::get('/reports/export', [ReportController::class, 'export'])->name('reports.export');
         Route::get('/reports/pdf', [ReportController::class, 'pdf'])->name('reports.pdf');
-Route::get('/documents/check-policy-duplicate', [DocumentController::class, 'checkPolicyDuplicate'])->name('documents.check-policy-duplicate');
 Route::resource('documents', DocumentController::class);
 });
 
@@ -137,3 +136,5 @@ Route::middleware(['auth', ApplyRoutePermissions::class])->group(function () {
     Route::get('/backups/{fileName}/inspect', [BackupController::class, 'inspect'])->name('backups.inspect');
 });
 
+Route::get('/documents/check-policy-duplicate', [DocumentController::class, 'checkPolicyDuplicate'])
+        ->name('documents.check-policy-duplicate');

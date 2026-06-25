@@ -118,6 +118,7 @@
 
 <script src="{{ asset('js/app.js') }}"></script>
     <script src="{{ asset('js/arabic-file-input.js') }}" defer></script>
+
 </body>
 </html>
 

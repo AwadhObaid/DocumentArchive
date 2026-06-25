@@ -29,150 +29,40 @@ class DocumentController extends Controller
             ->orderBy('name')
             ->get();
 
-        $hasColumn = function (string $column): bool {
-            try {
-                return \Illuminate\Support\Facades\Schema::hasColumn('documents', $column);
-            } catch (\Throwable $e) {
-                return false;
-            }
-        };
-
-        $baseQuery = Document::query()
-            ->with(['department', 'documentType', 'mainAttachment']);
-
-        try {
-            $baseQuery->withCount('attachments');
-        } catch (\Throwable $e) {
-            // في حال كان المشروع يحتوي نسخة قديمة من العلاقات، لا نعطل صفحة الكتب.
-        }
-
-        $applyFilters = function ($query) use ($request, $hasColumn) {
-            if ($request->filled('q')) {
+        $documents = Document::query()
+            ->with(['department', 'documentType', 'mainAttachment'])
+            ->when($request->filled('q'), function ($query) use ($request) {
                 $q = trim((string) $request->q);
-                $query->where(function ($subQuery) use ($q, $hasColumn) {
-                    foreach ([
-                        'reference_number',
-                        'title',
-                        'subject',
-                        'sender',
-                        'receiver',
-                        'main_policy_number',
-                        'sub_policy_number',
-                        'description',
-                        'notes',
-                        'search_text',
-                    ] as $column) {
-                        if ($hasColumn($column)) {
-                            $subQuery->orWhere($column, 'like', "%{$q}%");
-                        }
-                    }
+
+                $query->where(function ($subQuery) use ($q) {
+                    $subQuery
+                        ->where('reference_number', 'like', "%{$q}%")
+                        ->orWhere('main_policy_number', 'like', "%{$q}%")
+                        ->orWhere('sub_policy_number', 'like', "%{$q}%")
+                        ->orWhere('title', 'like', "%{$q}%")
+                        ->orWhere('subject', 'like', "%{$q}%")
+                        ->orWhere('sender', 'like', "%{$q}%")
+                        ->orWhere('receiver', 'like', "%{$q}%")
+                        ->orWhere('search_text', 'like', "%{$q}%");
                 });
-            }
-
-            if ($request->filled('department_id') && $hasColumn('department_id')) {
+            })
+            ->when($request->filled('department_id'), function ($query) use ($request) {
                 $query->where('department_id', $request->department_id);
-            }
-
-            if ($request->filled('document_type_id') && $hasColumn('document_type_id')) {
+            })
+            ->when($request->filled('document_type_id'), function ($query) use ($request) {
                 $query->where('document_type_id', $request->document_type_id);
-            }
-
-            if ($request->filled('status') && $hasColumn('status')) {
-                $query->where('status', $request->status);
-            }
-
-            if ($request->filled('priority') && $hasColumn('priority')) {
-                $query->where('priority', $request->priority);
-            }
-
-            if ($request->filled('confidentiality') && $hasColumn('confidentiality')) {
-                $query->where('confidentiality', $request->confidentiality);
-            }
-
-            if ($request->filled('date_from') && $hasColumn('reference_date')) {
+            })
+            ->when($request->filled('date_from'), function ($query) use ($request) {
                 $query->whereDate('reference_date', '>=', $request->date_from);
-            }
-
-            if ($request->filled('date_to') && $hasColumn('reference_date')) {
+            })
+            ->when($request->filled('date_to'), function ($query) use ($request) {
                 $query->whereDate('reference_date', '<=', $request->date_to);
-            }
-
-            if ($request->filled('has_attachment')) {
-                if ($request->has_attachment === 'yes') {
-                    $query->whereHas('attachments');
-                } elseif ($request->has_attachment === 'no') {
-                    $query->whereDoesntHave('attachments');
-                }
-            }
-
-            return $query;
-        };
-
-        $documentsQuery = $applyFilters(clone $baseQuery);
-
-        $allowedSorts = [
-            'created_at' => 'created_at',
-            'reference_date' => 'reference_date',
-            'reference_number' => 'reference_number',
-            'title' => 'title',
-        ];
-
-        $sort = $allowedSorts[$request->get('sort', 'created_at')] ?? 'created_at';
-        if (!$hasColumn($sort)) {
-            $sort = $hasColumn('created_at') ? 'created_at' : 'id';
-        }
-
-        $direction = $request->get('direction') === 'asc' ? 'asc' : 'desc';
-
-        $documents = $documentsQuery
-            ->orderBy($sort, $direction)
-            ->paginate((int) $request->get('per_page', 15) ?: 15)
+            })
+            ->latest()
+            ->paginate(15)
             ->withQueryString();
 
-        $filteredForSummary = $applyFilters(Document::query());
-
-        $summary = [
-            'total' => (int) Document::query()->count(),
-            'filtered' => (int) (clone $filteredForSummary)->count(),
-            'with_attachments' => 0,
-            'without_attachments' => 0,
-        ];
-
-        try {
-            $summary['with_attachments'] = (int) Document::query()->whereHas('attachments')->count();
-            $summary['without_attachments'] = max(0, $summary['total'] - $summary['with_attachments']);
-        } catch (\Throwable $e) {
-            $summary['with_attachments'] = 0;
-            $summary['without_attachments'] = 0;
-        }
-
-        $statusOptions = [
-            'active' => 'نشط',
-            'archived' => 'مؤرشف',
-            'cancelled' => 'ملغي',
-        ];
-
-        $priorityOptions = [
-            'normal' => 'عادي',
-            'high' => 'هام',
-            'urgent' => 'عاجل',
-        ];
-
-        $confidentialityOptions = [
-            'normal' => 'عادي',
-            'confidential' => 'سري',
-            'very_confidential' => 'سري جداً',
-        ];
-
-        return view('documents.index', compact(
-            'documents',
-            'departments',
-            'documentTypes',
-            'summary',
-            'statusOptions',
-            'priorityOptions',
-            'confidentialityOptions'
-        ));
+        return view('documents.index', compact('documents', 'departments', 'documentTypes'));
     }
 
     public function create()
@@ -560,114 +450,6 @@ class DocumentController extends Controller
                 fclose($stream);
             }
         }, $fileName);
-    }
-
-    /**
-     * فحص تكرار رقم البوليصة الرئيسية أو الفرعية أثناء إدخال بيانات الكتاب.
-     * لا يمنع التكرار من قاعدة البيانات؛ فقط يعيد نتيجة واضحة للواجهة لتطلب موافقة المستخدم.
-     */
-        /**
-     * فحص تكرار رقم البوليصة الرئيسية/الفرعية أثناء الإدخال.
-     * ملاحظة: لا يمنع التكرار في قاعدة البيانات، بل يعطي الواجهة قرار نعم/لا للمستخدم.
-     */
-        /**
-     * فحص تكرار رقم البوليصة الرئيسية/الفرعية أثناء الإدخال.
-     * لا يمنع التكرار من قاعدة البيانات؛ الواجهة تسأل المستخدم: نعم/لا.
-     */
-        /**
-     * فحص تكرار رقم البوليصة الرئيسية/الفرعية أثناء الإدخال.
-     * لا يمنع التكرار من قاعدة البيانات؛ الواجهة تسأل المستخدم: نعم/لا.
-     */
-    public function checkPolicyDuplicate(\Illuminate\Http\Request $request)
-    {
-        $validated = $request->validate([
-            'field' => ['nullable', 'in:main_policy_number,sub_policy_number'],
-            'value' => ['required', 'string', 'max:255'],
-            'document_id' => ['nullable', 'integer'],
-        ]);
-
-        $field = $validated['field'] ?? null;
-        $value = trim((string) $validated['value']);
-
-        if ($value === '') {
-            return response()->json(['exists' => false, 'message' => null, 'document' => null]);
-        }
-
-        try {
-            if (!\Illuminate\Support\Facades\Schema::hasTable('documents')) {
-                return response()->json(['exists' => false, 'message' => null, 'document' => null]);
-            }
-
-            $hasMain = \Illuminate\Support\Facades\Schema::hasColumn('documents', 'main_policy_number');
-            $hasSub = \Illuminate\Support\Facades\Schema::hasColumn('documents', 'sub_policy_number');
-
-            if (!$hasMain && !$hasSub) {
-                return response()->json(['exists' => false, 'message' => null, 'document' => null]);
-            }
-
-            $query = \App\Models\Document::query();
-
-            if (!empty($validated['document_id'])) {
-                $query->where('id', '<>', (int) $validated['document_id']);
-            }
-
-            $query->where(function ($q) use ($value, $hasMain, $hasSub) {
-                if ($hasMain) {
-                    $q->orWhereRaw("TRIM(COALESCE(main_policy_number, '')) = ?", [$value]);
-                }
-                if ($hasSub) {
-                    $q->orWhereRaw("TRIM(COALESCE(sub_policy_number, '')) = ?", [$value]);
-                }
-            });
-
-            $document = $query->orderByDesc('id')->first();
-
-            if (!$document) {
-                return response()->json(['exists' => false, 'message' => null, 'document' => null]);
-            }
-
-            $referenceDate = null;
-            if (!empty($document->reference_date)) {
-                try {
-                    $referenceDate = \Illuminate\Support\Carbon::parse($document->reference_date)->format('d/m/Y');
-                } catch (\Throwable $dateException) {
-                    $referenceDate = (string) $document->reference_date;
-                }
-            }
-
-            $matchedField = null;
-            if ($hasMain && trim((string) ($document->main_policy_number ?? '')) === $value) {
-                $matchedField = 'main_policy_number';
-            } elseif ($hasSub && trim((string) ($document->sub_policy_number ?? '')) === $value) {
-                $matchedField = 'sub_policy_number';
-            }
-
-            $inputLabel = $field === 'sub_policy_number' ? 'البوليصة الفرعية' : 'البوليصة الرئيسية';
-            $matchedLabel = $matchedField === 'sub_policy_number' ? 'البوليصة الفرعية' : 'البوليصة الرئيسية';
-
-            return response()->json([
-                'exists' => true,
-                'message' => "رقم {$inputLabel} موجود مسبقاً في {$matchedLabel}.",
-                'matched_field' => $matchedField,
-                'document' => [
-                    'id' => $document->id,
-                    'reference_number' => $document->reference_number ?? null,
-                    'reference_date' => $referenceDate,
-                    'title' => $document->title ?? null,
-                    'subject' => $document->subject ?? null,
-                    'main_policy_number' => $document->main_policy_number ?? null,
-                    'sub_policy_number' => $document->sub_policy_number ?? null,
-                ],
-            ]);
-        } catch (\Throwable $exception) {
-            report($exception);
-
-            return response()->json([
-                'exists' => false,
-                'message' => 'تعذر فحص تكرار البوليصة حالياً.',
-                'document' => null,
-            ], 200);
-        }
     }
 
     private function storeAttachment(Request $request, Document $document): void

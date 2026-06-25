@@ -1,3 +1,39 @@
+<?php
+/**
+ * DocumentArchive - Documents Policy Columns Update
+ * يعيد ترتيب جدول الكتب ليعرض أهم بيانات الكتاب بوضوح:
+ * رقم الكتاب، التاريخ، الموضوع، البوليصة الرئيسية، البوليصة الفرعية.
+ */
+
+$root = dirname(__DIR__);
+$viewDir = $root . '/resources/views/documents';
+$viewPath = $viewDir . '/index.blade.php';
+
+function ensure_dir(string $dir): void
+{
+    if (!is_dir($dir)) {
+        mkdir($dir, 0777, true);
+    }
+}
+
+function backup_file_if_exists(string $path): void
+{
+    if (!file_exists($path)) {
+        return;
+    }
+
+    $backupDir = dirname($path) . DIRECTORY_SEPARATOR . '_backup_policy_columns_' . date('Ymd_His');
+    if (!is_dir($backupDir)) {
+        mkdir($backupDir, 0777, true);
+    }
+
+    copy($path, $backupDir . DIRECTORY_SEPARATOR . basename($path));
+}
+
+ensure_dir($viewDir);
+backup_file_if_exists($viewPath);
+
+$view = <<<'BLADE'
 @extends('layouts.app')
 
 @section('title', 'الكتب')
@@ -370,3 +406,9 @@
     </div>
 </div>
 @endsection
+BLADE;
+
+file_put_contents($viewPath, $view);
+
+echo "Documents policy columns update applied successfully.\n";
+echo "تم تعديل جدول الكتب ليعرض رقم الكتاب، التاريخ، الموضوع، البوليصة الرئيسية، والبوليصة الفرعية بوضوح.\n";

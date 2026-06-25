@@ -36,22 +36,6 @@
 
     $statusLabel = fn ($value) => $statusOptions[$value] ?? ($value ?: '-');
     $priorityLabel = fn ($value) => $priorityOptions[$value] ?? ($value ?: '-');
-
-    $formatDocumentDate = function ($document): string {
-        if (!empty($document->formatted_date)) {
-            return (string) $document->formatted_date;
-        }
-
-        if (!empty($document->reference_date)) {
-            try {
-                return \Illuminate\Support\Carbon::parse($document->reference_date)->format('d/m/Y');
-            } catch (\Throwable $e) {
-                return (string) $document->reference_date;
-            }
-        }
-
-        return '-';
-    };
 @endphp
 
 <style>
@@ -59,58 +43,28 @@
     .documents-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 14px; flex-wrap: wrap; }
     .documents-head h1 { margin: 0; font-size: clamp(26px, 3vw, 38px); font-weight: 950; }
     .documents-head p { margin: 7px 0 0; color: #94a3b8; font-weight: 700; }
-
     .doc-summary-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px; }
     .doc-summary-card { background: rgba(15,23,42,.72); border: 1px solid rgba(148,163,184,.20); border-radius: 18px; padding: 16px; }
     .doc-summary-card span { display: block; color: #94a3b8; font-size: 12px; font-weight: 900; margin-bottom: 8px; }
     .doc-summary-card strong { display: block; color: #fff; font-size: 26px; font-weight: 950; }
-
     .advanced-filter-card { background: rgba(15,23,42,.72); border: 1px solid rgba(148,163,184,.20); border-radius: 18px; padding: 16px; }
     .advanced-filter-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px; }
     .filter-actions { display: flex; align-items: end; gap: 8px; flex-wrap: wrap; }
-
     .documents-table-wrap { overflow-x: auto; }
-    .documents-table { width: 100%; border-collapse: collapse; min-width: 1180px; }
-    .documents-table th,
-    .documents-table td { padding: 12px 10px; border-bottom: 1px solid rgba(148,163,184,.16); text-align: right; vertical-align: middle; }
-    .documents-table th { color: #94a3b8; font-size: 12px; font-weight: 950; white-space: nowrap; }
+    .documents-table { width: 100%; border-collapse: collapse; min-width: 980px; }
+    .documents-table th, .documents-table td { padding: 12px 10px; border-bottom: 1px solid rgba(148,163,184,.16); text-align: right; vertical-align: middle; white-space: nowrap; }
+    .documents-table th { color: #94a3b8; font-size: 12px; font-weight: 950; }
     .documents-table td { color: #f8fafc; font-weight: 750; }
-
-    .document-number-cell strong { display: block; font-size: 14px; font-weight: 950; letter-spacing: .2px; }
-    .document-date-cell { white-space: nowrap; font-weight: 900; }
-    .document-subject-cell { min-width: 260px; white-space: normal !important; }
-    .document-subject-cell strong { display: block; margin-bottom: 5px; font-weight: 950; line-height: 1.6; }
-    .document-subject-cell small { display: block; color: #94a3b8; font-weight: 750; line-height: 1.6; }
-    .policy-cell { min-width: 150px; white-space: normal !important; }
-    .policy-cell strong { display: block; direction: ltr; text-align: right; font-size: 13px; font-weight: 950; }
-    .policy-cell small { color: #94a3b8; font-weight: 750; }
-
-    .pill { display: inline-flex; align-items: center; justify-content: center; padding: 5px 10px; border-radius: 999px; background: rgba(37,99,235,.14); border: 1px solid rgba(37,99,235,.28); font-size: 12px; font-weight: 900; color: #dbeafe; white-space: nowrap; }
+    .document-title-cell { min-width: 260px; white-space: normal !important; }
+    .document-title-cell strong { display: block; margin-bottom: 5px; }
+    .document-title-cell small { color: #94a3b8; font-weight: 700; }
+    .pill { display: inline-flex; padding: 5px 10px; border-radius: 999px; background: rgba(37,99,235,.14); border: 1px solid rgba(37,99,235,.28); font-size: 12px; font-weight: 900; color: #dbeafe; }
     .pill-muted { background: rgba(148,163,184,.10); border-color: rgba(148,163,184,.22); color: #cbd5e1; }
     .pill-warning { background: rgba(245,158,11,.13); border-color: rgba(245,158,11,.28); color: #fde68a; }
     .pill-danger { background: rgba(239,68,68,.13); border-color: rgba(239,68,68,.28); color: #fecaca; }
     .empty-documents { text-align: center; padding: 34px; color: #94a3b8; font-weight: 900; }
-
-    .document-mobile-card { display: none; }
-
-    @media (max-width: 1100px) {
-        .doc-summary-grid, .advanced-filter-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-    }
-
-    @media (max-width: 760px) {
-        .doc-summary-grid, .advanced-filter-grid { grid-template-columns: 1fr; }
-        .filter-actions { align-items: stretch; }
-        .filter-actions .btn { width: 100%; }
-
-        .documents-table { display: none; }
-        .document-mobile-card { display: block; background: rgba(15,23,42,.72); border: 1px solid rgba(148,163,184,.20); border-radius: 18px; padding: 14px; margin-bottom: 12px; }
-        .document-mobile-card h3 { margin: 0 0 10px; color: #fff; font-size: 18px; font-weight: 950; line-height: 1.6; }
-        .mobile-info-grid { display: grid; grid-template-columns: 1fr; gap: 8px; margin-bottom: 12px; }
-        .mobile-info-item { display: flex; justify-content: space-between; gap: 10px; border-bottom: 1px solid rgba(148,163,184,.13); padding-bottom: 7px; }
-        .mobile-info-item span { color: #94a3b8; font-weight: 900; }
-        .mobile-info-item strong { color: #f8fafc; font-weight: 950; text-align: left; direction: ltr; }
-        .document-mobile-card .actions { justify-content: flex-start; }
-    }
+    @media (max-width: 1100px) { .doc-summary-grid, .advanced-filter-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+    @media (max-width: 640px) { .doc-summary-grid, .advanced-filter-grid { grid-template-columns: 1fr; } .filter-actions { align-items: stretch; } .filter-actions .btn { width: 100%; } }
 </style>
 
 <div class="documents-page">
@@ -140,7 +94,7 @@
             <div class="advanced-filter-grid">
                 <div class="form-group">
                     <label>بحث عام</label>
-                    <input type="text" name="q" value="{{ request('q') }}" placeholder="رقم الكتاب / الموضوع / البوليصة / المرسل">
+                    <input type="text" name="q" value="{{ request('q') }}" placeholder="رقم الكتاب / العنوان / الموضوع / البوليصة / المرسل">
                 </div>
 
                 <div class="form-group">
@@ -254,9 +208,7 @@
                 <tr>
                     <th>رقم الكتاب</th>
                     <th>التاريخ</th>
-                    <th>الموضوع</th>
-                    <th>البوليصة الرئيسية</th>
-                    <th>البوليصة الفرعية</th>
+                    <th>العنوان والموضوع</th>
                     <th>الإدارة</th>
                     <th>النوع</th>
                     <th>الحالة</th>
@@ -273,23 +225,15 @@
                             'high' => 'pill-warning',
                             default => 'pill-muted',
                         };
-
                         $attachmentsCount = $document->attachments_count ?? ($document->mainAttachment ? 1 : 0);
-                        $subject = $document->subject ?: $document->title ?: $document->description ?: '-';
-                        $mainPolicy = $document->main_policy_number ?: '-';
-                        $subPolicy = $document->sub_policy_number ?: '-';
                     @endphp
                     <tr>
-                        <td class="document-number-cell"><strong>{{ $document->reference_number }}</strong></td>
-                        <td class="document-date-cell">{{ $formatDocumentDate($document) }}</td>
-                        <td class="document-subject-cell">
-                            <strong>{{ \Illuminate\Support\Str::limit($subject, 90) }}</strong>
-                            @if(!empty($document->title) && $document->title !== $subject)
-                                <small>{{ \Illuminate\Support\Str::limit($document->title, 80) }}</small>
-                            @endif
+                        <td><strong>{{ $document->reference_number }}</strong></td>
+                        <td>{{ $document->formatted_date ?? optional($document->reference_date)->format('Y-m-d') ?? '-' }}</td>
+                        <td class="document-title-cell">
+                            <strong>{{ $document->title ?: '-' }}</strong>
+                            <small>{{ \Illuminate\Support\Str::limit($document->subject ?: $document->description ?: '-', 95) }}</small>
                         </td>
-                        <td class="policy-cell"><strong>{{ $mainPolicy }}</strong></td>
-                        <td class="policy-cell"><strong>{{ $subPolicy }}</strong></td>
                         <td>{{ $document->department?->name ?? '-' }}</td>
                         <td>{{ $document->documentType?->name ?? '-' }}</td>
                         <td><span class="pill">{{ $document->status_name ?? $statusLabel($document->status ?? null) }}</span></td>
@@ -324,44 +268,11 @@
                     </tr>
                 @empty
                     <tr>
-                        <td colspan="11" class="empty-documents">لا توجد كتب مطابقة لمعايير البحث الحالية.</td>
+                        <td colspan="9" class="empty-documents">لا توجد كتب مطابقة لمعايير البحث الحالية.</td>
                     </tr>
                 @endforelse
                 </tbody>
             </table>
-
-            <div class="document-mobile-list">
-                @foreach($documents as $document)
-                    @php
-                        $attachmentsCount = $document->attachments_count ?? ($document->mainAttachment ? 1 : 0);
-                        $subject = $document->subject ?: $document->title ?: $document->description ?: '-';
-                        $mainPolicy = $document->main_policy_number ?: '-';
-                        $subPolicy = $document->sub_policy_number ?: '-';
-                    @endphp
-                    <div class="document-mobile-card">
-                        <h3>{{ \Illuminate\Support\Str::limit($subject, 90) }}</h3>
-                        <div class="mobile-info-grid">
-                            <div class="mobile-info-item"><span>رقم الكتاب</span><strong>{{ $document->reference_number }}</strong></div>
-                            <div class="mobile-info-item"><span>التاريخ</span><strong>{{ $formatDocumentDate($document) }}</strong></div>
-                            <div class="mobile-info-item"><span>البوليصة الرئيسية</span><strong>{{ $mainPolicy }}</strong></div>
-                            <div class="mobile-info-item"><span>البوليصة الفرعية</span><strong>{{ $subPolicy }}</strong></div>
-                            <div class="mobile-info-item"><span>الإدارة</span><strong>{{ $document->department?->name ?? '-' }}</strong></div>
-                            <div class="mobile-info-item"><span>المرفقات</span><strong>{{ $attachmentsCount > 0 ? $attachmentsCount . ' مرفق' : 'لا يوجد' }}</strong></div>
-                        </div>
-                        <div class="actions">
-                            @if($can('documents.view'))
-                                <a class="btn btn-secondary" href="{{ route('documents.show', $document) }}">عرض</a>
-                            @endif
-                            @if($can('documents.edit'))
-                                <a class="btn btn-primary" href="{{ route('documents.edit', $document) }}">تعديل</a>
-                            @endif
-                            @if($can('documents.print'))
-                                <a class="btn btn-warning" target="_blank" href="{{ route('documents.print-reference', $document) }}">طباعة الرقم</a>
-                            @endif
-                        </div>
-                    </div>
-                @endforeach
-            </div>
         </div>
 
         <div class="pagination">

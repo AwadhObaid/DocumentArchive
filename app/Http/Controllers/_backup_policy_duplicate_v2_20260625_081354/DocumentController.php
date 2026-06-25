@@ -566,64 +566,48 @@ class DocumentController extends Controller
      * فحص تكرار رقم البوليصة الرئيسية أو الفرعية أثناء إدخال بيانات الكتاب.
      * لا يمنع التكرار من قاعدة البيانات؛ فقط يعيد نتيجة واضحة للواجهة لتطلب موافقة المستخدم.
      */
-        /**
-     * فحص تكرار رقم البوليصة الرئيسية/الفرعية أثناء الإدخال.
-     * ملاحظة: لا يمنع التكرار في قاعدة البيانات، بل يعطي الواجهة قرار نعم/لا للمستخدم.
-     */
-        /**
-     * فحص تكرار رقم البوليصة الرئيسية/الفرعية أثناء الإدخال.
-     * لا يمنع التكرار من قاعدة البيانات؛ الواجهة تسأل المستخدم: نعم/لا.
-     */
-        /**
-     * فحص تكرار رقم البوليصة الرئيسية/الفرعية أثناء الإدخال.
-     * لا يمنع التكرار من قاعدة البيانات؛ الواجهة تسأل المستخدم: نعم/لا.
-     */
-    public function checkPolicyDuplicate(\Illuminate\Http\Request $request)
+    public function checkPolicyDuplicate(Request $request)
     {
         $validated = $request->validate([
-            'field' => ['nullable', 'in:main_policy_number,sub_policy_number'],
+            'field' => ['required', 'in:main_policy_number,sub_policy_number'],
             'value' => ['required', 'string', 'max:255'],
             'document_id' => ['nullable', 'integer'],
         ]);
 
-        $field = $validated['field'] ?? null;
+        $field = $validated['field'];
         $value = trim((string) $validated['value']);
 
         if ($value === '') {
-            return response()->json(['exists' => false, 'message' => null, 'document' => null]);
+            return response()->json([
+                'exists' => false,
+                'message' => null,
+                'document' => null,
+            ]);
         }
 
         try {
-            if (!\Illuminate\Support\Facades\Schema::hasTable('documents')) {
-                return response()->json(['exists' => false, 'message' => null, 'document' => null]);
+            if (!\Illuminate\Support\Facades\Schema::hasTable('documents') || !\Illuminate\Support\Facades\Schema::hasColumn('documents', $field)) {
+                return response()->json([
+                    'exists' => false,
+                    'message' => null,
+                    'document' => null,
+                ]);
             }
 
-            $hasMain = \Illuminate\Support\Facades\Schema::hasColumn('documents', 'main_policy_number');
-            $hasSub = \Illuminate\Support\Facades\Schema::hasColumn('documents', 'sub_policy_number');
-
-            if (!$hasMain && !$hasSub) {
-                return response()->json(['exists' => false, 'message' => null, 'document' => null]);
-            }
-
-            $query = \App\Models\Document::query();
+            $query = Document::query()->where($field, $value);
 
             if (!empty($validated['document_id'])) {
                 $query->where('id', '<>', (int) $validated['document_id']);
             }
 
-            $query->where(function ($q) use ($value, $hasMain, $hasSub) {
-                if ($hasMain) {
-                    $q->orWhereRaw("TRIM(COALESCE(main_policy_number, '')) = ?", [$value]);
-                }
-                if ($hasSub) {
-                    $q->orWhereRaw("TRIM(COALESCE(sub_policy_number, '')) = ?", [$value]);
-                }
-            });
-
             $document = $query->orderByDesc('id')->first();
 
             if (!$document) {
-                return response()->json(['exists' => false, 'message' => null, 'document' => null]);
+                return response()->json([
+                    'exists' => false,
+                    'message' => null,
+                    'document' => null,
+                ]);
             }
 
             $referenceDate = null;
@@ -635,20 +619,11 @@ class DocumentController extends Controller
                 }
             }
 
-            $matchedField = null;
-            if ($hasMain && trim((string) ($document->main_policy_number ?? '')) === $value) {
-                $matchedField = 'main_policy_number';
-            } elseif ($hasSub && trim((string) ($document->sub_policy_number ?? '')) === $value) {
-                $matchedField = 'sub_policy_number';
-            }
-
-            $inputLabel = $field === 'sub_policy_number' ? 'البوليصة الفرعية' : 'البوليصة الرئيسية';
-            $matchedLabel = $matchedField === 'sub_policy_number' ? 'البوليصة الفرعية' : 'البوليصة الرئيسية';
+            $label = $field === 'main_policy_number' ? 'البوليصة الرئيسية' : 'البوليصة الفرعية';
 
             return response()->json([
                 'exists' => true,
-                'message' => "رقم {$inputLabel} موجود مسبقاً في {$matchedLabel}.",
-                'matched_field' => $matchedField,
+                'message' => "رقم {$label} موجود مسبقاً.",
                 'document' => [
                     'id' => $document->id,
                     'reference_number' => $document->reference_number ?? null,
