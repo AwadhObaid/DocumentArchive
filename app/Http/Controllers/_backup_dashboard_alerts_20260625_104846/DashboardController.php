@@ -19,17 +19,12 @@ class DashboardController extends Controller
             'departments_total' => $this->countRows('departments'),
             'document_types_total' => $this->countRows('document_types'),
             'activities_total' => $this->countRows('activity_logs'),
-            'documents_without_attachments' => $this->countDocumentsWithoutAttachments(),
-            'documents_trashed' => $this->countDocumentsTrashed(),
-            'duplicate_main_policies' => $this->countDuplicatePolicy('main_policy_number'),
-            'duplicate_sub_policies' => $this->countDuplicatePolicy('sub_policy_number'),
         ];
 
         $latestDocuments = $this->latestDocuments();
         $latestActivities = $this->latestActivities();
         $latestBackup = $this->latestBackup();
         $healthSummary = $this->healthSummary();
-        $dashboardAlerts = $this->dashboardAlerts($latestBackup, $healthSummary);
         $charts = [
             'documents_by_month' => $this->documentsByMonth(6),
             'documents_by_department' => $this->documentsByLookup('department_id', 'departments', 'الإدارة'),
@@ -42,7 +37,6 @@ class DashboardController extends Controller
             'latestActivities',
             'latestBackup',
             'healthSummary',
-            'dashboardAlerts',
             'charts'
         ));
     }
@@ -255,165 +249,6 @@ class DashboardController extends Controller
         }
     }
 
-
-    private function countDocumentsWithoutAttachments(): int
-    {
-        try {
-            if (!$this->tableExists('documents') || !$this->tableExists('document_attachments')) {
-                return 0;
-            }
-
-            $query = $this->documentsQuery()
-                ->leftJoin('document_attachments', 'documents.id', '=', 'document_attachments.document_id')
-                ->whereNull('document_attachments.id');
-
-            return (int) $query->count();
-        } catch (\Throwable $e) {
-            return 0;
-        }
-    }
-
-    private function countDocumentsTrashed(): int
-    {
-        try {
-            if (!$this->tableExists('documents') || !$this->columnExists('documents', 'deleted_at')) {
-                return 0;
-            }
-
-            return (int) DB::table('documents')->whereNotNull('deleted_at')->count();
-        } catch (\Throwable $e) {
-            return 0;
-        }
-    }
-
-    private function countDuplicatePolicy(string $column): int
-    {
-        try {
-            if (!$this->tableExists('documents') || !$this->columnExists('documents', $column)) {
-                return 0;
-            }
-
-            $query = $this->documentsQuery()
-                ->whereNotNull('documents.' . $column)
-                ->where('documents.' . $column, '<>', '')
-                ->select('documents.' . $column)
-                ->groupBy('documents.' . $column)
-                ->havingRaw('COUNT(*) > 1');
-
-            return (int) count($query->get());
-        } catch (\Throwable $e) {
-            return 0;
-        }
-    }
-
-    private function dashboardAlerts(?array $latestBackup, array $healthSummary): array
-    {
-        $alerts = [];
-
-        try {
-            if (!empty($healthSummary['missing_tables'])) {
-                $alerts[] = [
-                    'type' => 'danger',
-                    'icon' => '🧱',
-                    'title' => 'جداول ناقصة في قاعدة البيانات',
-                    'message' => 'يوجد نقص في الجداول الأساسية: ' . implode('، ', $healthSummary['missing_tables']),
-                    'url' => \Illuminate\Support\Facades\Route::has('system-health.index') ? route('system-health.index') : url('/system-health'),
-                    'action' => 'فحص النظام',
-                ];
-            }
-
-            if (!$latestBackup) {
-                $alerts[] = [
-                    'type' => 'danger',
-                    'icon' => '💾',
-                    'title' => 'لا توجد نسخة احتياطية',
-                    'message' => 'لم يتم العثور على أي ملف نسخة احتياطية. يفضل إنشاء نسخة كاملة الآن.',
-                    'url' => \Illuminate\Support\Facades\Route::has('backups.index') ? route('backups.index') : url('/backups'),
-                    'action' => 'فتح النسخ الاحتياطي',
-                ];
-            } elseif (!empty($latestBackup['timestamp']) && $latestBackup['timestamp'] < now()->subDays(7)->timestamp) {
-                $alerts[] = [
-                    'type' => 'warning',
-                    'icon' => '⏱️',
-                    'title' => 'آخر نسخة احتياطية قديمة',
-                    'message' => 'آخر نسخة احتياطية أقدم من 7 أيام. يفضل إنشاء نسخة حديثة.',
-                    'url' => \Illuminate\Support\Facades\Route::has('backups.index') ? route('backups.index') : url('/backups'),
-                    'action' => 'إنشاء نسخة',
-                ];
-            }
-
-            $withoutAttachments = $this->countDocumentsWithoutAttachments();
-            if ($withoutAttachments > 0) {
-                $alerts[] = [
-                    'type' => 'warning',
-                    'icon' => '📎',
-                    'title' => 'كتب بدون مرفقات',
-                    'message' => 'يوجد ' . number_format($withoutAttachments) . ' كتاب/كتب بدون مرفقات. راجعها إذا كان رفع النسخة الممسوحة إلزامياً.',
-                    'url' => \Illuminate\Support\Facades\Route::has('documents.index') ? route('documents.index') : url('/documents'),
-                    'action' => 'عرض الكتب',
-                ];
-            }
-
-            $mainDuplicates = $this->countDuplicatePolicy('main_policy_number');
-            if ($mainDuplicates > 0) {
-                $alerts[] = [
-                    'type' => 'info',
-                    'icon' => '🔁',
-                    'title' => 'تكرار في البوليصة الرئيسية',
-                    'message' => 'يوجد ' . number_format($mainDuplicates) . ' رقم/أرقام بوليصة رئيسية مكررة.',
-                    'url' => \Illuminate\Support\Facades\Route::has('documents.index') ? route('documents.index') : url('/documents'),
-                    'action' => 'مراجعة الكتب',
-                ];
-            }
-
-            $subDuplicates = $this->countDuplicatePolicy('sub_policy_number');
-            if ($subDuplicates > 0) {
-                $alerts[] = [
-                    'type' => 'info',
-                    'icon' => '🔂',
-                    'title' => 'تكرار في البوليصة الفرعية',
-                    'message' => 'يوجد ' . number_format($subDuplicates) . ' رقم/أرقام بوليصة فرعية مكررة.',
-                    'url' => \Illuminate\Support\Facades\Route::has('documents.index') ? route('documents.index') : url('/documents'),
-                    'action' => 'مراجعة الكتب',
-                ];
-            }
-
-            $trashed = $this->countDocumentsTrashed();
-            if ($trashed > 0) {
-                $alerts[] = [
-                    'type' => 'info',
-                    'icon' => '🗑️',
-                    'title' => 'كتب في سلة المحذوفات',
-                    'message' => 'يوجد ' . number_format($trashed) . ' كتاب/كتب في سلة المحذوفات.',
-                    'url' => \Illuminate\Support\Facades\Route::has('documents.trash') ? route('documents.trash') : url('/documents/trash'),
-                    'action' => 'فتح السلة',
-                ];
-            }
-
-            if (config('app.debug')) {
-                $alerts[] = [
-                    'type' => 'warning',
-                    'icon' => '🛠️',
-                    'title' => 'وضع التطوير مفعل',
-                    'message' => 'APP_DEBUG=true مناسب أثناء التطوير فقط. عند التشغيل الفعلي اجعله false.',
-                    'url' => \Illuminate\Support\Facades\Route::has('system-health.index') ? route('system-health.index') : url('/system-health'),
-                    'action' => 'فحص النظام',
-                ];
-            }
-        } catch (\Throwable $e) {
-            $alerts[] = [
-                'type' => 'warning',
-                'icon' => '⚠️',
-                'title' => 'تعذر توليد بعض التنبيهات',
-                'message' => 'حدث خطأ أثناء توليد التنبيهات الإدارية، لكن لوحة التحكم ستستمر بالعمل.',
-                'url' => \Illuminate\Support\Facades\Route::has('system-health.index') ? route('system-health.index') : url('/system-health'),
-                'action' => 'فحص النظام',
-            ];
-        }
-
-        return array_slice($alerts, 0, 8);
-    }
-
     private function latestDocuments(): array
     {
         try {
@@ -505,7 +340,6 @@ class DashboardController extends Controller
             'type' => $type,
             'size' => $this->formatBytes((int) filesize($file)),
             'created_at' => Carbon::createFromTimestamp(filemtime($file))->format('Y-m-d H:i'),
-            'timestamp' => filemtime($file),
         ];
     }
 

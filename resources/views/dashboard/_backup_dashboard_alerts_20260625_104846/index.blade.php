@@ -37,7 +37,6 @@
     };
 
     $routeExists = fn (string $name): bool => \Illuminate\Support\Facades\Route::has($name);
-    $dashboardAlerts = $dashboardAlerts ?? [];
 
     $months = $charts['documents_by_month'] ?? [];
     $maxMonthValue = max(1, ...array_map(fn ($item) => (int) ($item['count'] ?? 0), $months));
@@ -224,61 +223,6 @@
 
     .da-alert { padding: 14px 16px; border-radius: 14px; font-weight: 850; border: 1px solid rgba(245, 158, 11, .35); color: #fde68a; background: rgba(245, 158, 11, .12); }
 
-    .da-admin-alerts {
-        display: grid;
-        grid-template-columns: repeat(2, minmax(0, 1fr));
-        gap: 12px;
-    }
-
-    .da-admin-alert-item {
-        display: grid;
-        grid-template-columns: auto minmax(0, 1fr) auto;
-        align-items: center;
-        gap: 12px;
-        padding: 14px;
-        border-radius: 16px;
-        background: rgba(30, 41, 59, .52);
-        border: 1px solid rgba(148, 163, 184, .16);
-    }
-
-    .da-admin-alert-icon {
-        width: 42px;
-        height: 42px;
-        display: inline-flex;
-        align-items: center;
-        justify-content: center;
-        border-radius: 14px;
-        background: rgba(37, 99, 235, .13);
-        font-size: 21px;
-    }
-
-    .da-admin-alert-title {
-        color: #fff;
-        font-weight: 950;
-        margin-bottom: 5px;
-    }
-
-    .da-admin-alert-message {
-        color: #9fb0cc;
-        font-size: 12px;
-        font-weight: 750;
-        line-height: 1.7;
-    }
-
-    .da-admin-alert-link {
-        color: #bfdbfe;
-        text-decoration: none;
-        font-size: 12px;
-        font-weight: 900;
-        white-space: nowrap;
-    }
-
-    .da-admin-alert-item.danger { border-color: rgba(239, 68, 68, .35); background: rgba(127, 29, 29, .18); }
-    .da-admin-alert-item.warning { border-color: rgba(245, 158, 11, .38); background: rgba(120, 53, 15, .18); }
-    .da-admin-alert-item.info { border-color: rgba(56, 189, 248, .30); background: rgba(12, 74, 110, .15); }
-    .da-admin-alert-ok { border-color: rgba(34, 197, 94, .32); background: rgba(20, 83, 45, .18); }
-
-
     .da-activity { display: flex; flex-direction: column; gap: 11px; }
     .da-activity-item { padding: 12px; border-radius: 14px; background: rgba(30, 41, 59, .50); border: 1px solid rgba(148, 163, 184, .12); }
     .da-activity-title { color: #fff; font-weight: 900; margin-bottom: 5px; }
@@ -286,15 +230,13 @@
 
     @media (max-width: 1100px) {
         .da-grid-stats { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-        .da-grid-main, .da-grid-charts, .da-admin-alerts { grid-template-columns: 1fr; }
+        .da-grid-main, .da-grid-charts { grid-template-columns: 1fr; }
     }
 
     @media (max-width: 640px) {
         .da-grid-stats { grid-template-columns: 1fr; }
         .da-page-head { align-items: stretch; }
         .da-actions, .da-actions .da-btn { width: 100%; }
-        .da-admin-alert-item { grid-template-columns: auto minmax(0, 1fr); }
-        .da-admin-alert-link { grid-column: 2; }
         .da-bar-row { grid-template-columns: 1fr; gap: 6px; }
         .da-bar-count { text-align: right; }
     }
@@ -323,39 +265,6 @@
     @if(!empty($healthSummary['warnings']))
         <div class="da-alert">⚠️ توجد تنبيهات في فحص النظام: {{ implode('، ', $healthSummary['warnings']) }}</div>
     @endif
-
-
-    <div class="da-card">
-        <div class="da-section-title">
-            <h2>التنبيهات الإدارية</h2>
-            <span class="da-section-hint">مؤشرات تحتاج مراجعة سريعة</span>
-        </div>
-
-        @if(!empty($dashboardAlerts))
-            <div class="da-admin-alerts">
-                @foreach($dashboardAlerts as $alert)
-                    <div class="da-admin-alert-item {{ $alert['type'] ?? 'info' }}">
-                        <div class="da-admin-alert-icon">{{ $alert['icon'] ?? '🔔' }}</div>
-                        <div>
-                            <div class="da-admin-alert-title">{{ $alert['title'] ?? 'تنبيه' }}</div>
-                            <div class="da-admin-alert-message">{{ $alert['message'] ?? '' }}</div>
-                        </div>
-                        @if(!empty($alert['url']))
-                            <a class="da-admin-alert-link" href="{{ $alert['url'] }}">{{ $alert['action'] ?? 'فتح' }}</a>
-                        @endif
-                    </div>
-                @endforeach
-            </div>
-        @else
-            <div class="da-admin-alert-item da-admin-alert-ok">
-                <div class="da-admin-alert-icon">✅</div>
-                <div>
-                    <div class="da-admin-alert-title">لا توجد تنبيهات حالياً</div>
-                    <div class="da-admin-alert-message">النسخ الاحتياطي والكتب والمرفقات وحالة النظام تبدو مستقرة.</div>
-                </div>
-            </div>
-        @endif
-    </div>
 
     <div class="da-grid da-grid-stats">
         <div class="da-card da-stat">
