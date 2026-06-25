@@ -128,68 +128,89 @@ class BackupController extends Controller
             abort(404, 'ملف النسخة الاحتياطية غير موجود.');
         }
 
-        $zip = new ZipArchive();
-        if ($zip->open($path) !== true) {
-            abort(422, 'تعذر فتح ملف النسخة الاحتياطية للفحص.');
+        $info = $this->inspectBackupFile($fileName);
+
+        return view('backups.inspect', $info);
+    }
+
+    public function restore(string $fileName): View
+    {
+        $this->ensureAdmin();
+
+        $fileName = basename($fileName);
+        $path = $this->absoluteBackupPath($fileName);
+
+        if (!File::exists($path)) {
+            abort(404, 'ملف النسخة الاحتياطية غير موجود.');
         }
 
-        $entries = [];
-        $sqlFiles = [];
-        $documentFiles = [];
-        $readmeContent = null;
-        $totalUncompressedSize = 0;
+        $info = $this->inspectBackupFile($fileName);
 
-        for ($i = 0; $i < $zip->numFiles; $i++) {
-            $stat = $zip->statIndex($i);
-            if (!$stat) {
-                continue;
-            }
+        return view('backups.restore', $info);
+    }
 
-            $name = str_replace('\\', '/', (string) $stat['name']);
-            $size = (int) ($stat['size'] ?? 0);
-            $totalUncompressedSize += $size;
+    public function restoreDatabase(Request $request, string $fileName): RedirectResponse
+    {
+        $this->ensureAdmin();
+        $this->validateRestoreConfirmation($request);
 
-            $lowerName = strtolower($name);
-            if (str_ends_with($lowerName, '.sql')) {
-                $sqlFiles[] = $name;
-            }
+        $fileName = basename($fileName);
 
-            if (str_starts_with($name, 'documents/') && !str_ends_with($name, '/')) {
-                $documentFiles[] = $name;
-            }
+        try {
+            $this->createPreRestoreDatabaseBackup();
+            $this->restoreDatabaseFromZip($fileName);
+            $this->ensureDefaultAdminAfterRestore();
 
-            if ($lowerName === 'readme.txt') {
-                $readmeContent = $zip->getFromIndex($i) ?: null;
-            }
-
-            if (count($entries) < 300) {
-                $entries[] = [
-                    'name' => $name,
-                    'size' => $this->formatBytes($size),
-                    'raw_size' => $size,
-                ];
-            }
+            return redirect()
+                ->route('backups.index')
+                ->with('success', 'تمت استعادة قاعدة البيانات بنجاح. تم إنشاء نسخة أمان قبل الاستعادة داخل مجلد النسخ الاحتياطية.');
+        } catch (Throwable $e) {
+            report($e);
+            return back()->with('error', 'فشلت استعادة قاعدة البيانات: ' . $e->getMessage());
         }
+    }
 
-        $zip->close();
+    public function restoreFiles(Request $request, string $fileName): RedirectResponse
+    {
+        $this->ensureAdmin();
+        $this->validateRestoreConfirmation($request);
 
-        $inferredType = $this->inferBackupType($fileName, count($sqlFiles), count($documentFiles));
-        $warnings = $this->buildInspectionWarnings($inferredType, count($sqlFiles), count($documentFiles));
+        $fileName = basename($fileName);
 
-        return view('backups.inspect', [
-            'fileName' => $fileName,
-            'fileSize' => $this->formatBytes((int) File::size($path)),
-            'createdAt' => date('Y-m-d H:i:s', File::lastModified($path)),
-            'inferredType' => $inferredType,
-            'entries' => $entries,
-            'totalEntries' => count($entries),
-            'totalZipEntries' => $this->countZipEntries($path),
-            'totalUncompressedSize' => $this->formatBytes($totalUncompressedSize),
-            'sqlFiles' => $sqlFiles,
-            'documentFilesCount' => count($documentFiles),
-            'readmeContent' => $readmeContent,
-            'warnings' => $warnings,
-        ]);
+        try {
+            $this->createPreRestoreFilesBackup();
+            $this->restoreDocumentsFromZip($fileName);
+
+            return redirect()
+                ->route('backups.index')
+                ->with('success', 'تمت استعادة ملفات المرفقات بنجاح. تم إنشاء نسخة أمان من الملفات الحالية قبل الاستعادة.');
+        } catch (Throwable $e) {
+            report($e);
+            return back()->with('error', 'فشلت استعادة ملفات المرفقات: ' . $e->getMessage());
+        }
+    }
+
+    public function restoreFull(Request $request, string $fileName): RedirectResponse
+    {
+        $this->ensureAdmin();
+        $this->validateRestoreConfirmation($request);
+
+        $fileName = basename($fileName);
+
+        try {
+            $this->createPreRestoreDatabaseBackup();
+            $this->createPreRestoreFilesBackup();
+            $this->restoreDatabaseFromZip($fileName);
+            $this->ensureDefaultAdminAfterRestore();
+            $this->restoreDocumentsFromZip($fileName);
+
+            return redirect()
+                ->route('backups.index')
+                ->with('success', 'تمت استعادة النسخة الكاملة بنجاح. تم إنشاء نسخ أمان قبل الاستعادة.');
+        } catch (Throwable $e) {
+            report($e);
+            return back()->with('error', 'فشلت استعادة النسخة الكاملة: ' . $e->getMessage());
+        }
     }
 
     public function download(string $fileName)
@@ -242,10 +263,559 @@ class BackupController extends Controller
         return storage_path('app/private/' . $this->backupFolder . '/' . basename($fileName));
     }
 
+    private function validateRestoreConfirmation(Request $request): void
+    {
+        abort_unless($request->boolean('confirm_restore'), 422, 'يجب تأكيد الموافقة على الاستعادة.');
+        abort_unless(trim((string) $request->input('confirm_text')) === 'استعادة', 422, 'اكتب كلمة استعادة لتأكيد العملية.');
+    }
+
+    private function inspectBackupFile(string $fileName): array
+    {
+        $fileName = basename($fileName);
+        $path = $this->absoluteBackupPath($fileName);
+
+        $zip = new ZipArchive();
+        if ($zip->open($path) !== true) {
+            abort(422, 'تعذر فتح ملف النسخة الاحتياطية للفحص.');
+        }
+
+        $entries = [];
+        $sqlFiles = [];
+        $documentFiles = [];
+        $readmeContent = null;
+        $totalUncompressedSize = 0;
+
+        for ($i = 0; $i < $zip->numFiles; $i++) {
+            $stat = $zip->statIndex($i);
+            if (!$stat) {
+                continue;
+            }
+
+            $name = str_replace('\\', '/', (string) $stat['name']);
+            $size = (int) ($stat['size'] ?? 0);
+            $totalUncompressedSize += $size;
+
+            $lowerName = strtolower($name);
+            if (str_ends_with($lowerName, '.sql')) {
+                $sqlFiles[] = $name;
+            }
+
+            if (str_starts_with($name, 'documents/') && !str_ends_with($name, '/')) {
+                $documentFiles[] = $name;
+            }
+
+            if ($lowerName === 'readme.txt') {
+                $readmeContent = $zip->getFromIndex($i) ?: null;
+            }
+
+            if (count($entries) < 300) {
+                $entries[] = [
+                    'name' => $name,
+                    'size' => $this->formatBytes($size),
+                    'raw_size' => $size,
+                ];
+            }
+        }
+
+        $zip->close();
+
+        $inferredType = $this->inferBackupType($fileName, count($sqlFiles), count($documentFiles));
+        $warnings = $this->buildInspectionWarnings($inferredType, count($sqlFiles), count($documentFiles));
+
+        return [
+            'fileName' => $fileName,
+            'fileSize' => $this->formatBytes((int) File::size($path)),
+            'createdAt' => date('Y-m-d H:i:s', File::lastModified($path)),
+            'inferredType' => $inferredType,
+            'entries' => $entries,
+            'totalEntries' => count($entries),
+            'totalZipEntries' => $this->countZipEntries($path),
+            'totalUncompressedSize' => $this->formatBytes($totalUncompressedSize),
+            'sqlFiles' => $sqlFiles,
+            'documentFilesCount' => count($documentFiles),
+            'readmeContent' => $readmeContent,
+            'warnings' => $warnings,
+        ];
+    }
+
+    private function restoreDatabaseFromZip(string $fileName): void
+    {
+        $path = $this->absoluteBackupPath($fileName);
+        $zip = new ZipArchive();
+
+        if ($zip->open($path) !== true) {
+            throw new \RuntimeException('تعذر فتح ملف النسخة الاحتياطية.');
+        }
+
+        $sqlFile = $this->firstSqlFileInZip($zip);
+        if ($sqlFile === null) {
+            $zip->close();
+            throw new \RuntimeException('لا يوجد ملف SQL داخل هذه النسخة.');
+        }
+
+        $sql = $zip->getFromName($sqlFile);
+        $zip->close();
+
+        if ($sql === false || trim($sql) === '') {
+            throw new \RuntimeException('ملف SQL داخل النسخة فارغ أو غير قابل للقراءة.');
+        }
+
+        $backupDriver = $this->extractDumpDriver($sql);
+        $currentDriver = DB::connection()->getDriverName();
+
+        if ($backupDriver !== null && $backupDriver !== $currentDriver) {
+            throw new \RuntimeException('نوع قاعدة بيانات النسخة (' . $backupDriver . ') لا يطابق قاعدة البيانات الحالية (' . $currentDriver . ').');
+        }
+
+        $this->assertRestorableDatabaseDump($sql, $currentDriver);
+
+        $this->runSqlDump($sql, $currentDriver);
+    }
+
+    private function restoreDocumentsFromZip(string $fileName): void
+    {
+        $path = $this->absoluteBackupPath($fileName);
+        $documentsPath = storage_path('app/private/documents');
+
+        $zip = new ZipArchive();
+        if ($zip->open($path) !== true) {
+            throw new \RuntimeException('تعذر فتح ملف النسخة الاحتياطية.');
+        }
+
+        $documentEntries = [];
+        for ($i = 0; $i < $zip->numFiles; $i++) {
+            $stat = $zip->statIndex($i);
+            if (!$stat) {
+                continue;
+            }
+
+            $name = str_replace('\\', '/', (string) $stat['name']);
+            if (str_starts_with($name, 'documents/')) {
+                $documentEntries[] = ['index' => $i, 'name' => $name];
+            }
+        }
+
+        if (count($documentEntries) === 0) {
+            $zip->close();
+            throw new \RuntimeException('لا توجد ملفات مرفقات داخل مجلد documents في هذه النسخة.');
+        }
+
+        if (File::exists($documentsPath)) {
+            File::deleteDirectory($documentsPath);
+        }
+        File::ensureDirectoryExists($documentsPath);
+
+        foreach ($documentEntries as $entry) {
+            $zipName = $entry['name'];
+            $relative = trim(substr($zipName, strlen('documents/')), '/');
+
+            if ($relative === '') {
+                continue;
+            }
+
+            if ($this->isUnsafeZipPath($relative)) {
+                continue;
+            }
+
+            $targetPath = $documentsPath . DIRECTORY_SEPARATOR . str_replace('/', DIRECTORY_SEPARATOR, $relative);
+
+            if (str_ends_with($zipName, '/')) {
+                File::ensureDirectoryExists($targetPath);
+                continue;
+            }
+
+            File::ensureDirectoryExists(dirname($targetPath));
+
+            $readStream = $zip->getStream($zipName);
+            if ($readStream === false) {
+                continue;
+            }
+
+            $writeStream = fopen($targetPath, 'wb');
+            if ($writeStream === false) {
+                fclose($readStream);
+                continue;
+            }
+
+            stream_copy_to_stream($readStream, $writeStream);
+            fclose($readStream);
+            fclose($writeStream);
+        }
+
+        $zip->close();
+    }
+
+    private function runSqlDump(string $sql, string $driver): void
+    {
+        $statements = $this->splitSqlStatements($sql);
+
+        if ($driver === 'mysql') {
+            DB::statement('SET FOREIGN_KEY_CHECKS=0');
+
+            try {
+                // MySQL DDL statements auto-commit, so a normal transaction is not a safe rollback mechanism here.
+                // We validate the dump before reaching this point, then replace the existing tables.
+                $this->dropExistingTablesBeforeRestore($driver);
+
+                foreach ($statements as $statement) {
+                    $statement = $this->removeLeadingSqlComments(trim($statement));
+
+                    if ($this->shouldSkipRestoreStatement($statement)) {
+                        continue;
+                    }
+
+                    DB::unprepared($statement);
+                }
+            } finally {
+                DB::statement('SET FOREIGN_KEY_CHECKS=1');
+            }
+
+            return;
+        }
+
+        if ($driver === 'sqlite') {
+            // Keep SQLite support only as a fallback. Project production/local target is MySQL.
+            DB::statement('PRAGMA foreign_keys = OFF');
+            DB::beginTransaction();
+
+            try {
+                $this->dropExistingTablesBeforeRestore($driver);
+
+                foreach ($statements as $statement) {
+                    $statement = $this->removeLeadingSqlComments(trim($statement));
+
+                    if ($this->shouldSkipRestoreStatement($statement)) {
+                        continue;
+                    }
+
+                    DB::unprepared($statement);
+                }
+
+                DB::commit();
+            } catch (Throwable $e) {
+                DB::rollBack();
+                throw $e;
+            } finally {
+                DB::statement('PRAGMA foreign_keys = ON');
+            }
+
+            return;
+        }
+
+        throw new \RuntimeException('نوع قاعدة البيانات غير مدعوم في الاستعادة: ' . $driver);
+    }
+
+    private function shouldSkipRestoreStatement(string $statement): bool
+    {
+        if ($statement === '') {
+            return true;
+        }
+
+        $upper = strtoupper($statement);
+
+        return str_starts_with($upper, 'SET FOREIGN_KEY_CHECKS')
+            || str_starts_with($upper, 'PRAGMA FOREIGN_KEYS')
+            || str_starts_with($upper, 'START TRANSACTION')
+            || str_starts_with($upper, 'COMMIT');
+    }
+
+    private function assertRestorableDatabaseDump(string $sql, string $driver): void
+    {
+        $missingTables = [];
+
+        foreach ($this->requiredTablesForSafeRestore($driver) as $table) {
+            if (!$this->dumpContainsCreateTable($sql, $table, $driver)) {
+                $missingTables[] = $table;
+            }
+        }
+
+        if (!empty($missingTables)) {
+            throw new \RuntimeException(
+                'ملف النسخة الاحتياطية غير مكتمل ولا يمكن استعادته بأمان. الجداول الناقصة: '
+                . implode(', ', $missingTables)
+                . '. لا تستخدم النسخ التي أُنشئت بعد فشل استعادة سابق. استخدم نسخة كاملة سليمة أو نسخة pre-restore.'
+            );
+        }
+    }
+
+    private function assertCurrentDatabaseReadyForBackup(string $driver): void
+    {
+        $existingTables = $this->currentDatabaseTables($driver);
+        $missingTables = [];
+
+        foreach ($this->requiredTablesForSafeRestore($driver) as $table) {
+            if (!in_array($table, $existingTables, true)) {
+                $missingTables[] = $table;
+            }
+        }
+
+        if (!empty($missingTables)) {
+            throw new \RuntimeException(
+                'لا يمكن إنشاء نسخة احتياطية لأن قاعدة البيانات الحالية غير مكتملة. الجداول الناقصة: '
+                . implode(', ', $missingTables)
+                . '. نفّذ php artisan migrate أو استعد نسخة سليمة أولاً.'
+            );
+        }
+    }
+
+    private function requiredTablesForSafeRestore(string $driver): array
+    {
+        // These tables are essential for the application to continue after the restore request finishes.
+        // sessions is intentionally included because Laravel writes the session at the end of the request.
+        return [
+            'migrations',
+            'users',
+            'sessions',
+            'departments',
+            'document_types',
+            'documents',
+            'document_attachments',
+            'settings',
+            'reference_counters',
+            'activity_logs',
+        ];
+    }
+
+    private function dumpContainsCreateTable(string $sql, string $table, string $driver): bool
+    {
+        $quoted = preg_quote($table, '/');
+
+        if ($driver === 'mysql') {
+            return preg_match('/CREATE\s+TABLE\s+`' . $quoted . '`/i', $sql) === 1
+                || preg_match('/CREATE\s+TABLE\s+(?:IF\s+NOT\s+EXISTS\s+)?`' . $quoted . '`/i', $sql) === 1;
+        }
+
+        if ($driver === 'sqlite') {
+            return preg_match('/CREATE\s+TABLE\s+"' . $quoted . '"/i', $sql) === 1
+                || preg_match('/CREATE\s+TABLE\s+(?:IF\s+NOT\s+EXISTS\s+)?"' . $quoted . '"/i', $sql) === 1;
+        }
+
+        return false;
+    }
+
+    private function currentDatabaseTables(string $driver): array
+    {
+        if ($driver === 'mysql') {
+            $database = (string) config('database.connections.' . config('database.default') . '.database');
+
+            return collect(DB::select('SHOW TABLES'))
+                ->map(function ($row) use ($database) {
+                    $key = 'Tables_in_' . $database;
+                    return $row->{$key} ?? array_values((array) $row)[0] ?? null;
+                })
+                ->filter()
+                ->map(fn ($table) => (string) $table)
+                ->values()
+                ->all();
+        }
+
+        if ($driver === 'sqlite') {
+            return collect(DB::select("SELECT name FROM sqlite_master WHERE type='table' AND name NOT LIKE 'sqlite_%'"))
+                ->pluck('name')
+                ->filter()
+                ->map(fn ($table) => (string) $table)
+                ->values()
+                ->all();
+        }
+
+        return [];
+    }
+
+    private function removeLeadingSqlComments(string $statement): string
+    {
+        $lines = preg_split('/\R/', $statement) ?: [];
+        $cleanLines = [];
+
+        foreach ($lines as $line) {
+            $trimmed = trim($line);
+
+            if ($trimmed === '' || str_starts_with($trimmed, '--')) {
+                continue;
+            }
+
+            $cleanLines[] = $line;
+        }
+
+        return trim(implode(PHP_EOL, $cleanLines));
+    }
+
+    private function dropExistingTablesBeforeRestore(string $driver): void
+    {
+        if ($driver === 'sqlite') {
+            $tables = collect(DB::select("SELECT name FROM sqlite_master WHERE type='table' AND name NOT LIKE 'sqlite_%'"))
+                ->pluck('name')
+                ->filter()
+                ->values();
+
+            foreach ($tables as $table) {
+                $escapedTable = str_replace('"', '""', (string) $table);
+                DB::unprepared('DROP TABLE IF EXISTS "' . $escapedTable . '"');
+            }
+
+            return;
+        }
+
+        if ($driver === 'mysql') {
+            $database = (string) config('database.connections.' . config('database.default') . '.database');
+            $tables = collect(DB::select('SHOW TABLES'))
+                ->map(function ($row) use ($database) {
+                    $key = 'Tables_in_' . $database;
+                    return $row->{$key} ?? array_values((array) $row)[0] ?? null;
+                })
+                ->filter()
+                ->values();
+
+            foreach ($tables as $table) {
+                $escapedTable = str_replace('`', '``', (string) $table);
+                DB::unprepared('DROP TABLE IF EXISTS `' . $escapedTable . '`');
+            }
+        }
+    }
+
+    private function splitSqlStatements(string $sql): array
+    {
+        $statements = [];
+        $buffer = '';
+        $length = strlen($sql);
+        $quote = null;
+        $escaped = false;
+        $lineComment = false;
+
+        for ($i = 0; $i < $length; $i++) {
+            $char = $sql[$i];
+            $next = $i + 1 < $length ? $sql[$i + 1] : '';
+
+            if ($lineComment) {
+                $buffer .= $char;
+                if ($char === "\n") {
+                    $lineComment = false;
+                }
+                continue;
+            }
+
+            if ($quote === null && $char === '-' && $next === '-') {
+                $lineComment = true;
+                $buffer .= $char;
+                continue;
+            }
+
+            if ($quote !== null) {
+                $buffer .= $char;
+
+                if ($escaped) {
+                    $escaped = false;
+                    continue;
+                }
+
+                if ($char === '\\') {
+                    $escaped = true;
+                    continue;
+                }
+
+                if ($char === $quote) {
+                    $quote = null;
+                }
+
+                continue;
+            }
+
+            if ($char === "'" || $char === '"') {
+                $quote = $char;
+                $buffer .= $char;
+                continue;
+            }
+
+            if ($char === ';') {
+                $statements[] = trim($buffer);
+                $buffer = '';
+                continue;
+            }
+
+            $buffer .= $char;
+        }
+
+        if (trim($buffer) !== '') {
+            $statements[] = trim($buffer);
+        }
+
+        return $statements;
+    }
+
+    private function firstSqlFileInZip(ZipArchive $zip): ?string
+    {
+        for ($i = 0; $i < $zip->numFiles; $i++) {
+            $stat = $zip->statIndex($i);
+            if (!$stat) {
+                continue;
+            }
+
+            $name = str_replace('\\', '/', (string) $stat['name']);
+            if (str_ends_with(strtolower($name), '.sql')) {
+                return $name;
+            }
+        }
+
+        return null;
+    }
+
+    private function extractDumpDriver(string $sql): ?string
+    {
+        if (preg_match('/^--\s*Driver:\s*([a-zA-Z0-9_]+)/m', $sql, $matches)) {
+            return strtolower($matches[1]);
+        }
+
+        return null;
+    }
+
+    private function isUnsafeZipPath(string $path): bool
+    {
+        $path = str_replace('\\', '/', $path);
+
+        return str_contains($path, '../')
+            || str_starts_with($path, '../')
+            || str_starts_with($path, '/')
+            || preg_match('/^[a-zA-Z]:\//', $path) === 1;
+    }
+
+    private function createPreRestoreDatabaseBackup(): void
+    {
+        $fileName = 'pre-restore-database-' . now()->format('Ymd-His') . '.zip';
+        $zipPath = $this->absoluteBackupPath($fileName);
+        File::ensureDirectoryExists(dirname($zipPath));
+
+        $zip = new ZipArchive();
+        if ($zip->open($zipPath, ZipArchive::CREATE | ZipArchive::OVERWRITE) !== true) {
+            throw new \RuntimeException('تعذر إنشاء نسخة أمان من قاعدة البيانات قبل الاستعادة.');
+        }
+
+        $driver = config('database.default');
+        $zip->addFromString('database/database-' . $driver . '-' . now()->format('Ymd-His') . '.sql', $this->buildDatabaseDump());
+        $zip->addFromString('README.txt', $this->backupReadme('نسخة أمان قبل استعادة قاعدة البيانات'));
+        $zip->close();
+    }
+
+    private function createPreRestoreFilesBackup(): void
+    {
+        $fileName = 'pre-restore-files-' . now()->format('Ymd-His') . '.zip';
+        $zipPath = $this->absoluteBackupPath($fileName);
+        File::ensureDirectoryExists(dirname($zipPath));
+
+        $zip = new ZipArchive();
+        if ($zip->open($zipPath, ZipArchive::CREATE | ZipArchive::OVERWRITE) !== true) {
+            throw new \RuntimeException('تعذر إنشاء نسخة أمان من الملفات قبل الاستعادة.');
+        }
+
+        $this->addDirectoryToZip($zip, storage_path('app/private/documents'), 'documents');
+        $zip->addFromString('README.txt', $this->backupReadme('نسخة أمان قبل استعادة ملفات المرفقات'));
+        $zip->close();
+    }
+
     private function buildDatabaseDump(): string
     {
         $driver = DB::connection()->getDriverName();
         $database = config('database.connections.' . config('database.default') . '.database');
+
+        $this->assertCurrentDatabaseReadyForBackup($driver);
 
         $sql = [];
         $sql[] = '-- DocumentArchive Database Backup';
@@ -261,6 +831,44 @@ class BackupController extends Controller
         return $this->buildMysqlDump($sql, (string) $database);
     }
 
+    private function sortTablesForDump(array $tables): array
+    {
+        $preferredOrder = [
+            'migrations',
+            'users',
+            'departments',
+            'document_types',
+            'settings',
+            'reference_counters',
+            'documents',
+            'document_attachments',
+            'activity_logs',
+            'password_reset_tokens',
+            'sessions',
+            'cache',
+            'cache_locks',
+            'jobs',
+            'job_batches',
+            'failed_jobs',
+        ];
+
+        $tables = array_values(array_map('strval', $tables));
+        $priority = array_flip($preferredOrder);
+
+        usort($tables, function (string $a, string $b) use ($priority): int {
+            $aRank = $priority[$a] ?? 1000;
+            $bRank = $priority[$b] ?? 1000;
+
+            if ($aRank === $bRank) {
+                return strcmp($a, $b);
+            }
+
+            return $aRank <=> $bRank;
+        });
+
+        return $tables;
+    }
+
     private function buildMysqlDump(array $sql, string $database): string
     {
         $tables = collect(DB::select('SHOW TABLES'))
@@ -270,6 +878,8 @@ class BackupController extends Controller
             })
             ->filter()
             ->values();
+
+        $tables = $this->sortTablesForDump($tables->all());
 
         foreach ($tables as $table) {
             $escapedTable = str_replace('`', '``', (string) $table);
@@ -302,6 +912,8 @@ class BackupController extends Controller
         $tables = collect(DB::select("SELECT name FROM sqlite_master WHERE type='table' AND name NOT LIKE 'sqlite_%'"))
             ->pluck('name')
             ->values();
+
+        $tables = $this->sortTablesForDump($tables->all());
 
         foreach ($tables as $table) {
             $escapedTable = str_replace('"', '""', (string) $table);
@@ -398,6 +1010,14 @@ class BackupController extends Controller
             return 'نسخة ملفات';
         }
 
+        if (str_starts_with($fileName, 'pre-restore-database-')) {
+            return 'نسخة أمان قاعدة بيانات قبل الاستعادة';
+        }
+
+        if (str_starts_with($fileName, 'pre-restore-files-')) {
+            return 'نسخة أمان ملفات قبل الاستعادة';
+        }
+
         if ($sqlCount > 0 && $documentCount > 0) {
             return 'نسخة كاملة';
         }
@@ -417,11 +1037,11 @@ class BackupController extends Controller
     {
         $warnings = [];
 
-        if ($type === 'نسخة قاعدة بيانات' && $sqlCount === 0) {
+        if (str_contains($type, 'قاعدة بيانات') && $sqlCount === 0) {
             $warnings[] = 'لم يتم العثور على ملف SQL داخل النسخة.';
         }
 
-        if ($type === 'نسخة ملفات' && $documentCount === 0) {
+        if (str_contains($type, 'ملفات') && $documentCount === 0) {
             $warnings[] = 'لم يتم العثور على ملفات مرفقات داخل مجلد documents.';
         }
 
@@ -450,6 +1070,33 @@ class BackupController extends Controller
         return $count;
     }
 
+    /**
+     * يمنع قفل النظام بعد استعادة قاعدة البيانات.
+     * بعد أي استعادة لقاعدة البيانات يتم التأكد من وجود حساب المدير الافتراضي
+     * بكلمة مرور معروفة، مع عدم التأثير على باقي المستخدمين.
+     */
+    private function ensureDefaultAdminAfterRestore(): void
+    {
+        if (!\Illuminate\Support\Facades\Schema::hasTable('users')) {
+            return;
+        }
+
+        $now = now();
+
+        DB::table('users')->updateOrInsert(
+            ['username' => 'admin'],
+            [
+                'name' => 'مدير النظام',
+                'email' => null,
+                'phone' => null,
+                'role' => 'مدير النظام',
+                'is_active' => 1,
+                'password' => \Illuminate\Support\Facades\Hash::make('12345678'),
+                'updated_at' => $now,
+                'created_at' => $now,
+            ]
+        );
+    }
     private function formatBytes(int $bytes): string
     {
         if ($bytes >= 1073741824) {

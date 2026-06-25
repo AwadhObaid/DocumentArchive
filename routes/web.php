@@ -115,5 +115,10 @@ Route::resource('documents', DocumentController::class);
 });
 
 Route::middleware(['auth'])->group(function () {
+    Route::get('/backups/{fileName}/restore', [BackupController::class, 'restore'])->name('backups.restore');
+    Route::post('/backups/{fileName}/restore/database', [BackupController::class, 'restoreDatabase'])->name('backups.restore.database');
+    Route::post('/backups/{fileName}/restore/files', [BackupController::class, 'restoreFiles'])->name('backups.restore.files');
+    Route::post('/backups/{fileName}/restore/full', [BackupController::class, 'restoreFull'])->name('backups.restore.full');
+
     Route::get('/backups/{fileName}/inspect', [BackupController::class, 'inspect'])->name('backups.inspect');
 });

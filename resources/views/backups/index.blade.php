@@ -47,9 +47,9 @@
     </div>
 </div>
 
-<div class="alert alert-info backup-note">
-    <strong>ملاحظة:</strong>
-    قبل استخدام أي نسخة للاستعادة مستقبلاً، استخدم زر <strong>فحص</strong> للتأكد من أن النسخة تحتوي على ملف قاعدة البيانات و/أو ملفات المرفقات حسب نوعها.
+<div class="alert alert-warning backup-note">
+    <strong>تنبيه مهم:</strong>
+    الاستعادة عملية حساسة. استخدم زر <strong>استعادة</strong> فقط بعد فحص النسخة والتأكد من محتوياتها. النظام سينشئ نسخة أمان تلقائياً قبل أي استعادة.
 </div>
 
 <div class="card mt-4">
@@ -76,6 +76,7 @@
                         <td>{{ $backup['created_at'] }}</td>
                         <td class="table-actions">
                             <a href="{{ route('backups.inspect', $backup['name']) }}" class="btn btn-sm btn-info">فحص</a>
+                            <a href="{{ route('backups.restore', $backup['name']) }}" class="btn btn-sm btn-warning">استعادة</a>
                             <a href="{{ route('backups.download', $backup['name']) }}" class="btn btn-sm btn-primary">تنزيل</a>
                             <form method="POST" action="{{ route('backups.destroy', $backup['name']) }}" class="d-inline" onsubmit="return confirm('هل تريد حذف ملف النسخة الاحتياطية؟')">
                                 @csrf

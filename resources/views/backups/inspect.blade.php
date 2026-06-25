@@ -6,9 +6,10 @@
 <div class="page-header">
     <div>
         <h1>فحص النسخة الاحتياطية</h1>
-        <p>فحص محتويات ملف النسخة قبل الاعتماد عليه أو استخدامه لاحقاً في الاستعادة.</p>
+        <p>فحص محتويات ملف النسخة قبل الاعتماد عليه أو استخدامه في الاستعادة.</p>
     </div>
-    <div>
+    <div class="page-actions">
+        <a href="{{ route('backups.restore', $fileName) }}" class="btn btn-warning">استعادة هذه النسخة</a>
         <a href="{{ route('backups.index') }}" class="btn btn-light">رجوع للنسخ الاحتياطي</a>
     </div>
 </div>
@@ -23,30 +24,12 @@
     </div>
 
     <div class="backup-stats-grid">
-        <div class="stat-box">
-            <span>حجم ملف ZIP</span>
-            <strong>{{ $fileSize }}</strong>
-        </div>
-        <div class="stat-box">
-            <span>تاريخ الإنشاء</span>
-            <strong>{{ $createdAt }}</strong>
-        </div>
-        <div class="stat-box">
-            <span>عدد ملفات SQL</span>
-            <strong>{{ count($sqlFiles) }}</strong>
-        </div>
-        <div class="stat-box">
-            <span>عدد ملفات المرفقات</span>
-            <strong>{{ $documentFilesCount }}</strong>
-        </div>
-        <div class="stat-box">
-            <span>إجمالي عناصر ZIP</span>
-            <strong>{{ $totalZipEntries }}</strong>
-        </div>
-        <div class="stat-box">
-            <span>الحجم بعد الفك تقريباً</span>
-            <strong>{{ $totalUncompressedSize }}</strong>
-        </div>
+        <div class="stat-box"><span>حجم ملف ZIP</span><strong>{{ $fileSize }}</strong></div>
+        <div class="stat-box"><span>تاريخ الإنشاء</span><strong>{{ $createdAt }}</strong></div>
+        <div class="stat-box"><span>عدد ملفات SQL</span><strong>{{ count($sqlFiles) }}</strong></div>
+        <div class="stat-box"><span>عدد ملفات المرفقات</span><strong>{{ $documentFilesCount }}</strong></div>
+        <div class="stat-box"><span>إجمالي عناصر ZIP</span><strong>{{ $totalZipEntries }}</strong></div>
+        <div class="stat-box"><span>الحجم بعد الفك تقريباً</span><strong>{{ $totalUncompressedSize }}</strong></div>
     </div>
 </div>
 
@@ -114,9 +97,12 @@
 </div>
 
 <style>
-.backup-summary-card {
-    padding: 20px;
+.page-actions {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
 }
+.backup-summary-card { padding: 20px; }
 .backup-title-row {
     display: flex;
     justify-content: space-between;
@@ -124,11 +110,7 @@
     align-items: center;
     margin-bottom: 18px;
 }
-.backup-title-row h3 {
-    direction: ltr;
-    text-align: left;
-    margin-bottom: 6px;
-}
+.backup-title-row h3 { direction: ltr; text-align: left; margin-bottom: 6px; }
 .backup-stats-grid {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
@@ -140,21 +122,9 @@
     padding: 14px;
     background: rgba(248, 250, 252, .65);
 }
-.stat-box span {
-    display: block;
-    color: #64748b;
-    font-size: 13px;
-    margin-bottom: 8px;
-}
-.stat-box strong {
-    font-size: 18px;
-}
-.backup-list-ltr,
-.entry-name,
-.backup-readme {
-    direction: ltr;
-    text-align: left;
-}
+.stat-box span { display: block; color: #64748b; font-size: 13px; margin-bottom: 8px; }
+.stat-box strong { font-size: 18px; }
+.backup-list-ltr, .entry-name, .backup-readme { direction: ltr; text-align: left; }
 .backup-readme {
     white-space: pre-wrap;
     background: #0f172a;
@@ -163,10 +133,7 @@
     padding: 16px;
 }
 @media (max-width: 700px) {
-    .backup-title-row {
-        flex-direction: column;
-        align-items: stretch;
-    }
+    .backup-title-row { flex-direction: column; align-items: stretch; }
 }
 </style>
 @endsection
