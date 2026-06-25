@@ -1,0 +1,111 @@
+/* Arabic custom file input for DocumentArchive */
+.da-native-file-input {
+    position: absolute !important;
+    width: 1px !important;
+    height: 1px !important;
+    padding: 0 !important;
+    margin: -1px !important;
+    overflow: hidden !important;
+    clip: rect(0, 0, 0, 0) !important;
+    white-space: nowrap !important;
+    border: 0 !important;
+    opacity: 0 !important;
+}
+
+.da-file-control {
+    direction: rtl;
+    display: flex;
+    align-items: stretch;
+    width: 100%;
+    min-height: 44px;
+    border: 1px solid rgba(148, 163, 184, 0.28);
+    border-radius: 10px;
+    background: rgba(15, 23, 42, 0.48);
+    overflow: hidden;
+    box-sizing: border-box;
+}
+
+.da-file-control:focus-within {
+    border-color: rgba(59, 130, 246, 0.95);
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.16);
+}
+
+.da-file-button {
+    flex: 0 0 auto;
+    border: 0;
+    border-left: 1px solid rgba(148, 163, 184, 0.28);
+    background: #2563eb;
+    color: #ffffff;
+    padding: 0 18px;
+    min-width: 120px;
+    font-family: inherit;
+    font-size: 14px;
+    font-weight: 800;
+    cursor: pointer;
+    transition: background 0.18s ease, transform 0.18s ease;
+}
+
+.da-file-button:hover {
+    background: #1d4ed8;
+}
+
+.da-file-button:active {
+    transform: translateY(1px);
+}
+
+.da-file-name {
+    flex: 1 1 auto;
+    display: flex;
+    align-items: center;
+    padding: 0 14px;
+    color: rgba(226, 232, 240, 0.92);
+    font-size: 14px;
+    line-height: 1.5;
+    min-width: 0;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.da-file-name.is-empty {
+    color: rgba(148, 163, 184, 0.90);
+}
+
+.da-file-name.has-file {
+    color: #ffffff;
+    font-weight: 700;
+}
+
+@media (max-width: 640px) {
+    .da-file-control {
+        min-height: 46px;
+    }
+
+    .da-file-button {
+        min-width: 108px;
+        padding: 0 12px;
+        font-size: 13px;
+    }
+
+    .da-file-name {
+        font-size: 13px;
+        padding: 0 10px;
+    }
+}
+
+/* Light mode support if the system has a light theme */
+html:not(.dark) .da-file-control,
+body:not(.dark) .da-file-control {
+    background: #ffffff;
+    border-color: rgba(15, 23, 42, 0.16);
+}
+
+html:not(.dark) .da-file-name,
+body:not(.dark) .da-file-name {
+    color: #0f172a;
+}
+
+html:not(.dark) .da-file-name.is-empty,
+body:not(.dark) .da-file-name.is-empty {
+    color: #64748b;
+}
