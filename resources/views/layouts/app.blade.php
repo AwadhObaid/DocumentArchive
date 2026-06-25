@@ -10,6 +10,10 @@
     <link rel="stylesheet" href="{{ asset('css/arabic-file-input.css') }}">
     {{-- Arabic browser/form validation messages --}}
     <link rel="stylesheet" href="{{ asset('css/arabic-validation.css') }}">
+<!-- reports-dark-mode-fix:start -->
+<link rel="stylesheet" href="{{ asset('css/reports-dark-mode-fix.css') }}">
+<script defer src="{{ asset('js/reports-dark-mode-fix.js') }}"></script>
+<!-- reports-dark-mode-fix:end -->
 </head>
 <body>
 

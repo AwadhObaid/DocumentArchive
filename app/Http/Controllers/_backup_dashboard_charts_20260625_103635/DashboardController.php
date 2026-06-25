@@ -25,19 +25,13 @@ class DashboardController extends Controller
         $latestActivities = $this->latestActivities();
         $latestBackup = $this->latestBackup();
         $healthSummary = $this->healthSummary();
-        $charts = [
-            'documents_by_month' => $this->documentsByMonth(6),
-            'documents_by_department' => $this->documentsByLookup('department_id', 'departments', 'الإدارة'),
-            'documents_by_type' => $this->documentsByLookup('document_type_id', 'document_types', 'نوع الكتاب'),
-        ];
 
         return view('dashboard.index', compact(
             'stats',
             'latestDocuments',
             'latestActivities',
             'latestBackup',
-            'healthSummary',
-            'charts'
+            'healthSummary'
         ));
     }
 
@@ -72,30 +66,6 @@ class DashboardController extends Controller
         }
     }
 
-    private function documentDateColumn(): ?string
-    {
-        if ($this->columnExists('documents', 'reference_date')) {
-            return 'reference_date';
-        }
-
-        if ($this->columnExists('documents', 'created_at')) {
-            return 'created_at';
-        }
-
-        return null;
-    }
-
-    private function documentsQuery()
-    {
-        $query = DB::table('documents');
-
-        if ($this->columnExists('documents', 'deleted_at')) {
-            $query->whereNull('documents.deleted_at');
-        }
-
-        return $query;
-    }
-
     private function countDocumentsActive(): int
     {
         try {
@@ -103,7 +73,13 @@ class DashboardController extends Controller
                 return 0;
             }
 
-            return (int) $this->documentsQuery()->count();
+            $query = DB::table('documents');
+
+            if ($this->columnExists('documents', 'deleted_at')) {
+                $query->whereNull('deleted_at');
+            }
+
+            return (int) $query->count();
         } catch (\Throwable $e) {
             return 0;
         }
@@ -116,11 +92,16 @@ class DashboardController extends Controller
                 return 0;
             }
 
-            $dateColumn = $this->documentDateColumn();
-            $query = $this->documentsQuery();
+            $query = DB::table('documents');
 
-            if ($dateColumn) {
-                $query->whereDate('documents.' . $dateColumn, Carbon::today());
+            if ($this->columnExists('documents', 'deleted_at')) {
+                $query->whereNull('deleted_at');
+            }
+
+            if ($this->columnExists('documents', 'created_at')) {
+                $query->whereDate('created_at', Carbon::today());
+            } elseif ($this->columnExists('documents', 'reference_date')) {
+                $query->whereDate('reference_date', Carbon::today());
             }
 
             return (int) $query->count();
@@ -136,116 +117,23 @@ class DashboardController extends Controller
                 return 0;
             }
 
-            $query = $this->documentsQuery();
+            $query = DB::table('documents');
+
+            if ($this->columnExists('documents', 'deleted_at')) {
+                $query->whereNull('deleted_at');
+            }
 
             if ($this->columnExists('documents', 'reference_year')) {
-                $query->where('documents.reference_year', (int) date('Y'));
-            } elseif ($dateColumn = $this->documentDateColumn()) {
-                $query->whereYear('documents.' . $dateColumn, (int) date('Y'));
+                $query->where('reference_year', (int) date('Y'));
+            } elseif ($this->columnExists('documents', 'reference_date')) {
+                $query->whereYear('reference_date', (int) date('Y'));
+            } elseif ($this->columnExists('documents', 'created_at')) {
+                $query->whereYear('created_at', (int) date('Y'));
             }
 
             return (int) $query->count();
         } catch (\Throwable $e) {
             return 0;
-        }
-    }
-
-    private function documentsByMonth(int $months = 6): array
-    {
-        $rows = [];
-
-        try {
-            if (!$this->tableExists('documents')) {
-                return $this->emptyMonthRows($months);
-            }
-
-            $dateColumn = $this->documentDateColumn();
-            if (!$dateColumn) {
-                return $this->emptyMonthRows($months);
-            }
-
-            for ($i = $months - 1; $i >= 0; $i--) {
-                $date = Carbon::now()->startOfMonth()->subMonths($i);
-                $query = $this->documentsQuery()
-                    ->whereYear('documents.' . $dateColumn, $date->year)
-                    ->whereMonth('documents.' . $dateColumn, $date->month);
-
-                $rows[] = [
-                    'label' => $this->arabicMonthLabel($date),
-                    'count' => (int) $query->count(),
-                ];
-            }
-        } catch (\Throwable $e) {
-            return $this->emptyMonthRows($months);
-        }
-
-        return $rows;
-    }
-
-    private function emptyMonthRows(int $months): array
-    {
-        $rows = [];
-        for ($i = $months - 1; $i >= 0; $i--) {
-            $date = Carbon::now()->startOfMonth()->subMonths($i);
-            $rows[] = [
-                'label' => $this->arabicMonthLabel($date),
-                'count' => 0,
-            ];
-        }
-
-        return $rows;
-    }
-
-    private function arabicMonthLabel(Carbon $date): string
-    {
-        $months = [
-            1 => 'يناير',
-            2 => 'فبراير',
-            3 => 'مارس',
-            4 => 'أبريل',
-            5 => 'مايو',
-            6 => 'يونيو',
-            7 => 'يوليو',
-            8 => 'أغسطس',
-            9 => 'سبتمبر',
-            10 => 'أكتوبر',
-            11 => 'نوفمبر',
-            12 => 'ديسمبر',
-        ];
-
-        return ($months[(int) $date->month] ?? $date->format('m')) . ' ' . $date->format('Y');
-    }
-
-    private function documentsByLookup(string $foreignColumn, string $lookupTable, string $defaultLabel): array
-    {
-        try {
-            if (!$this->tableExists('documents') || !$this->columnExists('documents', $foreignColumn)) {
-                return [];
-            }
-
-            $nameColumn = $this->columnExists($lookupTable, 'name') ? 'name' : null;
-
-            if ($this->tableExists($lookupTable) && $nameColumn) {
-                $query = $this->documentsQuery()
-                    ->leftJoin($lookupTable, 'documents.' . $foreignColumn, '=', $lookupTable . '.id')
-                    ->selectRaw('COALESCE(' . $lookupTable . '.' . $nameColumn . ', ?) as label, COUNT(*) as total', ['غير محدد'])
-                    ->groupBy('label')
-                    ->orderByDesc('total')
-                    ->limit(8);
-            } else {
-                $query = $this->documentsQuery()
-                    ->selectRaw('COALESCE(CAST(documents.' . $foreignColumn . ' AS CHAR), ?) as label, COUNT(*) as total', [$defaultLabel . ' غير محدد'])
-                    ->groupBy('label')
-                    ->orderByDesc('total')
-                    ->limit(8);
-            }
-
-            return $query->get()->map(fn ($row) => [
-                'label' => (string) ($row->label ?: 'غير محدد'),
-                'count' => (int) $row->total,
-            ])->all();
-        } catch (\Throwable $e) {
-            return [];
         }
     }
 
@@ -257,6 +145,7 @@ class DashboardController extends Controller
             }
 
             $select = ['documents.id'];
+
             foreach (['reference_number', 'reference_date', 'subject', 'main_policy_number', 'sub_policy_number', 'created_at'] as $column) {
                 if ($this->columnExists('documents', $column)) {
                     $select[] = 'documents.' . $column;

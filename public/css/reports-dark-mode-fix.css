@@ -1,0 +1,139 @@
+/* DocumentArchive reports dark mode fix - scoped to reports pages only. */
+@media screen {
+    body.reports-dark-fix.reports-dark-mode-active {
+        --reports-dark-bg: #0f172a;
+        --reports-dark-card: #111827;
+        --reports-dark-card-2: #1f2937;
+        --reports-dark-border: #2f3b52;
+        --reports-dark-text: #f8fafc;
+        --reports-dark-muted: #cbd5e1;
+        --reports-dark-soft: #94a3b8;
+        --reports-dark-input: #0b1220;
+    }
+
+    body.reports-dark-fix.reports-dark-mode-active .card,
+    body.reports-dark-fix.reports-dark-mode-active .report-card,
+    body.reports-dark-fix.reports-dark-mode-active .reports-card,
+    body.reports-dark-fix.reports-dark-mode-active .filter-card,
+    body.reports-dark-fix.reports-dark-mode-active .summary-card,
+    body.reports-dark-fix.reports-dark-mode-active .stat-card,
+    body.reports-dark-fix.reports-dark-mode-active .dashboard-card,
+    body.reports-dark-fix.reports-dark-mode-active .table-card,
+    body.reports-dark-fix.reports-dark-mode-active .panel,
+    body.reports-dark-fix.reports-dark-mode-active .box,
+    body.reports-dark-fix.reports-dark-mode-active .bg-white,
+    body.reports-dark-fix.reports-dark-mode-active .bg-light,
+    body.reports-dark-fix.reports-dark-mode-active .white-card,
+    body.reports-dark-fix.reports-dark-mode-active section.bg-white,
+    body.reports-dark-fix.reports-dark-mode-active div[class*="card"],
+    body.reports-dark-fix.reports-dark-mode-active div[class*="summary"],
+    body.reports-dark-fix.reports-dark-mode-active div[class*="filter"] {
+        background: var(--reports-dark-card) !important;
+        color: var(--reports-dark-text) !important;
+        border-color: var(--reports-dark-border) !important;
+        box-shadow: 0 12px 32px rgba(0, 0, 0, .24) !important;
+    }
+
+    body.reports-dark-fix.reports-dark-mode-active .card *,
+    body.reports-dark-fix.reports-dark-mode-active .report-card *,
+    body.reports-dark-fix.reports-dark-mode-active .reports-card *,
+    body.reports-dark-fix.reports-dark-mode-active .filter-card *,
+    body.reports-dark-fix.reports-dark-mode-active .summary-card *,
+    body.reports-dark-fix.reports-dark-mode-active .stat-card *,
+    body.reports-dark-fix.reports-dark-mode-active .table-card *,
+    body.reports-dark-fix.reports-dark-mode-active .bg-white *,
+    body.reports-dark-fix.reports-dark-mode-active .bg-light *,
+    body.reports-dark-fix.reports-dark-mode-active .white-card * {
+        color: inherit;
+    }
+
+    body.reports-dark-fix.reports-dark-mode-active .text-muted,
+    body.reports-dark-fix.reports-dark-mode-active .muted,
+    body.reports-dark-fix.reports-dark-mode-active small,
+    body.reports-dark-fix.reports-dark-mode-active label,
+    body.reports-dark-fix.reports-dark-mode-active .form-label,
+    body.reports-dark-fix.reports-dark-mode-active .help-text,
+    body.reports-dark-fix.reports-dark-mode-active .description {
+        color: var(--reports-dark-muted) !important;
+    }
+
+    body.reports-dark-fix.reports-dark-mode-active input,
+    body.reports-dark-fix.reports-dark-mode-active select,
+    body.reports-dark-fix.reports-dark-mode-active textarea,
+    body.reports-dark-fix.reports-dark-mode-active .form-control,
+    body.reports-dark-fix.reports-dark-mode-active .form-select,
+    body.reports-dark-fix.reports-dark-mode-active .custom-select {
+        background-color: var(--reports-dark-input) !important;
+        color: var(--reports-dark-text) !important;
+        border-color: var(--reports-dark-border) !important;
+    }
+
+    body.reports-dark-fix.reports-dark-mode-active input::placeholder,
+    body.reports-dark-fix.reports-dark-mode-active textarea::placeholder {
+        color: var(--reports-dark-soft) !important;
+        opacity: 1 !important;
+    }
+
+    body.reports-dark-fix.reports-dark-mode-active select option {
+        background-color: var(--reports-dark-input) !important;
+        color: var(--reports-dark-text) !important;
+    }
+
+    body.reports-dark-fix.reports-dark-mode-active table,
+    body.reports-dark-fix.reports-dark-mode-active .table {
+        background: var(--reports-dark-card) !important;
+        color: var(--reports-dark-text) !important;
+        border-color: var(--reports-dark-border) !important;
+    }
+
+    body.reports-dark-fix.reports-dark-mode-active thead,
+    body.reports-dark-fix.reports-dark-mode-active thead tr,
+    body.reports-dark-fix.reports-dark-mode-active thead th,
+    body.reports-dark-fix.reports-dark-mode-active .table thead th {
+        background: var(--reports-dark-card-2) !important;
+        color: var(--reports-dark-text) !important;
+        border-color: var(--reports-dark-border) !important;
+    }
+
+    body.reports-dark-fix.reports-dark-mode-active tbody,
+    body.reports-dark-fix.reports-dark-mode-active tbody tr,
+    body.reports-dark-fix.reports-dark-mode-active tbody td,
+    body.reports-dark-fix.reports-dark-mode-active .table tbody td {
+        background: var(--reports-dark-card) !important;
+        color: var(--reports-dark-muted) !important;
+        border-color: var(--reports-dark-border) !important;
+    }
+
+    body.reports-dark-fix.reports-dark-mode-active tbody tr:hover,
+    body.reports-dark-fix.reports-dark-mode-active .table tbody tr:hover td {
+        background: #172033 !important;
+        color: var(--reports-dark-text) !important;
+    }
+
+    body.reports-dark-fix.reports-dark-mode-active .badge,
+    body.reports-dark-fix.reports-dark-mode-active .pill,
+    body.reports-dark-fix.reports-dark-mode-active .chip {
+        border-color: var(--reports-dark-border) !important;
+    }
+}
+
+/* Keep printed reports clean on white paper. */
+@media print {
+    body.reports-dark-fix.reports-dark-mode-active .card,
+    body.reports-dark-fix.reports-dark-mode-active .report-card,
+    body.reports-dark-fix.reports-dark-mode-active .reports-card,
+    body.reports-dark-fix.reports-dark-mode-active .filter-card,
+    body.reports-dark-fix.reports-dark-mode-active .summary-card,
+    body.reports-dark-fix.reports-dark-mode-active .stat-card,
+    body.reports-dark-fix.reports-dark-mode-active .table-card,
+    body.reports-dark-fix.reports-dark-mode-active table,
+    body.reports-dark-fix.reports-dark-mode-active thead,
+    body.reports-dark-fix.reports-dark-mode-active tbody,
+    body.reports-dark-fix.reports-dark-mode-active tr,
+    body.reports-dark-fix.reports-dark-mode-active th,
+    body.reports-dark-fix.reports-dark-mode-active td {
+        background: #fff !important;
+        color: #000 !important;
+        box-shadow: none !important;
+    }
+}
