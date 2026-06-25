@@ -10,7 +10,6 @@ use App\Http\Controllers\DocumentController;
 use App\Http\Controllers\DocumentTypeController;
 use App\Http\Controllers\SettingsController;
 use App\Http\Controllers\UserController;
-use App\Http\Controllers\ProfileController;
 use App\Http\Middleware\ApplyRoutePermissions;
 use Illuminate\Support\Facades\Route;
 
@@ -29,14 +28,6 @@ Route::middleware(['auth', ApplyRoutePermissions::class])->group(function () {
     });
 
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
-    Route::get('/profile', [ProfileController::class, 'edit'])
-        ->name('profile.edit');
-
-    Route::put('/profile', [ProfileController::class, 'update'])
-        ->name('profile.update');
-
-    Route::put('/profile/password', [ProfileController::class, 'updatePassword'])
-        ->name('profile.password.update');
 
     Route::get('/settings', [SettingsController::class, 'edit'])
         ->name('settings.edit');
