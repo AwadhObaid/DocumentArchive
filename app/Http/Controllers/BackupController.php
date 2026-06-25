@@ -6,6 +6,9 @@ use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\File;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Schema;
 use Illuminate\View\View;
 use Throwable;
 use ZipArchive;
@@ -161,9 +164,10 @@ class BackupController extends Controller
             $this->restoreDatabaseFromZip($fileName);
             $this->ensureDefaultAdminAfterRestore();
 
-            return redirect()
-                ->route('backups.index')
-                ->with('success', 'تمت استعادة قاعدة البيانات بنجاح. تم إنشاء نسخة أمان قبل الاستعادة داخل مجلد النسخ الاحتياطية.');
+            return $this->finishRestoreAndLogout(
+                $request,
+                'تمت استعادة قاعدة البيانات بنجاح. تم إنشاء نسخة أمان قبل الاستعادة، وتم ضبط حساب المدير الافتراضي. الرجاء تسجيل الدخول من جديد.'
+            );
         } catch (Throwable $e) {
             report($e);
             return back()->with('error', 'فشلت استعادة قاعدة البيانات: ' . $e->getMessage());
@@ -204,9 +208,10 @@ class BackupController extends Controller
             $this->ensureDefaultAdminAfterRestore();
             $this->restoreDocumentsFromZip($fileName);
 
-            return redirect()
-                ->route('backups.index')
-                ->with('success', 'تمت استعادة النسخة الكاملة بنجاح. تم إنشاء نسخ أمان قبل الاستعادة.');
+            return $this->finishRestoreAndLogout(
+                $request,
+                'تمت استعادة النسخة الكاملة بنجاح. تم إنشاء نسخ أمان قبل الاستعادة، وتم ضبط حساب المدير الافتراضي. الرجاء تسجيل الدخول من جديد.'
+            );
         } catch (Throwable $e) {
             report($e);
             return back()->with('error', 'فشلت استعادة النسخة الكاملة: ' . $e->getMessage());
@@ -553,19 +558,19 @@ class BackupController extends Controller
             throw new \RuntimeException(
                 'لا يمكن إنشاء نسخة احتياطية لأن قاعدة البيانات الحالية غير مكتملة. الجداول الناقصة: '
                 . implode(', ', $missingTables)
-                . '. نفّذ php artisan migrate أو استعد نسخة سليمة أولاً.'
+                . '. أعد بناء قاعدة MySQL أولاً ثم أنشئ نسخة جديدة. لا تعتمد على نسخة أُنشئت أثناء فشل استعادة سابق.'
             );
         }
     }
 
     private function requiredTablesForSafeRestore(string $driver): array
     {
-        // These tables are essential for the application to continue after the restore request finishes.
-        // sessions is intentionally included because Laravel writes the session at the end of the request.
+        // Core application tables only.
+        // Session/cache/queue tables are not required here because the project runtime is configured as:
+        // SESSION_DRIVER=file, CACHE_STORE=file, QUEUE_CONNECTION=sync.
         return [
             'migrations',
             'users',
-            'sessions',
             'departments',
             'document_types',
             'documents',
@@ -1072,30 +1077,58 @@ class BackupController extends Controller
 
     /**
      * يمنع قفل النظام بعد استعادة قاعدة البيانات.
-     * بعد أي استعادة لقاعدة البيانات يتم التأكد من وجود حساب المدير الافتراضي
-     * بكلمة مرور معروفة، مع عدم التأثير على باقي المستخدمين.
+     * بعد أي استعادة لقاعدة البيانات يتم ضمان وجود حساب مدير ثابت باللغة الإنجليزية
+     * لتجنب مشاكل ترميز الأدوار العربية داخل PowerShell أو النسخ الاحتياطية.
      */
     private function ensureDefaultAdminAfterRestore(): void
     {
-        if (!\Illuminate\Support\Facades\Schema::hasTable('users')) {
-            return;
+        if (!Schema::hasTable('users')) {
+            throw new \RuntimeException('تمت قراءة ملف الاستعادة، لكن جدول users غير موجود بعد الاستعادة.');
         }
 
         $now = now();
 
-        DB::table('users')->updateOrInsert(
-            ['username' => 'admin'],
-            [
-                'name' => 'مدير النظام',
-                'email' => null,
-                'phone' => null,
-                'role' => 'مدير النظام',
-                'is_active' => 1,
-                'password' => \Illuminate\Support\Facades\Hash::make('12345678'),
-                'updated_at' => $now,
-                'created_at' => $now,
-            ]
-        );
+        $adminData = [
+            'name' => 'Admin',
+            'email' => null,
+            'phone' => null,
+            'role' => 'admin',
+            'is_active' => 1,
+            'password' => Hash::make('12345678'),
+            'remember_token' => null,
+            'updated_at' => $now,
+        ];
+
+        $existingAdmin = DB::table('users')->where('username', 'admin')->first();
+
+        if ($existingAdmin) {
+            DB::table('users')
+                ->where('username', 'admin')
+                ->update($adminData);
+
+            return;
+        }
+
+        $adminData['username'] = 'admin';
+        $adminData['created_at'] = $now;
+
+        DB::table('users')->insert($adminData);
+    }
+
+    /**
+     * بعد استعادة قاعدة البيانات يجب إنهاء الجلسة القديمة لأن جدول المستخدمين تغيّر.
+     * هذا يمنع بقاء Session مرتبطة بمستخدم تم استبداله أثناء الاستعادة.
+     */
+    private function finishRestoreAndLogout(Request $request, string $message): RedirectResponse
+    {
+        Auth::logout();
+
+        $request->session()->invalidate();
+        $request->session()->regenerateToken();
+
+        return redirect()
+            ->route('login')
+            ->with('success', $message);
     }
     private function formatBytes(int $bytes): string
     {
