@@ -37,11 +37,7 @@ class ApplyRoutePermissions
         $name = (string) ($route?->getName() ?? '');
 
         if ($name === '' || in_array($name, ['dashboard', 'logout'], true)) {
-            if (str_starts_with($name, 'data-quality.')) {
-            return 'reports.view';
-        }
-
-        return null;
+            return null;
         }
 
         // سجل نشاط كتاب محدد مساره يبدأ بـ documents لكنه يتبع سجل النشاط.
@@ -112,10 +108,6 @@ class ApplyRoutePermissions
 
         if (str_starts_with($name, 'activity-logs.')) {
             return 'activity_logs.view';
-        }
-
-        if (str_starts_with($name, 'data-quality.')) {
-            return 'reports.view';
         }
 
         return null;

@@ -53,9 +53,6 @@
 <a href="{{ route('settings.edit') }}" class="{{ request()->routeIs('settings.*') ? 'active' : '' }}">⚙️ الإعدادات</a>
                         @if(auth()->user()?->hasPermission('settings.manage'))
                             <a href="{{ route('system-health.index') }}">🩺 فحص النظام</a>
-                        @if(auth()->user()?->hasPermission('reports.view'))
-                            <a href="{{ route('data-quality.index') }}">🧭 جودة البيانات</a>
-                        @endif
                         @endif
 @endif
                 {{-- REPORTS-SIDEBAR-LINK --}}
