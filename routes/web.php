@@ -10,6 +10,7 @@ use App\Http\Controllers\DocumentController;
 use App\Http\Controllers\DocumentTypeController;
 use App\Http\Controllers\SettingsController;
 use App\Http\Controllers\UserController;
+use App\Http\Middleware\ApplyRoutePermissions;
 use Illuminate\Support\Facades\Route;
 
 Route::middleware('guest')->group(function () {
@@ -21,7 +22,7 @@ Route::post('/logout', [AuthController::class, 'logout'])
     ->middleware('auth')
     ->name('logout');
 
-Route::middleware('auth')->group(function () {
+Route::middleware(['auth', ApplyRoutePermissions::class])->group(function () {
     Route::get('/', function () {
         return redirect()->route('dashboard');
     });
@@ -114,7 +115,7 @@ Route::middleware('auth')->group(function () {
 Route::resource('documents', DocumentController::class);
 });
 
-Route::middleware(['auth'])->group(function () {
+Route::middleware(['auth', ApplyRoutePermissions::class])->group(function () {
     Route::get('/backups/{fileName}/restore', [BackupController::class, 'restore'])->name('backups.restore');
     Route::post('/backups/{fileName}/restore/database', [BackupController::class, 'restoreDatabase'])->name('backups.restore.database');
     Route::post('/backups/{fileName}/restore/files', [BackupController::class, 'restoreFiles'])->name('backups.restore.files');

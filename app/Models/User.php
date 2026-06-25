@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Support\PermissionRegistry;
 use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
@@ -17,6 +18,7 @@ class User extends Authenticatable
         'email',
         'phone',
         'role',
+        'permissions',
         'is_active',
         'last_login_at',
         'password',
@@ -34,6 +36,7 @@ class User extends Authenticatable
             'last_login_at' => 'datetime',
             'password' => 'hashed',
             'is_active' => 'boolean',
+            'permissions' => 'array',
         ];
     }
 
@@ -52,12 +55,33 @@ class User extends Authenticatable
         return $this->hasMany(ActivityLog::class);
     }
 
+    public function isAdmin(): bool
+    {
+        return in_array($this->role, ['admin', 'administrator', 'super_admin', 'مدير النظام', 'مدير'], true);
+    }
+
+    public function resolvedPermissions(): array
+    {
+        if ($this->isAdmin()) {
+            return ['*'];
+        }
+
+        $saved = PermissionRegistry::normalize($this->permissions);
+
+        return $saved !== [] ? $saved : PermissionRegistry::defaultsForRole($this->role);
+    }
+
+    public function hasPermission(string $permission): bool
+    {
+        return PermissionRegistry::has($this->resolvedPermissions(), $permission);
+    }
+
     protected function roleName(): Attribute
     {
         return Attribute::make(
             get: fn () => match ($this->role) {
-                'admin' => 'مدير النظام',
-                'manager' => 'مدير',
+                'admin', 'administrator', 'super_admin', 'مدير النظام' => 'مدير النظام',
+                'manager', 'مدير' => 'مدير',
                 'user' => 'مستخدم',
                 'viewer' => 'مشاهد فقط',
                 default => 'مستخدم',

@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\User;
+use App\Support\PermissionRegistry;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
 
@@ -10,7 +11,10 @@ class UserController extends Controller
 {
     private function ensureAdmin(): void
     {
-        abort_unless(auth()->check() && auth()->user()->role === 'admin', 403, 'هذه الصفحة متاحة لمدير النظام فقط.');
+        $role = trim((string) (auth()->user()->role ?? ''));
+        $adminRoles = ['admin', 'administrator', 'super_admin', 'مدير النظام', 'مدير'];
+
+        abort_unless(auth()->check() && in_array($role, $adminRoles, true), 403, 'هذه الصفحة متاحة لمدير النظام فقط.');
     }
 
     public function index(Request $request)
@@ -42,7 +46,10 @@ class UserController extends Controller
     {
         $this->ensureAdmin();
 
-        return view('users.create');
+        return view('users.create', [
+            'permissionGroups' => PermissionRegistry::groups(),
+            'defaultPermissions' => PermissionRegistry::defaultsForRole('user'),
+        ]);
     }
 
     public function store(Request $request)
@@ -55,30 +62,42 @@ class UserController extends Controller
             'email' => ['nullable', 'email', 'max:255', 'unique:users,email'],
             'phone' => ['nullable', 'string', 'max:50'],
             'role' => ['required', 'in:admin,user,viewer'],
+            'permissions' => ['nullable', 'array'],
+            'permissions.*' => ['string', Rule::in(PermissionRegistry::keys())],
             'password' => ['required', 'string', 'min:8', 'confirmed'],
             'is_active' => ['nullable', 'boolean'],
         ]);
+
+        $role = $validated['role'];
+        $permissions = $role === 'admin'
+            ? ['*']
+            : PermissionRegistry::normalize($validated['permissions'] ?? PermissionRegistry::defaultsForRole($role));
 
         User::create([
             'name' => $validated['name'],
             'username' => $validated['username'],
             'email' => $validated['email'] ?? null,
             'phone' => $validated['phone'] ?? null,
-            'role' => $validated['role'],
+            'role' => $role,
+            'permissions' => $permissions,
             'password' => $validated['password'],
             'is_active' => $request->boolean('is_active'),
         ]);
 
         return redirect()
             ->route('users.index')
-            ->with('success', 'تم إنشاء المستخدم بنجاح.');
+            ->with('success', 'تم إنشاء المستخدم والصلاحيات بنجاح.');
     }
 
     public function edit(User $user)
     {
         $this->ensureAdmin();
 
-        return view('users.edit', compact('user'));
+        return view('users.edit', [
+            'user' => $user,
+            'permissionGroups' => PermissionRegistry::groups(),
+            'defaultPermissions' => $user->resolvedPermissions(),
+        ]);
     }
 
     public function update(Request $request, User $user)
@@ -101,21 +120,29 @@ class UserController extends Controller
             ],
             'phone' => ['nullable', 'string', 'max:50'],
             'role' => ['required', 'in:admin,user,viewer'],
+            'permissions' => ['nullable', 'array'],
+            'permissions.*' => ['string', Rule::in(PermissionRegistry::keys())],
             'is_active' => ['nullable', 'boolean'],
         ]);
+
+        $role = $validated['role'];
+        $permissions = $role === 'admin'
+            ? ['*']
+            : PermissionRegistry::normalize($validated['permissions'] ?? []);
 
         $user->update([
             'name' => $validated['name'],
             'username' => $validated['username'],
             'email' => $validated['email'] ?? null,
             'phone' => $validated['phone'] ?? null,
-            'role' => $validated['role'],
+            'role' => $role,
+            'permissions' => $permissions,
             'is_active' => $request->boolean('is_active'),
         ]);
 
         return redirect()
             ->route('users.index')
-            ->with('success', 'تم تحديث بيانات المستخدم بنجاح.');
+            ->with('success', 'تم تحديث بيانات المستخدم والصلاحيات بنجاح.');
     }
 
     public function editPassword(User $user)
@@ -172,13 +199,6 @@ class UserController extends Controller
             return back()->withErrors(['user' => 'لا يمكنك حذف حسابك الحالي.']);
         }
 
-        /*
-        |--------------------------------------------------------------------------
-        | الحذف هنا ليس حذفاً فعلياً
-        |--------------------------------------------------------------------------
-        | في الأنظمة الإدارية الأفضل عدم حذف المستخدمين نهائياً حتى لا تضيع
-        | علاقة السجلات القديمة بمن قام بإنشائها أو تعديلها.
-        */
         $user->update(['is_active' => false]);
 
         return redirect()
