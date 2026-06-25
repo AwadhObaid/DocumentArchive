@@ -9,7 +9,6 @@ use App\Http\Controllers\DepartmentController;
 use App\Http\Controllers\DocumentController;
 use App\Http\Controllers\DocumentTypeController;
 use App\Http\Controllers\SettingsController;
-use App\Http\Controllers\SystemHealthController;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Middleware\ApplyRoutePermissions;
@@ -30,8 +29,6 @@ Route::middleware(['auth', ApplyRoutePermissions::class])->group(function () {
     });
 
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
-    Route::get('/system-health', [SystemHealthController::class, 'index'])
-        ->name('system-health.index');
     Route::get('/profile', [ProfileController::class, 'edit'])
         ->name('profile.edit');
 

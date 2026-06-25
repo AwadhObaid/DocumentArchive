@@ -98,10 +98,6 @@ class ApplyRoutePermissions
             return 'settings.manage';
         }
 
-        if (str_starts_with($name, 'system-health.')) {
-            return 'settings.manage';
-        }
-
         if (str_starts_with($name, 'users.')) {
             return 'users.manage';
         }
