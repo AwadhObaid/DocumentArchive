@@ -2,8 +2,7 @@
 <html lang="ar" dir="rtl" data-theme="light">
 <head>
     <meta charset="UTF-8">
-    <title>@yield('title', 'نظام
- الأرشيف الإلكتروني')</title>
+    <title>@yield('title', 'نظامالأرشيف الإلكتروني')</title>
     <meta name="viewport" content="width=device-width, initial-scale=1">
 
     <link rel="stylesheet" href="{{ asset('css/app.css') }}">
@@ -35,14 +34,12 @@
             <div class="brand-icon">📁</div>
             <div>
                 <div class="brand-title">الأرشيف الإلكتروني</div>
-                <div class="brand-subtitle">الشحن والتأم
-ين</div>
+                <div class="brand-subtitle">الشحن والتأمين</div>
             </div>
         </div>
 
         <nav class="side-nav">
-            <a href="{{ route('profile.edit') }}" class="{{ request()->routeIs('profile.*') ? 'active' : '' }}">👤 الم
-لف الشخصي</a>
+            <a href="{{ route('profile.edit') }}" class="{{ request()->routeIs('profile.*') ? 'active' : '' }}">👤 الملف الشخصي</a>
 
             <a href="{{ route('dashboard') }}" class="{{ request()->routeIs('dashboard') ? 'active' : '' }}">🏠 لوحة التحكم
 </a>
@@ -53,8 +50,7 @@
             <a href="{{ route('documents.create') }}" class="{{ request()->routeIs('documents.create') ? 'active' : '' }}">➕ إضافة كتاب</a>
             @endif
             @if(auth()->user()?->hasPermission('documents.restore'))
-            <a href="{{ route('documents.trash') }}" class="{{ request()->routeIs('documents.trash') ? 'active' : '' }}">🗑️ سلة الم
-حذوفات</a>
+            <a href="{{ route('documents.trash') }}" class="{{ request()->routeIs('documents.trash') ? 'active' : '' }}">🗑️ سلة المحذوفات</a>
             @endif
             @if(auth()->user()?->hasPermission('activity_logs.view'))
             <a href="{{ route('activity-logs.index') }}" class="{{ request()->routeIs('activity-logs.*') || request()->routeIs('documents.activity') ? 'active' : '' }}">🧾 سجل النشاط</a>
@@ -89,9 +85,7 @@
                 <a href="{{ url('/backups') }}" class="{{ request()->is('backups*') ? 'active' : '' }}">💾 النسخ الاحتياطي</a>
             @endif
 @if(auth()->user()?->hasPermission('users.manage'))
-                <a href="{{ route('users.index') }}" class="{{ request()->routeIs('users.*') ? 'active' : '' }}">👥 الم
-ستخدم
-ون</a>
+                <a href="{{ route('users.index') }}" class="{{ request()->routeIs('users.*') ? 'active' : '' }}">👥 المستخدمون</a>
             @endif
         </nav>
 
@@ -117,13 +111,8 @@
             <button class="menu-toggle" type="button" data-toggle-sidebar>☰</button>
 
             <div>
-                <h1>@yield('page_title', 'نظام
- الأرشيف الإلكتروني الخاص بقسم
- الشحن والتأم
-ين')</h1>
-                <p>@yield('page_subtitle', 'إدارة الكتب، الم
-رفقات، البوالص، والطباعة الرسم
-ية')</p>
+                <h1>@yield('page_title', 'نظامالأرشيف الإلكتروني الخاص بقسمالشحن والتأمين')</h1>
+                <p>@yield('page_subtitle', 'إدارة الكتب، المرفقات، البوالص، والطباعة الرسمية')</p>
             </div>
 
             <button class="theme-toggle" type="button" data-toggle-theme>🌙</button>

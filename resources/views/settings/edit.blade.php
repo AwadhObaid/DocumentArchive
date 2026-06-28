@@ -8,8 +8,7 @@
 
         @if(auth()->user()?->hasPermission('documents.view'))
         <a href="{{ route('documents.index') }}" class="btn btn-secondary">
-            رجوع للم
-ستندات
+            رجوع للمستندات
         </a>
         @endif
     </div>
@@ -23,13 +22,9 @@
 
             <div class="form-grid">
                 <div class="form-group">
-                    <label>رقم
- بداية الإشارة</label>
+                    <label>رقمبداية الإشارة</label>
                     <input type="number" name="reference_start_number" value="{{ old('reference_start_number', $settings['reference_start_number']) }}" required>
-                    <small>م
-ثال: 251230000. يبدأ م
-نه النظام
- أول كل سنة.</small>
+                    <small>مثال: 251230000. يبدأ منه النظامأول كل سنة.</small>
                 </div>
             </div>
 
@@ -44,45 +39,28 @@
                 </div>
 
                 <div class="form-group">
-                    <label>حجم
- الخط</label>
+                    <label>حجمالخط</label>
                     <input type="number" name="print_font_size_pt" value="{{ old('print_font_size_pt', $settings['print_font_size_pt']) }}" min="6" max="30" required>
                 </div>
 
                 <div class="form-group">
-                    <label>الم
-وضع م
-ن أعلى الورقة بالم
-لليم
-تر</label>
+                    <label>الموضع من أعلى الورقة بالملليمتر</label>
                     <input type="number" step="0.01" name="print_top_mm" value="{{ old('print_top_mm', $settings['print_top_mm']) }}" required>
-                    <small>زِد الرقم
- لتحريك الطباعة للأسفل، وقلله لتحريكها للأعلى.</small>
+                    <small>زِد الرقملتحريك الطباعة للأسفل، وقلله لتحريكها للأعلى.</small>
                 </div>
 
                 <div class="form-group">
-                    <label>الم
-وضع م
-ن يسار الورقة بالم
-لليم
-تر</label>
+                    <label>الموضع من يسار الورقة بالملليمتر</label>
                     <input type="number" step="0.01" name="print_left_mm" value="{{ old('print_left_mm', $settings['print_left_mm']) }}" required>
-                    <small>زِد الرقم
- لتحريك الطباعة يساراً، وقلله لتحريكها يم
-يناً.</small>
+                    <small>زِد الرقملتحريك الطباعة يساراً، وقلله لتحريكها يميناً.</small>
                 </div>
 
                 <div class="form-group full">
                     <label style="display:flex; gap:8px; align-items:center;">
                         <input type="checkbox" name="apply_to_existing_documents" value="1">
-                        تطبيق م
-وضع الطباعة الجديد على الم
-ستندات السابقة أيضاً
+                        تطبيق موضع الطباعة الجديد على المستندات السابقة أيضاً
                     </label>
-                    <small>إذا لم
- تحدد هذا الخيار، سيتم
- تطبيق الإعدادات فقط على الم
-ستندات الجديدة.</small>
+                    <small>إذا لمتحدد هذا الخيار، سيتمتطبيق الإعدادات فقط على المستندات الجديدة.</small>
                 </div>
             </div>
 
@@ -96,11 +74,8 @@
     </div>
 
     <div class="card">
-        <h2>م
-عاينة الم
-وضع الحالي</h2>
-        <p>هذه الم
-عاينة تقريبية داخل الشاشة فقط. عند الطباعة الفعلية استخدم
+        <h2>معاينة الموضع الحالي</h2>
+        <p>هذه المعاينة تقريبية داخل الشاشة فقط. عند الطباعة الفعلية استخدم
 : <strong>A4 + Scale 100%</strong></p>
 
         <div style="width: 210mm; height: 297mm; background: white; position: relative; border: 1px solid #d1d5db; transform: scale(.45); transform-origin: top right; margin-bottom: -155mm;">

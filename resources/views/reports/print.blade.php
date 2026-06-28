@@ -1,10 +1,6 @@
 @php
-    $systemTitle = 'نظام
- الأرشيف الإلكتروني الخاص بقسم
- الشحن والتأم
-ين';
-    $reportTitle = 'تقرير الكتب والم
-رفقات';
+    $systemTitle = 'نظامالأرشيف الإلكتروني الخاص بقسمالشحن والتأمين';
+    $reportTitle = 'تقرير الكتب والمرفقات';
     $formatDate = function ($value) {
         if (empty($value)) return '—';
         try { return \Illuminate\Support\Carbon::parse($value)->format('Y-m-d'); } catch (\Throwable $e) { return (string) $value; }
@@ -133,14 +129,11 @@
                     <div class="brand-icon">📁</div>
                     <div>
                         <h1>{{ $systemTitle }}</h1>
-                        <p>إدارة الكتب، الم
-رفقات، البوالص، والطباعة الرسم
-ية</p>
+                        <p>إدارة الكتب، المرفقات، البوالص، والطباعة الرسمية</p>
                     </div>
                 </div>
                 <div class="meta-box">
-                    <div><span>رقم
- التقرير</span><strong>{{ $reportCode }}</strong></div>
+                    <div><span>رقمالتقرير</span><strong>{{ $reportCode }}</strong></div>
                     <div><span>تاريخ الإنشاء</span><strong>{{ $generatedAt->format('Y-m-d H:i') }}</strong></div>
                     <div><span>أعد بواسطة</span><strong>{{ $generatedBy }}</strong></div>
                 </div>
@@ -148,23 +141,14 @@
 
             <section class="title-block">
                 <h2>{{ $reportTitle }}</h2>
-                <p>تقرير رسم
-ي يعرض م
-لخص الكتب والم
-رفقات حسب الفلاتر الم
-حددة، م
-ع تفاصيل البوالص والإدارات وأنواع الكتب.</p>
+                <p>تقرير رسمي يعرض ملخص الكتب والمرفقات حسب الفلاتر المحددة، مع تفاصيل البوالص والإدارات وأنواع الكتب.</p>
             </section>
 
             <section class="summary-grid">
-                <div class="summary-card"><div class="label">إجم
-الي الكتب</div><div class="value">{{ number_format($summary['total_documents']) }}</div></div>
+                <div class="summary-card"><div class="label">إجمالي الكتب</div><div class="value">{{ number_format($summary['total_documents']) }}</div></div>
                 <div class="summary-card"><div class="label">كتب هذا الشهر</div><div class="value">{{ number_format($summary['this_month']) }}</div></div>
-                <div class="summary-card"><div class="label">إجم
-الي الم
-رفقات</div><div class="value">{{ number_format($summary['attachments_count']) }}</div></div>
-                <div class="summary-card"><div class="label">كتب م
-حذوفة</div><div class="value">{{ number_format($summary['deleted_documents']) }}</div></div>
+                <div class="summary-card"><div class="label">إجمالي المرفقات</div><div class="value">{{ number_format($summary['attachments_count']) }}</div></div>
+                <div class="summary-card"><div class="label">كتب محذوفة</div><div class="value">{{ number_format($summary['deleted_documents']) }}</div></div>
             </section>
 
             <section class="filters-box">
@@ -174,9 +158,7 @@
                     <div><span>الإدارة:</span> {{ $filterLabels['department'] }}</div>
                     <div><span>نوع الكتاب:</span> {{ $filterLabels['document_type'] }}</div>
                     <div><span>البحث:</span> {{ $filterLabels['keyword'] }}</div>
-                    <div><span>يشم
-ل الم
-حذوف:</span> {{ $filterLabels['include_deleted'] }}</div>
+                    <div><span>يشمل المحذوف:</span> {{ $filterLabels['include_deleted'] }}</div>
                     <div><span>عدد النتائج:</span> {{ number_format($documents->count()) }}</div>
                 </div>
             </section>
@@ -195,23 +177,19 @@
             <section class="section">
                 <h3 class="section-title">تفاصيل الكتب</h3>
                 @if($documents->isEmpty())
-                    <div class="empty">لا توجد كتب م
-طابقة للفلاتر الحالية.</div>
+                    <div class="empty">لا توجد كتب مطابقة للفلاتر الحالية.</div>
                 @else
                     <table class="professional-report-table professional-report-details-table">
                         <thead>
                             <tr>
-                                <th style="width: 13%;">رقم
- الكتاب</th>
+                                <th style="width: 13%;">رقمالكتاب</th>
                                 <th style="width: 11%;">التاريخ</th>
-                                <th style="width: 22%;">الم
-وضوع</th>
+                                <th style="width: 22%;">الموضوع</th>
                                 <th style="width: 14%;">الإدارة</th>
                                 <th style="width: 13%;">نوع الكتاب</th>
                                 <th style="width: 12%;">الرئيسية</th>
                                 <th style="width: 12%;">الفرعية</th>
-                                <th style="width: 7%;">م
-رفقات</th>
+                                <th style="width: 7%;">مرفقات</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -233,10 +211,7 @@
             </section>
 
             <footer class="footer">
-                <span>تم
- إنشاء هذا التقرير آلياً م
-ن نظام
- الأرشيف الإلكتروني.</span>
+                <span>تمإنشاء هذا التقرير آلياً من نظامالأرشيف الإلكتروني.</span>
                 <span>{{ $generatedAt->format('Y-m-d H:i:s') }}</span>
             </footer>
         </article>

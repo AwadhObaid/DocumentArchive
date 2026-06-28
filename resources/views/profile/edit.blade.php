@@ -1,17 +1,12 @@
 @extends('layouts.app')
 
-@section('title', 'الم
-لف الشخصي')
-@section('page_title', 'الم
-لف الشخصي')
-@section('page_subtitle', 'تعديل بيانات حسابك وتغيير كلم
-ة الم
-رور الخاصة بك')
+@section('title', 'الملف الشخصي')
+@section('page_title', 'الملف الشخصي')
+@section('page_subtitle', 'تعديل بيانات حسابك وتغيير كلمة المرور الخاصة بك')
 
 @section('content')
     <div class="page-title">
-        <h2>الم
-لف الشخصي</h2>
+        <h2>الملف الشخصي</h2>
         <a href="{{ route('dashboard') }}" class="btn btn-secondary">رجوع</a>
     </div>
 
@@ -22,9 +17,7 @@
 ', 0, 1) }}</div>
                 <div>
                     <h3>{{ $user->name }}</h3>
-                    <p>اسم
- الم
-ستخدم
+                    <p>اسمالمستخدم
 : <strong>{{ $user->username }}</strong></p>
                     <p>الدور: <strong>{{ $user->role_name ?? $user->role }}</strong></p>
                 </div>
@@ -46,16 +39,10 @@
                     </div>
 
                     <div class="form-group">
-                        <label>اسم
- الم
-ستخدم
+                        <label>اسمالمستخدم
 </label>
                         <input type="text" value="{{ $user->username }}" readonly class="readonly-input">
-                        <small>اسم
- الم
-ستخدم
- لا يتغير م
-ن هذه الصفحة حفاظاً على سجلات النظام
+                        <small>اسمالمستخدملا يتغير من هذه الصفحة حفاظاً على سجلات النظام
 .</small>
                     </div>
 
@@ -79,15 +66,8 @@
         </div>
 
         <div class="card">
-            <h3 class="section-title">تغيير كلم
-ة الم
-رور</h3>
-            <p class="muted-note">اختر كلم
-ة م
-رور قوية، ولا تشاركها م
-ع أي م
-ستخدم
- آخر.</p>
+            <h3 class="section-title">تغيير كلمة المرور</h3>
+            <p class="muted-note">اختر كلمة مرور قوية، ولا تشاركها مع أي مستخدمآخر.</p>
 
             <form method="POST" action="{{ route('profile.password.update') }}">
                 @csrf
@@ -95,31 +75,23 @@
 
                 <div class="form-grid">
                     <div class="form-group">
-                        <label>كلم
-ة الم
-رور الحالية</label>
+                        <label>كلمة المرور الحالية</label>
                         <input type="password" name="current_password" required autocomplete="current-password">
                     </div>
 
                     <div class="form-group">
-                        <label>كلم
-ة الم
-رور الجديدة</label>
+                        <label>كلمة المرور الجديدة</label>
                         <input type="password" name="password" required autocomplete="new-password">
                     </div>
 
                     <div class="form-group">
-                        <label>تأكيد كلم
-ة الم
-رور الجديدة</label>
+                        <label>تأكيد كلمة المرور الجديدة</label>
                         <input type="password" name="password_confirmation" required autocomplete="new-password">
                     </div>
                 </div>
 
                 <div class="form-actions">
-                    <button type="submit" class="btn btn-primary">تغيير كلم
-ة الم
-رور</button>
+                    <button type="submit" class="btn btn-primary">تغيير كلمة المرور</button>
                 </div>
             </form>
         </div>

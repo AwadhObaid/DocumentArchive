@@ -1,12 +1,10 @@
 @extends('layouts.app')
 
-@section('title', 'إضافة نوع م
-ستند')
+@section('title', 'إضافة نوع مستند')
 
 @section('content')
     <div class="page-title">
-        <h1>إضافة نوع م
-ستند</h1>
+        <h1>إضافة نوع مستند</h1>
         @if(auth()->user()?->hasPermission('document_types.manage'))
         <a href="{{ route('document-types.index') }}" class="btn btn-secondary">رجوع</a>
         @endif
@@ -17,14 +15,12 @@
             @csrf
             <div class="form-grid">
                 <div class="form-group">
-                    <label>اسم
- النوع</label>
+                    <label>اسمالنوع</label>
                     <input type="text" name="name" value="{{ old('name') }}" required>
                 </div>
                 <div class="form-group">
                     <label>الكود</label>
-                    <input type="text" name="code" value="{{ old('code') }}" placeholder="م
-ثال: OUTGOING">
+                    <input type="text" name="code" value="{{ old('code') }}" placeholder="مثال: OUTGOING">
                 </div>
                 <div class="form-group full">
                     <label>الوصف</label>

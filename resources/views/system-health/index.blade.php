@@ -35,22 +35,15 @@
 
     @if($summary['error'] > 0)
         <div class="alert-error" style="margin-bottom: 18px;">
-            توجد أخطاء تحتاج م
-عالجة قبل الاعتم
-اد على النظام
- أو تنفيذ استعادة جديدة.
+            توجد أخطاء تحتاج معالجة قبل الاعتماد على النظامأو تنفيذ استعادة جديدة.
         </div>
     @elseif($summary['warning'] > 0)
         <div class="alert-warning" style="margin-bottom: 18px;">
-            النظام
- يعم
-ل، لكن توجد تنبيهات يفضل م
-راجعتها.
+            النظاميعمل، لكن توجد تنبيهات يفضل مراجعتها.
         </div>
     @else
         <div class="alert-success" style="margin-bottom: 18px;">
-            كل الفحوصات الأساسية سليم
-ة.
+            كل الفحوصات الأساسية سليمة.
         </div>
     @endif
 

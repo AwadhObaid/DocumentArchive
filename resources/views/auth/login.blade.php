@@ -2,8 +2,7 @@
 <html lang="ar" dir="rtl">
 <head>
     <meta charset="UTF-8">
-    <title>تسجيل الدخول - نظام
- الأرشيف الإلكتروني</title>
+    <title>تسجيل الدخول - نظامالأرشيف الإلكتروني</title>
     <meta name="viewport" content="width=device-width, initial-scale=1">
 
     <link rel="stylesheet" href="{{ asset('css/app.css') }}">
@@ -12,11 +11,8 @@
 
 <div class="login-card">
     <div class="login-logo">📁</div>
-    <h1>نظام
- الأرشيف الإلكتروني</h1>
-    <p>الخاص بقسم
- الشحن والتأم
-ين</p>
+    <h1>نظامالأرشيف الإلكتروني</h1>
+    <p>الخاص بقسمالشحن والتأمين</p>
 
     @if($errors->any())
         <div class="alert-error">
@@ -30,17 +26,13 @@
         @csrf
 
         <div class="form-group">
-            <label>اسم
- الم
-ستخدم
+            <label>اسمالمستخدم
 </label>
             <input type="text" name="username" value="{{ old('username') }}" autofocus required>
         </div>
 
         <div class="form-group">
-            <label>كلم
-ة الم
-رور</label>
+            <label>كلمة المرور</label>
             <input type="password" name="password" required>
         </div>
 

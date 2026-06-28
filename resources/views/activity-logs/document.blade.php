@@ -2,9 +2,7 @@
 
 @section('title', 'سجل حركة الكتاب')
 @section('page_title', 'سجل حركة الكتاب')
-@section('page_subtitle', 'كل العم
-ليات الخاصة بالكتاب وم
-رفقاته')
+@section('page_subtitle', 'كل العمليات الخاصة بالكتاب ومرفقاته')
 
 @section('content')
     <div class="page-title">
@@ -27,11 +25,9 @@
             <thead>
             <tr>
                 <th>التاريخ والوقت</th>
-                <th>الم
-ستخدم
+                <th>المستخدم
 </th>
-                <th>العم
-لية</th>
+                <th>العملية</th>
                 <th>الوصف</th>
                 <th>العنصر</th>
             </tr>
@@ -48,9 +44,7 @@
                 </tr>
             @empty
                 <tr>
-                    <td colspan="5">لا توجد عم
-ليات م
-سجلة على هذا الكتاب حتى الآن.</td>
+                    <td colspan="5">لا توجد عمليات مسجلة على هذا الكتاب حتى الآن.</td>
                 </tr>
             @endforelse
             </tbody>

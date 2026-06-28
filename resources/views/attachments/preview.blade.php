@@ -1,642 +1,178 @@
 @extends('layouts.app')
 
-@section('title', 'م
-عاينة الم
-رفق')
-
-@section('content')
 @php
     $document = $attachment->document ?? null;
-    $fileName = $attachment->original_name ?: ($attachment->file_name ?: 'الم
-رفق');
+    $fileName = $attachment->original_name ?: ($attachment->file_name ?: 'المرفق');
     $extension = strtolower($attachment->extension ?: pathinfo($fileName, PATHINFO_EXTENSION));
     $mimeType = strtolower($attachment->mime_type ?: '');
+    $isPdf = $extension === 'pdf' || str_contains($mimeType, 'pdf');
+    $isImage = in_array($extension, ['jpg', 'jpeg', 'png', 'gif', 'webp', 'bmp', 'svg'], true) || str_starts_with($mimeType, 'image/');
+    $inlineUrl = route('attachments.inline', $attachment);
+    $downloadUrl = route('attachments.download', $attachment);
 @endphp
 
+@section('title', 'معاينة المرفق')
+@section('page_title', 'معاينة المرفق')
+@section('page_subtitle', 'استعراض ملفات PDF والصور داخل النظام بدون إجبار المستخدم على التنزيل')
+
+@section('content')
 <style>
     .attachment-preview-shell {
-        background: #ffffff;
-        border: 1px solid #e2e8f0;
+        background: var(--card);
+        color: var(--text);
+        border: 1px solid var(--border);
         border-radius: 18px;
-        box-shadow: 0 12px 35px rgba(15, 23, 42, 0.08);
+        box-shadow: var(--shadow);
         padding: 18px;
     }
-
-    .attachment-preview-header {
-        text-align: center;
+    .attachment-preview-header-clean {
+        display: flex;
+        align-items: flex-start;
+        justify-content: space-between;
+        gap: 14px;
+        flex-wrap: wrap;
         margin-bottom: 14px;
     }
-
-    .attachment-preview-title {
+    .attachment-preview-title-clean {
+        margin: 0 0 6px;
+        font-size: 20px;
         font-weight: 800;
-        color: #0f172a;
-        font-size: 21px;
-        margin-bottom: 5px;
+        line-height: 1.6;
         word-break: break-word;
     }
-
-    .attachment-preview-meta {
-        color: #64748b;
+    .attachment-preview-meta-clean {
+        color: var(--muted);
         font-size: 13px;
+        line-height: 1.8;
     }
-
-    .attachment-preview-toolbar {
+    .attachment-preview-toolbar-clean {
         display: flex;
-        flex-wrap: wrap;
         align-items: center;
-        justify-content: center;
         gap: 8px;
-        margin: 14px 0 10px;
+        flex-wrap: wrap;
+        margin-bottom: 14px;
     }
-
-    .attachment-preview-toolbar .btn,
-    .attachment-preview-toolbar button,
-    .attachment-preview-toolbar a {
-        border: 0;
-        border-radius: 10px;
-        padding: 8px 13px;
-        font-size: 13px;
-        font-weight: 700;
-        text-decoration: none;
-        cursor: pointer;
-        transition: 0.15s ease;
-        display: inline-flex;
-        align-items: center;
-        gap: 6px;
-    }
-
-    .btn-soft-primary {
-        background: #e0ecff;
-        color: #1d4ed8;
-    }
-
-    .btn-soft-primary:hover {
-        background: #c7ddff;
-        color: #1d4ed8;
-    }
-
-    .btn-soft-success {
-        background: #dcfce7;
-        color: #15803d;
-    }
-
-    .btn-soft-success:hover {
-        background: #bbf7d0;
-        color: #166534;
-    }
-
-    .btn-soft-muted {
-        background: #f1f5f9;
-        color: #334155;
-    }
-
-    .btn-soft-muted:hover {
-        background: #e2e8f0;
-        color: #0f172a;
-    }
-
-    .attachment-viewer-box {
-        min-height: 520px;
-        background: #f8fafc;
-        border: 1px solid #dbe3ef;
+    .attachment-preview-box-clean {
+        width: 100%;
+        min-height: 72vh;
+        border: 1px solid var(--border);
         border-radius: 14px;
-        padding: 12px;
-        overflow: auto;
-        position: relative;
-    }
-
-    .preview-status {
-        background: #eef2ff;
-        border: 1px solid #c7d2fe;
-        color: #3730a3;
-        border-radius: 12px;
-        padding: 13px 15px;
-        text-align: center;
-        font-weight: 700;
-        margin-bottom: 12px;
-    }
-
-    .preview-status.error {
-        background: #fee2e2;
-        border-color: #fecaca;
-        color: #b91c1c;
-    }
-
-    .preview-status.success {
-        background: #dcfce7;
-        border-color: #bbf7d0;
-        color: #166534;
-    }
-
-    .pdf-pages-wrapper {
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        gap: 18px;
-    }
-
-    .pdf-page-canvas {
         background: #fff;
-        max-width: 100%;
-        height: auto;
-        box-shadow: 0 10px 24px rgba(15, 23, 42, 0.18);
-        border-radius: 4px;
+        overflow: hidden;
     }
-
-    .image-preview {
-        max-width: 100%;
-        height: auto;
+    html[data-theme="dark"] .attachment-preview-box-clean {
+        background: #0f172a;
+    }
+    .attachment-preview-frame-clean {
         display: block;
-        margin: 0 auto;
-        border-radius: 12px;
-        box-shadow: 0 10px 24px rgba(15, 23, 42, 0.14);
+        width: 100%;
+        min-height: 72vh;
+        border: 0;
         background: #fff;
     }
-
-    #attachmentPrintArea {
-        display: none;
+    .attachment-preview-image-wrap-clean {
+        min-height: 72vh;
+        display: grid;
+        place-items: center;
+        padding: 16px;
+        overflow: auto;
+        background: #f8fafc;
     }
-
+    html[data-theme="dark"] .attachment-preview-image-wrap-clean {
+        background: #0f172a;
+    }
+    .attachment-preview-image-clean {
+        max-width: 100%;
+        height: auto;
+        border-radius: 12px;
+        box-shadow: 0 10px 25px rgba(15, 23, 42, .18);
+        background: #fff;
+    }
+    .attachment-preview-message-clean {
+        border: 1px dashed var(--border);
+        border-radius: 14px;
+        padding: 28px;
+        background: rgba(148, 163, 184, .08);
+        color: var(--text);
+        line-height: 1.9;
+        text-align: center;
+    }
     @media print {
-        @page {
-            size: A4;
-            margin: 0;
-        }
-
-        html,
-        body {
-            margin: 0 !important;
-            padding: 0 !important;
-            background: #ffffff !important;
-        }
-
-        body * {
-            visibility: hidden !important;
-        }
-
-        #attachmentPrintArea,
-        #attachmentPrintArea * {
-            visibility: visible !important;
-        }
-
-        #attachmentPrintArea {
-            display: block !important;
-            position: absolute !important;
-            top: 0 !important;
-            left: 0 !important;
-            right: 0 !important;
-            width: 100% !important;
-            margin: 0 !important;
-            padding: 0 !important;
-            background: #ffffff !important;
-            direction: ltr !important;
-            text-align: center !important;
-        }
-
-        #attachmentPrintArea .print-page {
-            display: block !important;
-            width: 100% !important;
-            max-width: 100% !important;
-            height: auto !important;
-            margin: 0 auto !important;
-            padding: 0 !important;
-            border: 0 !important;
-            page-break-after: always;
-            break-after: page;
-        }
-
-        #attachmentPrintArea .print-page:last-child {
-            page-break-after: auto;
-            break-after: auto;
-        }
+        .sidebar, .topbar, .attachment-preview-toolbar-clean, .page-header, .no-print { display: none !important; }
+        .main-area { margin: 0 !important; }
+        .content-area { padding: 0 !important; }
+        .attachment-preview-shell { border: 0 !important; box-shadow: none !important; padding: 0 !important; }
+        .attachment-preview-box-clean, .attachment-preview-frame-clean { min-height: 100vh !important; border: 0 !important; border-radius: 0 !important; }
     }
 </style>
 
-<div class="page-header mb-3">
+<div class="page-header">
     <div>
-        <h1 class="page-title">م
-عاينة الم
-رفق</h1>
-        <p class="page-subtitle">استعراض PDF والصور داخل النظام
- بدون كشف م
-سار التخزين الحقيقي.</p>
+        <h1>معاينة المرفق</h1>
+        <p>يمكن للمستخدم معاينة الملف داخل الصفحة، أو فتحه في تبويب جديد، أو تنزيله بإرادته فقط.</p>
     </div>
-</div>
-
-<div class="mb-3 d-flex flex-wrap gap-2">
-    @if($document)
-        @if(auth()->user()?->hasPermission('documents.view'))
-        <a href="{{ route('documents.show', $document) }}" class="btn btn-light">رجوع للكتاب</a>
-        @endif
-    @else
-        <a href="{{ url()->previous() }}" class="btn btn-light">رجوع</a>
-    @endif
-
-    @if(auth()->user()?->hasPermission('attachments.download'))
-    <a href="{{ route('attachments.download', $attachment) }}" class="btn btn-primary">تنزيل الم
-رفق</a>
-    @endif
 </div>
 
 <div class="attachment-preview-shell">
-    <div class="attachment-preview-header">
-        <div class="attachment-preview-title">{{ $fileName }}</div>
-        <div class="attachment-preview-meta">
-            النوع: {{ strtoupper($extension ?: 'FILE') }}
-            <span class="mx-1">|</span>
-            الحجم
-: {{ number_format(($attachment->file_size ?? 0) / 1024 / 1024, 2) }} MB
-            <span class="mx-1">|</span>
-            النسخة: {{ $attachment->version_no ?? 1 }}
+    <div class="attachment-preview-header-clean">
+        <div>
+            <h2 class="attachment-preview-title-clean">{{ $fileName }}</h2>
+            <div class="attachment-preview-meta-clean">
+                النوع: {{ strtoupper($extension ?: 'FILE') }}
+                <span class="mx-1">|</span>
+                الحجم: {{ number_format(($attachment->file_size ?? 0) / 1024 / 1024, 2) }} MB
+                <span class="mx-1">|</span>
+                النسخة: {{ $attachment->version_no ?? 1 }}
+            </div>
+        </div>
+
+        <div class="attachment-preview-toolbar-clean no-print">
+            @if($document && auth()->user()?->hasPermission('documents.view'))
+                <a href="{{ route('documents.show', $document) }}" class="btn btn-secondary">رجوع للكتاب</a>
+            @else
+                <a href="{{ url()->previous() }}" class="btn btn-secondary">رجوع</a>
+            @endif
+
+            <a href="{{ $inlineUrl }}" target="_blank" rel="noopener" class="btn btn-warning">فتح في تبويب جديد</a>
+
+            @if(auth()->user()?->hasPermission('attachments.download'))
+                <a href="{{ $downloadUrl }}" class="btn btn-primary">تنزيل المرفق</a>
+            @endif
+
+            @if($isPdf || $isImage)
+                <button type="button" class="btn btn-success" onclick="window.print()">طباعة المعاينة</button>
+            @endif
         </div>
     </div>
 
-    <div class="attachment-preview-toolbar">
-        <button type="button" class="btn-soft-success" id="printAttachmentBtn">🖨️ طباعة الم
-رفق</button>
-        <button type="button" class="btn-soft-muted" id="zoomOutBtn">- تصغير</button>
-        <button type="button" class="btn-soft-muted" id="zoomInBtn">+ تكبير</button>
-        <button type="button" class="btn-soft-muted" id="reloadPreviewBtn">↻ تحديث</button>
-        @if(auth()->user()?->hasPermission('attachments.download'))
-        <a class="btn-soft-primary" href="{{ route('attachments.download', $attachment) }}">⬇ تنزيل</a>
-        @endif
-    </div>
-
-    <div class="attachment-viewer-box" id="attachmentViewerBox">
-        <div class="preview-status" id="previewStatus">جاري تحم
-يل الم
-رفق للم
-عاينة...</div>
-        <div class="pdf-pages-wrapper" id="pdf-pages-wrapper"></div>
-    </div>
+    @if($isPdf)
+        <div class="attachment-preview-box-clean">
+            <iframe
+                class="attachment-preview-frame-clean"
+                src="{{ $inlineUrl }}#toolbar=1&navpanes=0&scrollbar=1"
+                title="معاينة المرفق: {{ $fileName }}"
+            ></iframe>
+        </div>
+        <p class="muted" style="margin-top:12px;line-height:1.9;">
+            إذا لم تظهر المعاينة داخل الصفحة، استخدم زر <strong>فتح في تبويب جديد</strong>. التنزيل يبقى اختيارياً فقط من زر <strong>تنزيل المرفق</strong>.
+        </p>
+    @elseif($isImage)
+        <div class="attachment-preview-box-clean">
+            <div class="attachment-preview-image-wrap-clean">
+                <img class="attachment-preview-image-clean" src="{{ $inlineUrl }}" alt="{{ $fileName }}">
+            </div>
+        </div>
+    @else
+        <div class="attachment-preview-message-clean">
+            <h3>لا يمكن معاينة هذا النوع مباشرة داخل المتصفح</h3>
+            <p>لم يتم تنزيل الملف تلقائياً. يمكنك فتحه في تبويب جديد أو تنزيله إذا رغبت.</p>
+            <div class="attachment-preview-toolbar-clean" style="justify-content:center;margin-top:12px;">
+                <a href="{{ $inlineUrl }}" target="_blank" rel="noopener" class="btn btn-warning">فتح في تبويب جديد</a>
+                @if(auth()->user()?->hasPermission('attachments.download'))
+                    <a href="{{ $downloadUrl }}" class="btn btn-primary">تنزيل المرفق</a>
+                @endif
+            </div>
+        </div>
+    @endif
 </div>
-
-<div id="attachmentPrintArea" aria-hidden="true"></div>
-
-<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js" referrerpolicy="no-referrer"></script>
-<script>
-(function () {
-    'use strict';
-
-    const DATA_URL = @json(route('attachments.data', $attachment));
-    const FILE_NAME = @json($fileName);
-    const FALLBACK_MIME = @json($attachment->mime_type ?: '');
-    const FALLBACK_EXTENSION = @json($extension ?: '');
-
-    const statusBox = document.getElementById('previewStatus');
-    const pagesWrapper = document.getElementById('pdf-pages-wrapper');
-    const printArea = document.getElementById('attachmentPrintArea');
-    const printButton = document.getElementById('printAttachmentBtn');
-    const zoomInButton = document.getElementById('zoomInBtn');
-    const zoomOutButton = document.getElementById('zoomOutBtn');
-    const reloadButton = document.getElementById('reloadPreviewBtn');
-
-    let payload = null;
-    let binaryBytes = null;
-    let pdfDocument = null;
-    let currentScale = 1.35;
-    let isRendering = false;
-    let isPrinting = false;
-
-    if (window.pdfjsLib) {
-        pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
-    }
-
-    function setStatus(message, type = 'info') {
-        statusBox.textContent = message;
-        statusBox.classList.remove('error', 'success');
-        if (type === 'error') statusBox.classList.add('error');
-        if (type === 'success') statusBox.classList.add('success');
-        statusBox.style.display = message ? 'block' : 'none';
-    }
-
-    function normalizeBase64(value) {
-        if (!value || typeof value !== 'string') return '';
-        const commaIndex = value.indexOf(',');
-        return commaIndex >= 0 ? value.substring(commaIndex + 1) : value;
-    }
-
-    function base64ToUint8Array(base64) {
-        const clean = normalizeBase64(base64).replace(/\s/g, '');
-        const raw = atob(clean);
-        const bytes = new Uint8Array(raw.length);
-        for (let i = 0; i < raw.length; i++) {
-            bytes[i] = raw.charCodeAt(i);
-        }
-        return bytes;
-    }
-
-    function getPayloadBase64(data) {
-        return data.base64 || data.content || data.file || data.data || data.file_base64 || '';
-    }
-
-    function getMimeType(data) {
-        return (data.mime_type || data.mimeType || data.type || FALLBACK_MIME || '').toLowerCase();
-    }
-
-    function getExtension(data) {
-        return (data.extension || FALLBACK_EXTENSION || '').toLowerCase();
-    }
-
-    function isPdfFile(data) {
-        const mime = getMimeType(data);
-        const ext = getExtension(data);
-        return mime.includes('pdf') || ext === 'pdf';
-    }
-
-    function isImageFile(data) {
-        const mime = getMimeType(data);
-        const ext = getExtension(data);
-        return mime.startsWith('image/') || ['jpg', 'jpeg', 'png', 'gif', 'webp', 'bmp'].includes(ext);
-    }
-
-    async function loadPayload() {
-        const response = await fetch(DATA_URL, {
-            method: 'GET',
-            headers: {
-                'Accept': 'application/json',
-                'X-Requested-With': 'XMLHttpRequest'
-            },
-            credentials: 'same-origin'
-        });
-
-        if (!response.ok) {
-            throw new Error('تعذر تحم
-يل بيانات الم
-رفق. رم
-ز الخطأ: ' + response.status);
-        }
-
-        const data = await response.json();
-        const base64 = getPayloadBase64(data);
-
-        if (!base64) {
-            throw new Error('استجابة الم
-رفق لا تحتوي على بيانات Base64.');
-        }
-
-        payload = data;
-        binaryBytes = base64ToUint8Array(base64);
-        return data;
-    }
-
-    async function renderPdf(scale = currentScale) {
-        if (!window.pdfjsLib) {
-            throw new Error('تعذر تحم
-يل PDF.js. تحقق م
-ن اتصال الإنترنت أو أضف PDF.js م
-حلياً.');
-        }
-
-        if (!payload || !binaryBytes) {
-            await loadPayload();
-        }
-
-        isRendering = true;
-        pagesWrapper.innerHTML = '';
-        setStatus('جاري تجهيز صفحات PDF...', 'info');
-
-        pdfDocument = await pdfjsLib.getDocument({ data: binaryBytes.slice(0) }).promise;
-
-        for (let pageNumber = 1; pageNumber <= pdfDocument.numPages; pageNumber++) {
-            const page = await pdfDocument.getPage(pageNumber);
-            const viewport = page.getViewport({ scale });
-            const canvas = document.createElement('canvas');
-            const context = canvas.getContext('2d', { alpha: false });
-
-            canvas.className = 'pdf-page-canvas';
-            canvas.width = Math.floor(viewport.width);
-            canvas.height = Math.floor(viewport.height);
-            canvas.dataset.page = pageNumber;
-
-            pagesWrapper.appendChild(canvas);
-
-            await page.render({
-                canvasContext: context,
-                viewport: viewport
-            }).promise;
-        }
-
-        setStatus('تم
- تحم
-يل الم
-عاينة بنجاح.', 'success');
-        setTimeout(() => setStatus('', 'success'), 900);
-        isRendering = false;
-    }
-
-    async function renderImage() {
-        if (!payload || !binaryBytes) {
-            await loadPayload();
-        }
-
-        pagesWrapper.innerHTML = '';
-        const base64 = normalizeBase64(getPayloadBase64(payload));
-        const mime = getMimeType(payload) || 'image/png';
-        const image = document.createElement('img');
-        image.className = 'image-preview';
-        image.alt = FILE_NAME;
-        image.src = `data:${mime};base64,${base64}`;
-        pagesWrapper.appendChild(image);
-        setStatus('تم
- تحم
-يل الم
-عاينة بنجاح.', 'success');
-        setTimeout(() => setStatus('', 'success'), 900);
-    }
-
-    async function renderPreview() {
-        try {
-            setStatus('جاري تحم
-يل الم
-رفق للم
-عاينة...', 'info');
-            pagesWrapper.innerHTML = '';
-            await loadPayload();
-
-            if (isPdfFile(payload)) {
-                await renderPdf(currentScale);
-                return;
-            }
-
-            if (isImageFile(payload)) {
-                await renderImage();
-                return;
-            }
-
-            setStatus('هذا النوع م
-ن الم
-لفات لا يدعم
- الم
-عاينة الم
-باشرة. يم
-كنك تنزيله م
-ن زر تنزيل الم
-رفق.', 'error');
-        } catch (error) {
-            console.error(error);
-            setStatus(error.message || 'حدث خطأ أثناء تحم
-يل الم
-عاينة.', 'error');
-        } finally {
-            isRendering = false;
-        }
-    }
-
-    function waitForImage(image) {
-        return new Promise((resolve, reject) => {
-            if (image.complete && image.naturalWidth > 0) {
-                resolve();
-                return;
-            }
-
-            image.onload = () => resolve();
-            image.onerror = () => reject(new Error('تعذر تجهيز إحدى صفحات الطباعة.'));
-        });
-    }
-
-    async function addPdfPagesToPrintArea() {
-        if (!window.pdfjsLib) {
-            throw new Error('PDF.js غير م
-تاح حالياً.');
-        }
-
-        if (!payload || !binaryBytes) {
-            await loadPayload();
-        }
-
-        const printDoc = await pdfjsLib.getDocument({ data: binaryBytes.slice(0) }).promise;
-        printArea.innerHTML = '';
-
-        for (let pageNumber = 1; pageNumber <= printDoc.numPages; pageNumber++) {
-            setStatus('جاري تجهيز صفحة الطباعة ' + pageNumber + ' م
-ن ' + printDoc.numPages + '...', 'info');
-
-            const page = await printDoc.getPage(pageNumber);
-            const viewport = page.getViewport({ scale: 2.25 });
-            const canvas = document.createElement('canvas');
-            const context = canvas.getContext('2d', { alpha: false });
-
-            canvas.width = Math.floor(viewport.width);
-            canvas.height = Math.floor(viewport.height);
-            context.fillStyle = '#ffffff';
-            context.fillRect(0, 0, canvas.width, canvas.height);
-
-            await page.render({
-                canvasContext: context,
-                viewport: viewport
-            }).promise;
-
-            const image = new Image();
-            image.className = 'print-page';
-            image.alt = 'صفحة ' + pageNumber;
-            image.src = canvas.toDataURL('image/png');
-            printArea.appendChild(image);
-            await waitForImage(image);
-        }
-    }
-
-    async function addImageToPrintArea() {
-        if (!payload || !binaryBytes) {
-            await loadPayload();
-        }
-
-        const base64 = normalizeBase64(getPayloadBase64(payload));
-        const mime = getMimeType(payload) || 'image/png';
-        printArea.innerHTML = '';
-
-        const image = new Image();
-        image.className = 'print-page';
-        image.alt = FILE_NAME;
-        image.src = `data:${mime};base64,${base64}`;
-        printArea.appendChild(image);
-        await waitForImage(image);
-    }
-
-    function cleanupPrintArea() {
-        isPrinting = false;
-        printButton.disabled = false;
-        printButton.textContent = '🖨️ طباعة الم
-رفق';
-        printArea.innerHTML = '';
-        printArea.setAttribute('aria-hidden', 'true');
-        setStatus('', 'success');
-        window.removeEventListener('afterprint', cleanupPrintArea);
-    }
-
-    async function printAttachment() {
-        if (isRendering || isPrinting) return;
-
-        try {
-            isPrinting = true;
-            printButton.disabled = true;
-            printButton.textContent = 'جاري تجهيز الطباعة...';
-            setStatus('جاري تجهيز الم
-رفق للطباعة...', 'info');
-            printArea.innerHTML = '';
-            printArea.setAttribute('aria-hidden', 'false');
-
-            if (!payload) {
-                await loadPayload();
-            }
-
-            if (isPdfFile(payload)) {
-                await addPdfPagesToPrintArea();
-            } else if (isImageFile(payload)) {
-                await addImageToPrintArea();
-            } else {
-                throw new Error('هذا النوع م
-ن الم
-لفات لا يدعم
- الطباعة الم
-باشرة.');
-            }
-
-            setStatus('تم
- تجهيز الطباعة. ستظهر نافذة الطابعة الآن.', 'success');
-            window.addEventListener('afterprint', cleanupPrintArea);
-
-            requestAnimationFrame(() => {
-                setTimeout(() => {
-                    window.focus();
-                    window.print();
-                }, 350);
-            });
-        } catch (error) {
-            console.error(error);
-            isPrinting = false;
-            printButton.disabled = false;
-            printButton.textContent = '🖨️ طباعة الم
-رفق';
-            printArea.innerHTML = '';
-            printArea.setAttribute('aria-hidden', 'true');
-            setStatus(error.message || 'تعذر تجهيز الم
-لف للطباعة.', 'error');
-        }
-    }
-
-    zoomInButton.addEventListener('click', async () => {
-        if (!payload || !isPdfFile(payload) || isRendering) return;
-        currentScale = Math.min(currentScale + 0.2, 3);
-        await renderPdf(currentScale);
-    });
-
-    zoomOutButton.addEventListener('click', async () => {
-        if (!payload || !isPdfFile(payload) || isRendering) return;
-        currentScale = Math.max(currentScale - 0.2, 0.7);
-        await renderPdf(currentScale);
-    });
-
-    reloadButton.addEventListener('click', () => {
-        payload = null;
-        binaryBytes = null;
-        pdfDocument = null;
-        renderPreview();
-    });
-
-    printButton.addEventListener('click', printAttachment);
-
-    renderPreview();
-})();
-</script>
 @endsection

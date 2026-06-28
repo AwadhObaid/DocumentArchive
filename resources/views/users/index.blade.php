@@ -1,26 +1,17 @@
 @extends('layouts.app')
 
-@section('title', 'الم
-ستخدم
-ون')
-@section('page_title', 'إدارة الم
-ستخدم
-ين')
-@section('page_subtitle', 'إضافة وتعديل وتفعيل وتعطيل م
-ستخدم
-ي النظام
+@section('title', 'المستخدمون')
+@section('page_title', 'إدارة المستخدمين')
+@section('page_subtitle', 'إضافة وتعديل وتفعيل وتعطيل مستخدمي النظام
 ')
 
 @section('content')
     <div class="page-title">
-        <h2>الم
-ستخدم
-ون</h2>
+        <h2>المستخدمون</h2>
 
         @if(auth()->user()?->hasPermission('users.manage'))
         <a href="{{ route('users.create') }}" class="btn btn-primary">
-            + إضافة م
-ستخدم
+            + إضافة مستخدم
 
         </a>
         @endif
@@ -32,9 +23,7 @@
                 <div class="form-group">
                     <label>بحث</label>
                     <input type="text" name="q" value="{{ request('q') }}" placeholder="الاسم
- / اسم
- الم
-ستخدم
+ / اسمالمستخدم
  / البريد / الهاتف">
                 </div>
 
@@ -42,14 +31,11 @@
                     <label>الدور</label>
                     <select name="role">
                         <option value="">كل الأدوار</option>
-                        <option value="admin" @selected(request('role') === 'admin')>م
-دير النظام
+                        <option value="admin" @selected(request('role') === 'admin')>مدير النظام
 </option>
-                        <option value="user" @selected(request('role') === 'user')>م
-ستخدم
+                        <option value="user" @selected(request('role') === 'user')>مستخدم
 </option>
-                        <option value="viewer" @selected(request('role') === 'viewer')>م
-شاهد فقط</option>
+                        <option value="viewer" @selected(request('role') === 'viewer')>مشاهد فقط</option>
                     </select>
                 </div>
 
@@ -58,8 +44,7 @@
                     <select name="is_active">
                         <option value="">الكل</option>
                         <option value="1" @selected(request('is_active') === '1')>نشط</option>
-                        <option value="0" @selected(request('is_active') === '0')>م
-عطل</option>
+                        <option value="0" @selected(request('is_active') === '0')>معطل</option>
                     </select>
                 </div>
 
@@ -82,9 +67,7 @@
             <tr>
                 <th>الاسم
 </th>
-                <th>اسم
- الم
-ستخدم
+                <th>اسمالمستخدم
 </th>
                 <th>الدور</th>
                 <th>الحالة</th>
@@ -103,8 +86,7 @@
                         @if($user->is_active)
                             <span class="badge badge-success">نشط</span>
                         @else
-                            <span class="badge badge-danger">م
-عطل</span>
+                            <span class="badge badge-danger">معطل</span>
                         @endif
                     </td>
                     <td>{{ $user->last_login_at?->format('d/m/Y H:i') ?? '-' }}</td>
@@ -113,14 +95,10 @@
                             @if(auth()->user()?->hasPermission('users.manage'))
                             <a href="{{ route('users.edit', $user) }}" class="btn btn-primary">تعديل</a>
                             @endif
-                            <a href="{{ route('users.password.edit', $user) }}" class="btn btn-warning">كلم
-ة الم
-رور</a>
+                            <a href="{{ route('users.password.edit', $user) }}" class="btn btn-warning">كلمة المرور</a>
 
                             @if($user->is_active)
-                                <form method="POST" action="{{ route('users.deactivate', $user) }}" data-confirm="هل تريد تعطيل هذا الم
-ستخدم
-؟">
+                                <form method="POST" action="{{ route('users.deactivate', $user) }}" data-confirm="هل تريد تعطيل هذا المستخدم؟">
                                     @csrf
                                     @method('PATCH')
                                     <button class="btn btn-danger" type="submit">تعطيل</button>
@@ -139,9 +117,7 @@
                 </tr>
             @empty
                 <tr>
-                    <td colspan="6">لا يوجد م
-ستخدم
-ون.</td>
+                    <td colspan="6">لا يوجد مستخدمون.</td>
                 </tr>
             @endforelse
             </tbody>

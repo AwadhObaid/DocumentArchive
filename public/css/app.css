@@ -721,3 +721,25 @@ body.dark .alert-warning,
     text-align: center;
     margin-bottom: 10px;
 }
+
+/* reviewed-stability-fix:start */
+html[data-theme="dark"] .empty-state,
+html[data-theme="dark"] .image-preview-wrap,
+html[data-theme="dark"] .attachment-preview-shell,
+html[data-theme="dark"] .attachment-preview-message-clean {
+    background: rgba(15, 23, 42, .86) !important;
+    color: var(--text) !important;
+    border-color: var(--border) !important;
+}
+
+html[data-theme="dark"] .empty-state,
+html[data-theme="dark"] .empty-state * {
+    color: var(--text) !important;
+}
+
+html[data-theme="dark"] .preview-frame,
+html[data-theme="dark"] .attachment-preview-frame-clean,
+html[data-theme="dark"] .attachment-preview-box-clean {
+    border-color: var(--border) !important;
+}
+/* reviewed-stability-fix:end */

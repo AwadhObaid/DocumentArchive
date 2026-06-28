@@ -4,11 +4,9 @@
     <table>
         <thead>
             <tr>
-                <th style="width: 28%;">رقم
- البوليصة</th>
+                <th style="width: 28%;">رقمالبوليصة</th>
                 <th style="width: 18%;">عدد التكرار</th>
-                <th>الكتب الم
-رتبطة</th>
+                <th>الكتب المرتبطة</th>
             </tr>
         </thead>
         <tbody>

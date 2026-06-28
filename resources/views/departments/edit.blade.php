@@ -16,8 +16,7 @@
             @method('PUT')
             <div class="form-grid">
                 <div class="form-group">
-                    <label>اسم
- الإدارة</label>
+                    <label>اسمالإدارة</label>
                     <input type="text" name="name" value="{{ old('name', $department->name) }}" required>
                 </div>
                 <div class="form-group">

@@ -15,14 +15,12 @@
             @csrf
             <div class="form-grid">
                 <div class="form-group">
-                    <label>اسم
- الإدارة</label>
+                    <label>اسمالإدارة</label>
                     <input type="text" name="name" value="{{ old('name') }}" required>
                 </div>
                 <div class="form-group">
                     <label>الكود</label>
-                    <input type="text" name="code" value="{{ old('code') }}" placeholder="م
-ثال: SHIPPING_INSURANCE">
+                    <input type="text" name="code" value="{{ old('code') }}" placeholder="مثال: SHIPPING_INSURANCE">
                 </div>
                 <div class="form-group full">
                     <label>الوصف</label>

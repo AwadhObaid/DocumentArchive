@@ -32,8 +32,7 @@
             return true;
         }
 
-        if (isset($user->role) && in_array($user->role, ['admin', 'م
-دير النظام
+        if (isset($user->role) && in_array($user->role, ['admin', 'مدير النظام
 '], true)) {
             return true;
         }
@@ -324,9 +323,7 @@
         <div>
             <h1 class="da-page-title">لوحة التحكم
 </h1>
-            <p class="da-page-subtitle">م
-لخص سريع لحالة الأرشيف الإلكتروني والكتب والم
-رفقات والنسخ الاحتياطي.</p>
+            <p class="da-page-subtitle">ملخص سريع لحالة الأرشيف الإلكتروني والكتب والمرفقات والنسخ الاحتياطي.</p>
         </div>
 
         <div class="da-actions">
@@ -351,9 +348,7 @@
     <div class="da-card">
         <div class="da-section-title">
             <h2>التنبيهات الإدارية</h2>
-            <span class="da-section-hint">م
-ؤشرات تحتاج م
-راجعة سريعة</span>
+            <span class="da-section-hint">مؤشرات تحتاج مراجعة سريعة</span>
         </div>
 
         @if(!empty($dashboardAlerts))
@@ -377,10 +372,7 @@
 </div>
                 <div>
                     <div class="da-admin-alert-title">لا توجد تنبيهات حالياً</div>
-                    <div class="da-admin-alert-message">النسخ الاحتياطي والكتب والم
-رفقات وحالة النظام
- تبدو م
-ستقرة.</div>
+                    <div class="da-admin-alert-message">النسخ الاحتياطي والكتب والمرفقات وحالة النظامتبدو مستقرة.</div>
                 </div>
             </div>
         @endif
@@ -388,34 +380,26 @@
 
     <div class="da-grid da-grid-stats">
         <div class="da-card da-stat">
-            <div class="da-stat-label">إجم
-الي الكتب</div>
+            <div class="da-stat-label">إجمالي الكتب</div>
             <div class="da-stat-value">{{ number_format(da_dashboard_value($stats, 'documents_total') ?? 0) }}</div>
-            <div class="da-stat-note">كل الكتب الم
-سجلة في النظام
+            <div class="da-stat-note">كل الكتب المسجلة في النظام
 </div>
         </div>
         <div class="da-card da-stat">
             <div class="da-stat-label">الكتب الفعالة</div>
             <div class="da-stat-value">{{ number_format(da_dashboard_value($stats, 'documents_active') ?? 0) }}</div>
-            <div class="da-stat-note">بدون سلة الم
-حذوفات</div>
+            <div class="da-stat-note">بدون سلة المحذوفات</div>
         </div>
         <div class="da-card da-stat">
             <div class="da-stat-label">كتب اليوم
 </div>
             <div class="da-stat-value">{{ number_format(da_dashboard_value($stats, 'documents_today') ?? 0) }}</div>
-            <div class="da-stat-note">الم
-دخلة خلال اليوم
- الحالي</div>
+            <div class="da-stat-note">المدخلة خلال اليومالحالي</div>
         </div>
         <div class="da-card da-stat">
-            <div class="da-stat-label">الم
-رفقات</div>
+            <div class="da-stat-label">المرفقات</div>
             <div class="da-stat-value">{{ number_format(da_dashboard_value($stats, 'attachments_total') ?? 0) }}</div>
-            <div class="da-stat-note">م
-لفات PDF والصور الم
-رفوعة</div>
+            <div class="da-stat-note">ملفات PDF والصور المرفوعة</div>
         </div>
     </div>
 
@@ -443,8 +427,7 @@
                     </div>
                 </div>
             @else
-                <div class="da-empty">لا توجد بيانات شهرية م
-تاحة.</div>
+                <div class="da-empty">لا توجد بيانات شهرية متاحة.</div>
             @endif
         </div>
 
@@ -502,8 +485,7 @@
     <div class="da-grid da-grid-main">
         <div class="da-card">
             <div class="da-section-title">
-                <h2>آخر الكتب الم
-ضافة</h2>
+                <h2>آخر الكتب المضافة</h2>
                 @if($routeExists('documents.index'))
                     <a class="da-btn" href="{{ route('documents.index') }}">عرض الكل</a>
                 @endif
@@ -514,10 +496,8 @@
                     <table class="da-table">
                         <thead>
                             <tr>
-                                <th>رقم
- الكتاب</th>
-                                <th>الم
-وضوع</th>
+                                <th>رقمالكتاب</th>
+                                <th>الموضوع</th>
                                 <th>البوليصة الرئيسية</th>
                                 <th>البوليصة الفرعية</th>
                                 <th>التاريخ</th>
@@ -535,8 +515,7 @@
                                             {{ da_dashboard_value($document, 'reference_number') ?? ('#' . (da_dashboard_value($document, 'id') ?? '')) }}
                                         @endif
                                     </td>
-                                    <td>{{ \Illuminate\Support\Str::limit(da_dashboard_value($document, 'subject') ?? 'بدون م
-وضوع', 42) }}</td>
+                                    <td>{{ \Illuminate\Support\Str::limit(da_dashboard_value($document, 'subject') ?? 'بدون موضوع', 42) }}</td>
                                     <td class="da-muted">{{ da_dashboard_value($document, 'main_policy_number') ?? '-' }}</td>
                                     <td class="da-muted">{{ da_dashboard_value($document, 'sub_policy_number') ?? '-' }}</td>
                                     <td class="da-muted">{{ !empty(da_dashboard_value($document, 'reference_date')) ? \Carbon\Carbon::parse(da_dashboard_value($document, 'reference_date'))->format('Y-m-d') : (!empty(da_dashboard_value($document, 'created_at')) ? \Carbon\Carbon::parse(da_dashboard_value($document, 'created_at'))->format('Y-m-d') : '-') }}</td>
@@ -546,8 +525,7 @@
                     </table>
                 </div>
             @else
-                <div class="da-empty">لا توجد كتب م
-ضافة حتى الآن.</div>
+                <div class="da-empty">لا توجد كتب مضافة حتى الآن.</div>
             @endif
         </div>
 
@@ -557,15 +535,12 @@
                     <h2>حالة النظام
 </h2>
                     <span class="da-badge {{ (da_dashboard_value($healthSummary, 'ok') ?? false) ? 'da-badge-ok' : 'da-badge-warn' }}">
-                        {{ da_dashboard_value($healthSummary, 'status_text') ?? 'غير م
-عروف' }}
+                        {{ da_dashboard_value($healthSummary, 'status_text') ?? 'غير معروف' }}
                     </span>
                 </div>
 
                 <div class="da-side-list">
-                    <div class="da-info-row"><span class="da-muted">جداول قاعدة البيانات</span><strong>{{ empty(da_dashboard_value($healthSummary, 'missing_tables')) ? 'م
-كتم
-لة' : 'ناقصة' }}</strong></div>
+                    <div class="da-info-row"><span class="da-muted">جداول قاعدة البيانات</span><strong>{{ empty(da_dashboard_value($healthSummary, 'missing_tables')) ? 'مكتملة' : 'ناقصة' }}</strong></div>
                     <div class="da-info-row"><span class="da-muted">الإدارات</span><strong>{{ number_format(da_dashboard_value($stats, 'departments_total') ?? 0) }}</strong></div>
                     <div class="da-info-row"><span class="da-muted">أنواع الكتب</span><strong>{{ number_format(da_dashboard_value($stats, 'document_types_total') ?? 0) }}</strong></div>
                     <div class="da-info-row"><span class="da-muted">أنشطة النظام
@@ -577,11 +552,9 @@
                 <div class="da-section-title">
                     <h2>آخر نسخة احتياطية</h2>
                     @if($latestBackup)
-                        <span class="da-badge da-badge-ok">م
-وجودة</span>
+                        <span class="da-badge da-badge-ok">موجودة</span>
                     @else
-                        <span class="da-badge da-badge-warn">غير م
-وجودة</span>
+                        <span class="da-badge da-badge-warn">غير موجودة</span>
                     @endif
                 </div>
 
@@ -594,9 +567,7 @@
                     </div>
                     <div class="da-muted" style="margin-top:12px;font-size:12px;word-break:break-all;">{{ da_dashboard_value($latestBackup, 'name') }}</div>
                 @else
-                    <div class="da-empty">لم
- يتم
- إنشاء نسخة احتياطية بعد.</div>
+                    <div class="da-empty">لميتمإنشاء نسخة احتياطية بعد.</div>
                 @endif
             </div>
         </div>
@@ -625,8 +596,7 @@
                 @endforeach
             </div>
         @else
-            <div class="da-empty">لا توجد أنشطة م
-سجلة حتى الآن.</div>
+            <div class="da-empty">لا توجد أنشطة مسجلة حتى الآن.</div>
         @endif
     </div>
 </div>

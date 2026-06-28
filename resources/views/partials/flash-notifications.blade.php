@@ -2,18 +2,10 @@
 @php
     $flashNotifications = [];
     $flashMap = [
-        'success' => ['type' => 'success', 'title' => 'تم
-ت العم
-لية بنجاح'],
-        'status' => ['type' => 'success', 'title' => 'تم
-ت العم
-لية بنجاح'],
-        'message' => ['type' => 'info', 'title' => 'م
-علوم
-ة'],
-        'info' => ['type' => 'info', 'title' => 'م
-علوم
-ة'],
+        'success' => ['type' => 'success', 'title' => 'تمت العملية بنجاح'],
+        'status' => ['type' => 'success', 'title' => 'تمت العملية بنجاح'],
+        'message' => ['type' => 'info', 'title' => 'معلومة'],
+        'info' => ['type' => 'info', 'title' => 'معلومة'],
         'warning' => ['type' => 'warning', 'title' => 'تنبيه'],
         'error' => ['type' => 'error', 'title' => 'حدث خطأ'],
         'danger' => ['type' => 'error', 'title' => 'حدث خطأ'],
@@ -37,13 +29,11 @@
         $messages = collect($errors->all())->take(5)->implode("\n");
         $remaining = max($errors->count() - 5, 0);
         if ($remaining > 0) {
-            $messages .= "\n" . 'وتوجد ' . $remaining . ' م
-لاحظات إضافية.';
+            $messages .= "\n" . 'وتوجد ' . $remaining . ' ملاحظات إضافية.';
         }
         $flashNotifications[] = [
             'type' => 'error',
-            'title' => 'يرجى م
-راجعة البيانات',
+            'title' => 'يرجى مراجعة البيانات',
             'message' => $messages,
         ];
     }

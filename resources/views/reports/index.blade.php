@@ -8,8 +8,7 @@
     $filterSummary = [];
 
     if (!empty($filters['date_from'])) {
-        $filterSummary[] = 'م
-ن تاريخ: ' . $filters['date_from'];
+        $filterSummary[] = 'من تاريخ: ' . $filters['date_from'];
     }
 
     if (!empty($filters['date_to'])) {
@@ -35,9 +34,7 @@
     }
 
     if (!empty($filters['include_deleted'])) {
-        $filterSummary[] = 'يشم
-ل الم
-حذوفات';
+        $filterSummary[] = 'يشمل المحذوفات';
     }
 @endphp
 
@@ -46,10 +43,7 @@
         <div class="page-header reports-page-header">
             <div>
                 <h1>📊 التقارير</h1>
-                <p>تقرير شام
-ل للكتب والم
-رفقات م
-ع الفلترة والطباعة والتصدير.</p>
+                <p>تقرير شامل للكتب والمرفقات مع الفلترة والطباعة والتصدير.</p>
                 <div class="print-only print-report-meta">
                     <span>تاريخ الطباعة: {{ now()->format('Y-m-d H:i') }}</span>
                     @if(count($filterSummary))
@@ -115,20 +109,16 @@
     }
 </style>
 
-<div class="reports-print-button-panel" aria-label="إجراءات التقرير الرسم
-ي">
+<div class="reports-print-button-panel" aria-label="إجراءات التقرير الرسمي">
     <a href="{{ url('/reports/print') }}" class="report-print-professional-btn" target="_blank" rel="noopener">
         <span aria-hidden="true">🧾</span>
-        <span>تقرير رسم
-ي م
-نسق</span>
+        <span>تقرير رسمي منسق</span>
     </a>
 </div>
 {{-- REPORTS_PRINT_BUTTON_FIX_END --}}
 <form method="GET" action="{{ route('reports.index') }}" class="report-filter-grid">
                 <div>
-                    <label>م
-ن تاريخ</label>
+                    <label>من تاريخ</label>
                     <input type="date" name="date_from" value="{{ $filters['date_from'] }}">
                 </div>
                 <div>
@@ -159,16 +149,13 @@
                 </div>
                 <div>
                     <label>بحث</label>
-                    <input type="text" name="keyword" value="{{ $filters['keyword'] }}" placeholder="رقم
- الكتاب، الم
-وضوع، البوليصة...">
+                    <input type="text" name="keyword" value="{{ $filters['keyword'] }}" placeholder="رقمالكتاب، الموضوع، البوليصة...">
                 </div>
                 <div>
                     <label>خيارات</label>
                     <div style="display:flex; gap:8px; align-items:center; margin-bottom:8px;">
                         <input type="checkbox" name="include_deleted" value="1" id="include_deleted" @checked($filters['include_deleted']) style="width:auto;">
-                        <label for="include_deleted" style="margin:0; font-weight:500;">إظهار الم
-حذوف</label>
+                        <label for="include_deleted" style="margin:0; font-weight:500;">إظهار المحذوف</label>
                     </div>
                     <button class="btn btn-primary" type="submit">تطبيق الفلتر</button>
                     <a class="btn btn-secondary" href="{{ route('reports.index') }}">تصفير</a>
@@ -179,8 +166,7 @@
 
         <div class="reports-grid">
             <div class="report-card summary-card">
-                <div class="label">إجم
-الي الكتب حسب الفلتر</div>
+                <div class="label">إجمالي الكتب حسب الفلتر</div>
                 <div class="value">{{ number_format($stats['total_documents']) }}</div>
             </div>
             <div class="report-card summary-card">
@@ -188,14 +174,11 @@
                 <div class="value">{{ number_format($stats['this_month']) }}</div>
             </div>
             <div class="report-card summary-card">
-                <div class="label">إجم
-الي الم
-رفقات</div>
+                <div class="label">إجمالي المرفقات</div>
                 <div class="value">{{ number_format($stats['attachments_count']) }}</div>
             </div>
             <div class="report-card summary-card">
-                <div class="label">كتب في سلة الم
-حذوفات</div>
+                <div class="label">كتب في سلة المحذوفات</div>
                 <div class="value">{{ number_format($stats['deleted_documents']) }}</div>
             </div>
         </div>
@@ -239,11 +222,9 @@
                 <table class="report-table">
                     <thead>
                         <tr>
-                            <th>رقم
- الكتاب</th>
+                            <th>رقمالكتاب</th>
                             <th>تاريخ الكتاب</th>
-                            <th>الم
-وضوع</th>
+                            <th>الموضوع</th>
                             <th>الإدارة</th>
                             <th>نوع الكتاب</th>
                             <th>البوليصة</th>
@@ -270,8 +251,7 @@
                             </tr>
                         @empty
                             <tr>
-                                <td colspan="7" class="muted">لا توجد كتب م
-طابقة للفلاتر الحالية.</td>
+                                <td colspan="7" class="muted">لا توجد كتب مطابقة للفلاتر الحالية.</td>
                             </tr>
                         @endforelse
                     </tbody>

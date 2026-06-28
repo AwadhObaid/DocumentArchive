@@ -15,8 +15,7 @@
             return true;
         }
 
-        if (isset($user->role) && in_array($user->role, ['admin', 'م
-دير النظام
+        if (isset($user->role) && in_array($user->role, ['admin', 'مدير النظام
 '], true)) {
             return true;
         }
@@ -119,8 +118,7 @@
     <div class="documents-head">
         <div>
             <h1>الكتب</h1>
-            <p>بحث وفرز سريع في الكتب والم
-رفقات والبوالص.</p>
+            <p>بحث وفرز سريع في الكتب والمرفقات والبوالص.</p>
         </div>
 
         <div class="actions">
@@ -132,13 +130,10 @@
     </div>
 
     <div class="doc-summary-grid">
-        <div class="doc-summary-card"><span>إجم
-الي الكتب</span><strong>{{ number_format($summary['total'] ?? 0) }}</strong></div>
+        <div class="doc-summary-card"><span>إجمالي الكتب</span><strong>{{ number_format($summary['total'] ?? 0) }}</strong></div>
         <div class="doc-summary-card"><span>نتائج الفلترة</span><strong>{{ number_format($summary['filtered'] ?? 0) }}</strong></div>
-        <div class="doc-summary-card"><span>كتب لديها م
-رفقات</span><strong>{{ number_format($summary['with_attachments'] ?? 0) }}</strong></div>
-        <div class="doc-summary-card"><span>كتب بلا م
-رفقات</span><strong>{{ number_format($summary['without_attachments'] ?? 0) }}</strong></div>
+        <div class="doc-summary-card"><span>كتب لديها مرفقات</span><strong>{{ number_format($summary['with_attachments'] ?? 0) }}</strong></div>
+        <div class="doc-summary-card"><span>كتب بلا مرفقات</span><strong>{{ number_format($summary['without_attachments'] ?? 0) }}</strong></div>
     </div>
 
     <div class="advanced-filter-card">
@@ -147,10 +142,7 @@
                 <div class="form-group">
                     <label>بحث عام
 </label>
-                    <input type="text" name="q" value="{{ request('q') }}" placeholder="رقم
- الكتاب / الم
-وضوع / البوليصة / الم
-رسل">
+                    <input type="text" name="q" value="{{ request('q') }}" placeholder="رقمالكتاب / الموضوع / البوليصة / المرسل">
                 </div>
 
                 <div class="form-group">
@@ -204,14 +196,11 @@
                 </div>
 
                 <div class="form-group">
-                    <label>الم
-رفقات</label>
+                    <label>المرفقات</label>
                     <select name="has_attachment">
                         <option value="">الكل</option>
-                        <option value="yes" @selected(request('has_attachment') === 'yes')>لديه م
-رفق</option>
-                        <option value="no" @selected(request('has_attachment') === 'no')>بدون م
-رفق</option>
+                        <option value="yes" @selected(request('has_attachment') === 'yes')>لديه مرفق</option>
+                        <option value="no" @selected(request('has_attachment') === 'no')>بدون مرفق</option>
                     </select>
                 </div>
 
@@ -220,15 +209,13 @@
                     <select name="sort">
                         <option value="created_at" @selected(request('sort', 'created_at') === 'created_at')>تاريخ الإضافة</option>
                         <option value="reference_date" @selected(request('sort') === 'reference_date')>تاريخ الكتاب</option>
-                        <option value="reference_number" @selected(request('sort') === 'reference_number')>رقم
- الكتاب</option>
+                        <option value="reference_number" @selected(request('sort') === 'reference_number')>رقمالكتاب</option>
                         <option value="title" @selected(request('sort') === 'title')>العنوان</option>
                     </select>
                 </div>
 
                 <div class="form-group">
-                    <label>م
-ن تاريخ</label>
+                    <label>من تاريخ</label>
                     <input type="date" name="date_from" value="{{ request('date_from') }}">
                 </div>
 
@@ -241,8 +228,7 @@
                     <label>الاتجاه</label>
                     <select name="direction">
                         <option value="desc" @selected(request('direction', 'desc') === 'desc')>الأحدث أولاً</option>
-                        <option value="asc" @selected(request('direction') === 'asc')>الأقدم
- أولاً</option>
+                        <option value="asc" @selected(request('direction') === 'asc')>الأقدمأولاً</option>
                     </select>
                 </div>
 
@@ -268,19 +254,16 @@
             <table class="documents-table">
                 <thead>
                 <tr>
-                    <th>رقم
- الكتاب</th>
+                    <th>رقمالكتاب</th>
                     <th>التاريخ</th>
-                    <th>الم
-وضوع</th>
+                    <th>الموضوع</th>
                     <th>البوليصة الرئيسية</th>
                     <th>البوليصة الفرعية</th>
                     <th>الإدارة</th>
                     <th>النوع</th>
                     <th>الحالة</th>
                     <th>الأولوية</th>
-                    <th>الم
-رفقات</th>
+                    <th>المرفقات</th>
                     <th>إجراءات</th>
                 </tr>
                 </thead>
@@ -315,8 +298,7 @@
                         <td><span class="pill {{ $priorityClass }}">{{ $document->priority_name ?? $priorityLabel($document->priority ?? null) }}</span></td>
                         <td>
                             @if($attachmentsCount > 0)
-                                <span class="pill">{{ $attachmentsCount }} م
-رفق</span>
+                                <span class="pill">{{ $attachmentsCount }} مرفق</span>
                             @else
                                 <span class="pill pill-muted">لا يوجد</span>
                             @endif
@@ -334,9 +316,7 @@
 </a>
                                 @endif
                                 @if(($can('documents.delete') || $can('documents.destroy')))
-                                    <form method="POST" action="{{ route('documents.destroy', $document) }}" data-confirm="هل أنت م
-تأكد م
-ن حذف هذا الكتاب؟">
+                                    <form method="POST" action="{{ route('documents.destroy', $document) }}" data-confirm="هل أنت متأكد من حذف هذا الكتاب؟">
                                         @csrf
                                         @method('DELETE')
                                         <button type="submit" class="btn btn-danger">حذف</button>
@@ -347,9 +327,7 @@
                     </tr>
                 @empty
                     <tr>
-                        <td colspan="11" class="empty-documents">لا توجد كتب م
-طابقة لم
-عايير البحث الحالية.</td>
+                        <td colspan="11" class="empty-documents">لا توجد كتب مطابقة لمعايير البحث الحالية.</td>
                     </tr>
                 @endforelse
                 </tbody>
@@ -366,15 +344,12 @@
                     <div class="document-mobile-card">
                         <h3>{{ \Illuminate\Support\Str::limit($subject, 90) }}</h3>
                         <div class="mobile-info-grid">
-                            <div class="mobile-info-item"><span>رقم
- الكتاب</span><strong>{{ $document->reference_number }}</strong></div>
+                            <div class="mobile-info-item"><span>رقمالكتاب</span><strong>{{ $document->reference_number }}</strong></div>
                             <div class="mobile-info-item"><span>التاريخ</span><strong>{{ $formatDocumentDate($document) }}</strong></div>
                             <div class="mobile-info-item"><span>البوليصة الرئيسية</span><strong>{{ $mainPolicy }}</strong></div>
                             <div class="mobile-info-item"><span>البوليصة الفرعية</span><strong>{{ $subPolicy }}</strong></div>
                             <div class="mobile-info-item"><span>الإدارة</span><strong>{{ $document->department?->name ?? '-' }}</strong></div>
-                            <div class="mobile-info-item"><span>الم
-رفقات</span><strong>{{ $attachmentsCount > 0 ? $attachmentsCount . ' م
-رفق' : 'لا يوجد' }}</strong></div>
+                            <div class="mobile-info-item"><span>المرفقات</span><strong>{{ $attachmentsCount > 0 ? $attachmentsCount . ' مرفق' : 'لا يوجد' }}</strong></div>
                         </div>
                         <div class="actions">
                             @if($can('documents.view'))

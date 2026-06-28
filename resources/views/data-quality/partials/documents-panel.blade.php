@@ -15,11 +15,9 @@
             <table class="dq-table">
                 <thead>
                     <tr>
-                        <th>رقم
- الكتاب</th>
+                        <th>رقمالكتاب</th>
                         <th>التاريخ</th>
-                        <th>الم
-وضوع</th>
+                        <th>الموضوع</th>
                         <th>البوليصة الرئيسية</th>
                         <th>البوليصة الفرعية</th>
                         <th class="no-print">إجراء</th>

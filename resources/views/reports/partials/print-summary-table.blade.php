@@ -11,8 +11,7 @@
         <tbody>
             @foreach($rows as $row)
                 <tr>
-                    <td>{{ $row['name'] ?? 'غير م
-حدد' }}</td>
+                    <td>{{ $row['name'] ?? 'غير محدد' }}</td>
                     <td><span class="pill">{{ number_format($row['total'] ?? 0) }}</span></td>
                 </tr>
             @endforeach

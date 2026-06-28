@@ -1,17 +1,14 @@
 @extends('layouts.app')
 
-@section('title', 'تعديل م
-ستخدم
+@section('title', 'تعديل مستخدم
 ')
-@section('page_title', 'تعديل م
-ستخدم
+@section('page_title', 'تعديل مستخدم
 ')
 @section('page_subtitle', 'تعديل بيانات الحساب والدور والصلاحيات')
 
 @section('content')
     <div class="page-title">
-        <h2>تعديل م
-ستخدم
+        <h2>تعديل مستخدم
 </h2>
         @if(auth()->user()?->hasPermission('users.manage'))
         <a href="{{ route('users.index') }}" class="btn btn-secondary">رجوع</a>
@@ -31,9 +28,7 @@
                 </div>
 
                 <div class="form-group">
-                    <label>اسم
- الم
-ستخدم
+                    <label>اسمالمستخدم
 </label>
                     <input type="text" name="username" value="{{ old('username', $user->username) }}" required>
                 </div>
@@ -51,28 +46,20 @@
                 <div class="form-group">
                     <label>الدور</label>
                     <select name="role" required>
-                        <option value="user" @selected(old('role', $user->role) === 'user')>م
-ستخدم
+                        <option value="user" @selected(old('role', $user->role) === 'user')>مستخدم
 </option>
-                        <option value="viewer" @selected(old('role', $user->role) === 'viewer')>م
-شاهد فقط</option>
-                        <option value="admin" @selected(old('role', $user->role) === 'admin')>م
-دير النظام
+                        <option value="viewer" @selected(old('role', $user->role) === 'viewer')>مشاهد فقط</option>
+                        <option value="admin" @selected(old('role', $user->role) === 'admin')>مدير النظام
 </option>
                     </select>
-                    <small style="display:block;margin-top:6px;color:#64748b;">م
-دير النظام
- يم
-لك كل الصلاحيات تلقائياً.</small>
+                    <small style="display:block;margin-top:6px;color:#64748b;">مدير النظاميملك كل الصلاحيات تلقائياً.</small>
                 </div>
 
                 <div class="form-group">
                     <label>الحالة</label>
                     <label class="checkbox-line">
                         <input type="checkbox" name="is_active" value="1" @checked(old('is_active', $user->is_active))>
-                        م
-ستخدم
- نشط
+                        مستخدمنشط
                     </label>
                 </div>
             </div>
@@ -88,14 +75,8 @@
                 <div class="permissions-header">
                     <div>
                         <h3>الصلاحيات التفصيلية</h3>
-                        <p>تحديد الصلاحيات الخاصة بهذا الم
-ستخدم
-. عند اختيار م
-دير النظام
- يتم
- تجاهل هذه القائم
-ة ويُم
-نح كل الصلاحيات.</p>
+                        <p>تحديد الصلاحيات الخاصة بهذا المستخدم
+. عند اختيار مدير النظاميتمتجاهل هذه القائمة ويُمنح كل الصلاحيات.</p>
                     </div>
                     <button type="button" class="btn btn-secondary" onclick="toggleAllPermissions(true)">تحديد الكل</button>
                     <button type="button" class="btn btn-secondary" onclick="toggleAllPermissions(false)">إلغاء الكل</button>

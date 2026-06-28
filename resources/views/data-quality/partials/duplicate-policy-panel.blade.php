@@ -14,11 +14,9 @@
             <table class="dq-table">
                 <thead>
                     <tr>
-                        <th>رقم
- البوليصة</th>
+                        <th>رقمالبوليصة</th>
                         <th>عدد التكرار</th>
-                        <th>الكتب الم
-رتبطة</th>
+                        <th>الكتب المرتبطة</th>
                         <th class="no-print">نسخ</th>
                     </tr>
                 </thead>
