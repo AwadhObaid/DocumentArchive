@@ -16,6 +16,8 @@ use App\Http\Controllers\ProfileController;
 use App\Http\Middleware\ApplyRoutePermissions;
 use Illuminate\Support\Facades\Route;
 
+use App\Http\Controllers\NotificationCenterController;
+
 Route::middleware('guest')->group(function () {
     Route::get('/login', [AuthController::class, 'showLoginForm'])->name('login');
     Route::post('/login', [AuthController::class, 'login'])->name('login.post');
@@ -146,3 +148,11 @@ Route::get('/data-quality/print', [\App\Http\Controllers\DataQualityPrintControl
 
 // Professional printable documents report
 Route::get('/reports/print', [\App\Http\Controllers\ReportPrintController::class, 'index'])->middleware(['auth'])->name('reports.print');
+
+// notification-center-routes
+Route::middleware(['auth'])->group(function () {
+    Route::get('/notifications', [NotificationCenterController::class, 'index'])->name('notifications.index');
+    Route::post('/notifications/{notification}/read', [NotificationCenterController::class, 'markAsRead'])->name('notifications.read');
+    Route::post('/notifications/read-all', [NotificationCenterController::class, 'markAllAsRead'])->name('notifications.read_all');
+    Route::delete('/notifications/{notification}', [NotificationCenterController::class, 'destroy'])->name('notifications.destroy');
+});

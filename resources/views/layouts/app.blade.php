@@ -141,6 +141,8 @@
 <!-- Documents grid actions inline fix script:start -->
 <script src="{{ asset('js/documents-grid-actions-fix.js') }}" defer></script>
 <!-- Documents grid actions inline fix script:end -->
+    {{-- notification-center-include --}}
+    @include('partials.notification-center')
 </body>
 </html>
 
