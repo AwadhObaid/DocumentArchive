@@ -18,6 +18,7 @@ use Illuminate\Support\Facades\Route;
 
 use App\Http\Controllers\NotificationCenterController;
 
+use App\Http\Controllers\NotificationSettingsController;
 Route::middleware('guest')->group(function () {
     Route::get('/login', [AuthController::class, 'showLoginForm'])->name('login');
     Route::post('/login', [AuthController::class, 'login'])->name('login.post');
@@ -155,4 +156,9 @@ Route::middleware(['auth'])->group(function () {
     Route::post('/notifications/{notification}/read', [NotificationCenterController::class, 'markAsRead'])->name('notifications.read');
     Route::post('/notifications/read-all', [NotificationCenterController::class, 'markAllAsRead'])->name('notifications.read_all');
     Route::delete('/notifications/{notification}', [NotificationCenterController::class, 'destroy'])->name('notifications.destroy');
+});
+
+Route::middleware(['auth'])->group(function () {
+    Route::get('/notification-settings', [NotificationSettingsController::class, 'edit'])->name('notification-settings.edit');
+    Route::post('/notification-settings', [NotificationSettingsController::class, 'update'])->name('notification-settings.update');
 });

@@ -1,6 +1,9 @@
 @extends('layouts.app')
 
 @section('content')
+<div class="notification-settings-shortcut" style="display:flex;justify-content:flex-end;margin:0 0 14px;direction:rtl;">
+    <a href="{{ route('notification-settings.edit') }}" class="btn btn-secondary" style="text-decoration:none;border-radius:12px;padding:9px 14px;background:#e5e7eb;color:#111827;display:inline-flex;gap:8px;align-items:center;">⚙️ إعدادات الإشعارات</a>
+</div>
 <div class="page-header" style="margin-bottom: 20px;">
     <h1>🔔 مركز الإشعارات</h1>
     <p>متابعة التنبيهات المهمة الخاصة بالنظام وجودة البيانات والنسخ الاحتياطي.</p>

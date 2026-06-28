@@ -5,6 +5,8 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Support\Facades\Schema;
+use Throwable;
 
 class SystemNotification extends Model
 {
@@ -42,17 +44,15 @@ class SystemNotification extends Model
 
     public function scopeVisible($query)
     {
-        $table = $this->getTable();
-
         try {
-            if (\Illuminate\Support\Facades\Schema::hasColumn($table, 'dismissed_at')) {
+            if (Schema::hasColumn($this->getTable(), 'dismissed_at')) {
                 $query->whereNull('dismissed_at');
             }
-            if (\Illuminate\Support\Facades\Schema::hasColumn($table, 'hidden_at')) {
+            if (Schema::hasColumn($this->getTable(), 'hidden_at')) {
                 $query->whereNull('hidden_at');
             }
-        } catch (\Throwable $e) {
-            // If schema inspection fails, return the base query instead of breaking the page.
+        } catch (Throwable $e) {
+            // لا نكسر صفحة الإشعارات إذا تعذر فحص الأعمدة.
         }
 
         return $query;
