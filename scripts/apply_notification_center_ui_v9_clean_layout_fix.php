@@ -1,3 +1,27 @@
+<?php
+
+declare(strict_types=1);
+
+$root = getcwd();
+if (!is_file($root . DIRECTORY_SEPARATOR . 'artisan')) {
+    fwrite(STDERR, "ERROR: شغّل السكربت من جذر مشروع Laravel.\n");
+    exit(1);
+}
+
+$viewPath = $root . DIRECTORY_SEPARATOR . 'resources' . DIRECTORY_SEPARATOR . 'views' . DIRECTORY_SEPARATOR . 'notifications' . DIRECTORY_SEPARATOR . 'index.blade.php';
+if (!is_file($viewPath)) {
+    fwrite(STDERR, "ERROR: الملف غير موجود: resources/views/notifications/index.blade.php\n");
+    exit(1);
+}
+
+$backupDir = $root . DIRECTORY_SEPARATOR . 'storage' . DIRECTORY_SEPARATOR . 'app' . DIRECTORY_SEPARATOR . 'patch-backups' . DIRECTORY_SEPARATOR . 'notifications-ui-v9-' . date('Ymd-His');
+if (!is_dir($backupDir) && !mkdir($backupDir, 0777, true) && !is_dir($backupDir)) {
+    fwrite(STDERR, "ERROR: تعذر إنشاء مجلد النسخ الاحتياطي داخل storage/app/patch-backups.\n");
+    exit(1);
+}
+copy($viewPath, $backupDir . DIRECTORY_SEPARATOR . 'index.blade.php');
+
+$blade = <<<'BLADE'
 @extends('layouts.app')
 
 @section('title', 'مركز الإشعارات')
@@ -435,3 +459,9 @@
     </section>
 </div>
 @endsection
+BLADE;
+
+file_put_contents($viewPath, $blade);
+
+echo "DONE: تم تطبيق إصلاح واجهة مركز الإشعارات V9.\n";
+echo "NEXT: php artisan view:clear && php artisan optimize:clear\n";

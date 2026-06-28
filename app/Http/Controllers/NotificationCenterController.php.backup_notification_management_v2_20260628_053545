@@ -1,0 +1,171 @@
+<?php
+
+namespace App\Http\Controllers;
+
+use App\Models\SystemNotification;
+use App\Services\SystemNotificationService;
+use Illuminate\Http\RedirectResponse;
+use Illuminate\Http\Request;
+use Illuminate\View\View;
+
+class NotificationCenterController extends Controller
+{
+    public function index(Request $request): View
+    {
+        SystemNotificationService::syncForCurrentUser($request->user());
+
+        $notifications = SystemNotification::query()
+            ->where('user_id', $request->user()->id)
+            ->visible()
+            ->latest()
+            ->paginate(20);
+
+        $unreadCount = SystemNotification::query()
+            ->where('user_id', $request->user()->id)
+            ->unread()
+            ->count();
+
+        return view('notifications.index', compact('notifications', 'unreadCount'));
+    }
+
+    public function markAsRead(Request $request, SystemNotification $notification): RedirectResponse
+    {
+        abort_unless((int) $notification->user_id === (int) $request->user()->id, 403);
+
+        $notification->update(['read_at' => now()]);
+
+        return back()->with('success', 'تم تعليم الإشعار كمقروء.');
+    }
+
+    public function markAllAsRead(Request $request): RedirectResponse
+    {
+        SystemNotification::query()
+            ->where('user_id', $request->user()->id)
+            ->unread()
+            ->update(['read_at' => now()]);
+
+        return back()->with('success', 'تم تعليم جميع الإشعارات كمقروءة.');
+    }
+
+    public function destroy(Request $request, SystemNotification $notification): RedirectResponse
+    {
+        abort_unless((int) $notification->user_id === (int) $request->user()->id, 403);
+
+        $notification->update([
+            'dismissed_at' => now(),
+            'read_at' => $notification->read_at ?: now(),
+        ]);
+
+        return back()->with('success', 'تم إخفاء الإشعار.');
+    }
+
+
+    /**
+     * تعليم كل إشعارات المستخدم الحالي كمقروءة.
+     */
+    public function markAllRead()
+    {
+        $user = auth()->user();
+        if (!$user || !Schema::hasTable('system_notifications')) {
+            return back()->with('warning', 'تعذر تحديث الإشعارات حالياً.');
+        }
+
+        $updates = [];
+        if (Schema::hasColumn('system_notifications', 'is_read')) {
+            $updates['is_read'] = 1;
+        }
+        if (Schema::hasColumn('system_notifications', 'read_at')) {
+            $updates['read_at'] = now();
+        }
+        if (empty($updates)) {
+            return back()->with('info', 'لا يوجد عمود مخصص لحالة القراءة في جدول الإشعارات.');
+        }
+
+        $query = DB::table('system_notifications');
+        if (Schema::hasColumn('system_notifications', 'user_id')) {
+            $query->where('user_id', $user->id);
+        }
+        if (Schema::hasColumn('system_notifications', 'hidden_at')) {
+            $query->whereNull('hidden_at');
+        }
+        if (Schema::hasColumn('system_notifications', 'is_hidden')) {
+            $query->where(function ($q) {
+                $q->whereNull('is_hidden')->orWhere('is_hidden', 0);
+            });
+        }
+
+        $count = $query->update($updates);
+
+        return back()->with('success', 'تم تعليم الإشعارات كمقروءة بنجاح.');
+    }
+
+    /**
+     * إخفاء الإشعارات المقروءة من مركز الإشعارات دون حذفها نهائياً عند توفر عمود hidden_at.
+     */
+    public function hideRead()
+    {
+        $user = auth()->user();
+        if (!$user || !Schema::hasTable('system_notifications')) {
+            return back()->with('warning', 'تعذر تحديث الإشعارات حالياً.');
+        }
+
+        $updates = [];
+        if (Schema::hasColumn('system_notifications', 'hidden_at')) {
+            $updates['hidden_at'] = now();
+        } elseif (Schema::hasColumn('system_notifications', 'is_hidden')) {
+            $updates['is_hidden'] = 1;
+        } else {
+            return back()->with('warning', 'جدول الإشعارات لا يحتوي على عمود مخصص للإخفاء.');
+        }
+
+        $query = DB::table('system_notifications');
+        if (Schema::hasColumn('system_notifications', 'user_id')) {
+            $query->where('user_id', $user->id);
+        }
+        if (Schema::hasColumn('system_notifications', 'is_read')) {
+            $query->where('is_read', 1);
+        } elseif (Schema::hasColumn('system_notifications', 'read_at')) {
+            $query->whereNotNull('read_at');
+        }
+        if (Schema::hasColumn('system_notifications', 'hidden_at')) {
+            $query->whereNull('hidden_at');
+        }
+        if (Schema::hasColumn('system_notifications', 'is_hidden')) {
+            $query->where(function ($q) {
+                $q->whereNull('is_hidden')->orWhere('is_hidden', 0);
+            });
+        }
+
+        $query->update($updates);
+
+        return back()->with('success', 'تم إخفاء الإشعارات المقروءة.');
+    }
+
+    /**
+     * حذف الإشعارات المخفية نهائياً للمستخدم الحالي.
+     */
+    public function clearHidden()
+    {
+        $user = auth()->user();
+        if (!$user || !Schema::hasTable('system_notifications')) {
+            return back()->with('warning', 'تعذر حذف الإشعارات حالياً.');
+        }
+
+        $query = DB::table('system_notifications');
+        if (Schema::hasColumn('system_notifications', 'user_id')) {
+            $query->where('user_id', $user->id);
+        }
+
+        if (Schema::hasColumn('system_notifications', 'hidden_at')) {
+            $query->whereNotNull('hidden_at');
+        } elseif (Schema::hasColumn('system_notifications', 'is_hidden')) {
+            $query->where('is_hidden', 1);
+        } else {
+            return back()->with('warning', 'لا توجد إشعارات مخفية قابلة للحذف.');
+        }
+
+        $query->delete();
+
+        return back()->with('success', 'تم حذف الإشعارات المخفية نهائياً.');
+    }
+}

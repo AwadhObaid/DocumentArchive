@@ -1,0 +1,85 @@
+/* Notification center management actions */
+.notification-management-panel {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    margin: 0 0 18px 0;
+    padding: 14px;
+    border: 1px solid rgba(15, 23, 42, .10);
+    border-radius: 16px;
+    background: rgba(255, 255, 255, .86);
+    box-shadow: 0 10px 25px rgba(15, 23, 42, .06);
+}
+.notification-management-panel .notification-management-title {
+    font-weight: 800;
+    color: #0f172a;
+    margin-bottom: 3px;
+}
+.notification-management-panel .notification-management-subtitle {
+    color: #64748b;
+    font-size: .9rem;
+}
+.notification-management-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+.notification-management-actions form {
+    display: inline-flex;
+    margin: 0;
+}
+.notification-management-btn {
+    border: 0;
+    border-radius: 12px;
+    padding: 9px 13px;
+    font-weight: 700;
+    cursor: pointer;
+    text-decoration: none;
+    color: #0f172a;
+    background: #f1f5f9;
+    transition: transform .15s ease, box-shadow .15s ease, background .15s ease;
+}
+.notification-management-btn:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 8px 18px rgba(15, 23, 42, .12);
+}
+.notification-management-btn.primary {
+    color: #fff;
+    background: #2563eb;
+}
+.notification-management-btn.warning {
+    color: #78350f;
+    background: #fef3c7;
+}
+.notification-management-btn.danger {
+    color: #fff;
+    background: #dc2626;
+}
+html.dark .notification-management-panel,
+body.dark .notification-management-panel,
+[data-theme="dark"] .notification-management-panel {
+    background: rgba(15, 23, 42, .92);
+    border-color: rgba(148, 163, 184, .22);
+    box-shadow: 0 12px 30px rgba(0, 0, 0, .25);
+}
+html.dark .notification-management-panel .notification-management-title,
+body.dark .notification-management-panel .notification-management-title,
+[data-theme="dark"] .notification-management-panel .notification-management-title {
+    color: #e5e7eb;
+}
+html.dark .notification-management-panel .notification-management-subtitle,
+body.dark .notification-management-panel .notification-management-subtitle,
+[data-theme="dark"] .notification-management-panel .notification-management-subtitle {
+    color: #94a3b8;
+}
+html.dark .notification-management-btn,
+body.dark .notification-management-btn,
+[data-theme="dark"] .notification-management-btn {
+    color: #e5e7eb;
+    background: rgba(51, 65, 85, .9);
+}
+@media print {
+    .notification-management-panel { display: none !important; }
+}
