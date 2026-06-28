@@ -14,6 +14,11 @@
 <link rel="stylesheet" href="{{ asset('css/reports-dark-mode-fix.css') }}">
 <script defer src="{{ asset('js/reports-dark-mode-fix.js') }}"></script>
 <!-- reports-dark-mode-fix:end -->
+    {{-- DocumentArchive popup notifications --}}
+    <link rel="stylesheet" href="{{ asset('css/app-notifications.css') }}">
+<!-- Documents grid actions inline fix:start -->
+<link rel="stylesheet" href="{{ asset('css/documents-grid-actions-fix.css') }}">
+<!-- Documents grid actions inline fix:end -->
 </head>
 <body>
 
@@ -130,6 +135,12 @@
 
     {{-- Arabic browser/form validation messages --}}
     <script src="{{ asset('js/arabic-form-validation.js') }}" defer></script>
+    {{-- DocumentArchive popup notifications --}}
+    @include('partials.flash-notifications')
+    <script src="{{ asset('js/app-notifications.js') }}"></script>
+<!-- Documents grid actions inline fix script:start -->
+<script src="{{ asset('js/documents-grid-actions-fix.js') }}" defer></script>
+<!-- Documents grid actions inline fix script:end -->
 </body>
 </html>
 

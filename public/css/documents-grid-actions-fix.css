@@ -1,0 +1,51 @@
+/* Documents grid action buttons inline fix */
+body.documents-page table td.documents-actions-fixed,
+body.documents-page table th.documents-actions-fixed {
+    min-width: 360px !important;
+    width: 360px !important;
+    white-space: nowrap !important;
+    vertical-align: middle !important;
+}
+
+body.documents-page .documents-actions-inline {
+    display: inline-flex !important;
+    flex-direction: row !important;
+    align-items: center !important;
+    justify-content: flex-start !important;
+    gap: 8px !important;
+    flex-wrap: nowrap !important;
+    white-space: nowrap !important;
+    width: max-content !important;
+    max-width: none !important;
+}
+
+body.documents-page .documents-actions-inline > *,
+body.documents-page .documents-actions-inline form,
+body.documents-page .documents-actions-inline a,
+body.documents-page .documents-actions-inline button,
+body.documents-page .documents-actions-inline .btn {
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    flex: 0 0 auto !important;
+    margin: 0 !important;
+    white-space: nowrap !important;
+}
+
+body.documents-page .documents-actions-inline button,
+body.documents-page .documents-actions-inline .btn,
+body.documents-page .documents-actions-inline a {
+    min-width: auto !important;
+}
+
+body.documents-page .table-responsive,
+body.documents-page .documents-table-wrap,
+body.documents-page .documents-grid-wrap {
+    overflow-x: auto !important;
+}
+
+@media print {
+    body.documents-page .documents-actions-inline {
+        display: none !important;
+    }
+}

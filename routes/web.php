@@ -140,3 +140,9 @@ Route::middleware(['auth', ApplyRoutePermissions::class])->group(function () {
     Route::get('/backups/{fileName}/inspect', [BackupController::class, 'inspect'])->name('backups.inspect');
 });
 
+
+// Professional printable data quality report
+Route::get('/data-quality/print', [\App\Http\Controllers\DataQualityPrintController::class, 'index'])->middleware(['auth'])->name('data-quality.print');
+
+// Professional printable documents report
+Route::get('/reports/print', [\App\Http\Controllers\ReportPrintController::class, 'index'])->middleware(['auth'])->name('reports.print');

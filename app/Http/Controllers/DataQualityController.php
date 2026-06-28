@@ -3,143 +3,134 @@
 namespace App\Http\Controllers;
 
 use App\Models\Document;
-use Illuminate\Contracts\View\View;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 
 class DataQualityController extends Controller
 {
-    public function index(): View
+    public function index()
     {
-        $databaseReady = Schema::hasTable('documents');
-
-        $summary = [
-            'without_attachments' => 0,
-            'duplicate_main_policies' => 0,
-            'duplicate_sub_policies' => 0,
-            'missing_main_policy' => 0,
-            'missing_sub_policy' => 0,
-            'deleted_documents' => 0,
+        $data = [
+            'documentsTableExists' => Schema::hasTable('documents'),
+            'attachmentsTableExists' => Schema::hasTable('document_attachments'),
+            'withoutAttachments' => collect(),
+            'duplicateMainPolicies' => collect(),
+            'duplicateSubPolicies' => collect(),
+            'withoutMainPolicy' => collect(),
+            'withoutSubPolicy' => collect(),
+            'trashedDocuments' => collect(),
+            'summary' => [
+                'without_attachments' => 0,
+                'duplicate_main_policies' => 0,
+                'duplicate_sub_policies' => 0,
+                'trashed_documents' => 0,
+                'without_main_policy' => 0,
+                'without_sub_policy' => 0,
+            ],
         ];
 
-        $withoutAttachments = collect();
-        $duplicateMainPolicies = collect();
-        $duplicateSubPolicies = collect();
-        $missingMainPolicies = collect();
-        $missingSubPolicies = collect();
-        $deletedDocuments = collect();
-
-        if ($databaseReady) {
-            $hasAttachmentsTable = Schema::hasTable('document_attachments');
-            $hasMainPolicy = Schema::hasColumn('documents', 'main_policy_number');
-            $hasSubPolicy = Schema::hasColumn('documents', 'sub_policy_number');
-            $hasDeletedAt = Schema::hasColumn('documents', 'deleted_at');
-
-            if ($hasAttachmentsTable) {
-                $withoutAttachmentsQuery = Document::query()
-                    ->whereNotExists(function ($query) {
-                        $query->select(DB::raw(1))
-                            ->from('document_attachments')
-                            ->whereColumn('document_attachments.document_id', 'documents.id');
-                    });
-
-                $summary['without_attachments'] = (clone $withoutAttachmentsQuery)->count();
-                $withoutAttachments = (clone $withoutAttachmentsQuery)
-                    ->latest('reference_date')
-                    ->latest('id')
-                    ->limit(20)
-                    ->get();
-            }
-
-            if ($hasMainPolicy) {
-                $duplicateMainPolicies = $this->duplicatePolicyGroups('main_policy_number');
-                $summary['duplicate_main_policies'] = $duplicateMainPolicies->count();
-
-                $missingMainQuery = Document::query()
-                    ->where(function ($query) {
-                        $query->whereNull('main_policy_number')
-                            ->orWhere('main_policy_number', '');
-                    });
-
-                $summary['missing_main_policy'] = (clone $missingMainQuery)->count();
-                $missingMainPolicies = (clone $missingMainQuery)
-                    ->latest('reference_date')
-                    ->latest('id')
-                    ->limit(20)
-                    ->get();
-            }
-
-            if ($hasSubPolicy) {
-                $duplicateSubPolicies = $this->duplicatePolicyGroups('sub_policy_number');
-                $summary['duplicate_sub_policies'] = $duplicateSubPolicies->count();
-
-                $missingSubQuery = Document::query()
-                    ->where(function ($query) {
-                        $query->whereNull('sub_policy_number')
-                            ->orWhere('sub_policy_number', '');
-                    });
-
-                $summary['missing_sub_policy'] = (clone $missingSubQuery)->count();
-                $missingSubPolicies = (clone $missingSubQuery)
-                    ->latest('reference_date')
-                    ->latest('id')
-                    ->limit(20)
-                    ->get();
-            }
-
-            if ($hasDeletedAt) {
-                $deletedQuery = DB::table('documents')
-                    ->whereNotNull('deleted_at')
-                    ->orderByDesc('deleted_at')
-                    ->orderByDesc('id');
-
-                $summary['deleted_documents'] = (clone $deletedQuery)->count();
-                $deletedDocuments = collect((clone $deletedQuery)->limit(20)->get());
-            }
+        if (! $data['documentsTableExists']) {
+            return view('data-quality.index', $data);
         }
 
-        return view('data-quality.index', compact(
-            'databaseReady',
-            'summary',
-            'withoutAttachments',
-            'duplicateMainPolicies',
-            'duplicateSubPolicies',
-            'missingMainPolicies',
-            'missingSubPolicies',
-            'deletedDocuments'
-        ));
+        $base = Document::query();
+
+        $data['withoutAttachments'] = $this->safeWithoutAttachments();
+        $data['duplicateMainPolicies'] = $this->duplicatePolicies('main_policy_number');
+        $data['duplicateSubPolicies'] = $this->duplicatePolicies('sub_policy_number');
+        $data['withoutMainPolicy'] = $this->documentsMissingPolicy('main_policy_number');
+        $data['withoutSubPolicy'] = $this->documentsMissingPolicy('sub_policy_number');
+        $data['trashedDocuments'] = $this->safeTrashedDocuments();
+
+        $data['summary'] = [
+            'without_attachments' => $data['withoutAttachments']->count(),
+            'duplicate_main_policies' => $data['duplicateMainPolicies']->count(),
+            'duplicate_sub_policies' => $data['duplicateSubPolicies']->count(),
+            'trashed_documents' => $data['trashedDocuments']->count(),
+            'without_main_policy' => $data['withoutMainPolicy']->count(),
+            'without_sub_policy' => $data['withoutSubPolicy']->count(),
+        ];
+
+        return view('data-quality.index', $data);
     }
 
-    private function duplicatePolicyGroups(string $column): Collection
+    private function safeWithoutAttachments(): Collection
     {
-        $groups = DB::table('documents')
-            ->select($column, DB::raw('COUNT(*) as total'))
-            ->whereNotNull($column)
-            ->where($column, '<>', '')
-            ->when(Schema::hasColumn('documents', 'deleted_at'), function ($query) {
-                $query->whereNull('deleted_at');
-            })
-            ->groupBy($column)
-            ->havingRaw('COUNT(*) > 1')
-            ->orderByDesc('total')
-            ->orderBy($column)
-            ->limit(30)
-            ->get();
+        if (! Schema::hasTable('document_attachments')) {
+            return collect();
+        }
 
-        return $groups->map(function ($group) use ($column) {
-            $documents = Document::query()
-                ->where($column, $group->{$column})
+        try {
+            return Document::query()
+                ->whereDoesntHave('attachments')
                 ->latest('reference_date')
                 ->latest('id')
-                ->limit(10)
+                ->limit(50)
+                ->get();
+        } catch (\Throwable $e) {
+            return collect();
+        }
+    }
+
+    private function duplicatePolicies(string $column): Collection
+    {
+        if (! Schema::hasColumn('documents', $column)) {
+            return collect();
+        }
+
+        $duplicates = Document::query()
+            ->select($column, DB::raw('COUNT(*) as duplicate_count'))
+            ->whereNotNull($column)
+            ->where($column, '<>', '')
+            ->groupBy($column)
+            ->havingRaw('COUNT(*) > 1')
+            ->orderByDesc('duplicate_count')
+            ->limit(50)
+            ->get();
+
+        return $duplicates->map(function ($row) use ($column) {
+            $policy = $row->{$column};
+
+            $documents = Document::query()
+                ->where($column, $policy)
+                ->orderBy('reference_date')
+                ->orderBy('reference_number')
                 ->get();
 
             return [
-                'policy_number' => $group->{$column},
-                'total' => (int) $group->total,
+                'policy' => $policy,
+                'count' => (int) $row->duplicate_count,
                 'documents' => $documents,
             ];
         });
+    }
+
+    private function documentsMissingPolicy(string $column): Collection
+    {
+        if (! Schema::hasColumn('documents', $column)) {
+            return collect();
+        }
+
+        return Document::query()
+            ->where(function ($query) use ($column) {
+                $query->whereNull($column)->orWhere($column, '');
+            })
+            ->latest('reference_date')
+            ->latest('id')
+            ->limit(50)
+            ->get();
+    }
+
+    private function safeTrashedDocuments(): Collection
+    {
+        try {
+            return Document::onlyTrashed()
+                ->latest('deleted_at')
+                ->limit(50)
+                ->get();
+        } catch (\Throwable $e) {
+            return collect();
+        }
     }
 }

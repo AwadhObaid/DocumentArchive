@@ -1,27 +1,25 @@
-@if($groups->isEmpty())
-    <p class="muted">لا توجد {{ $label }} مكررة.</p>
+@if($rows->isEmpty())
+    <div class="empty">لا توجد نتائج.</div>
 @else
     <table>
         <thead>
             <tr>
-                <th>{{ $label }}</th>
-                <th>عدد التكرار</th>
+                <th style="width: 28%;">رقم البوليصة</th>
+                <th style="width: 18%;">عدد التكرار</th>
                 <th>الكتب المرتبطة</th>
             </tr>
         </thead>
         <tbody>
-            @foreach($groups as $group)
+            @foreach($rows as $row)
                 <tr>
-                    <td><strong>{{ $group['policy_number'] }}</strong></td>
-                    <td><span class="badge">{{ $group['total'] }}</span></td>
+                    <td><span class="pill">{{ $row->policy_number }}</span></td>
+                    <td><span class="pill">{{ $row->repeat_count }}</span></td>
                     <td>
-                        <div style="display: flex; flex-wrap: wrap; gap: 8px;">
-                            @foreach($group['documents'] as $document)
-                                <a class="btn btn-secondary btn-sm" href="{{ route('documents.show', $document) }}">
-                                    {{ $document->reference_number }}
-                                </a>
-                            @endforeach
-                        </div>
+                        @foreach(explode(',', $row->linked_references ?? '') as $reference)
+                            @if(trim($reference) !== '')
+                                <span class="pill">{{ trim($reference) }}</span>
+                            @endif
+                        @endforeach
                     </td>
                 </tr>
             @endforeach

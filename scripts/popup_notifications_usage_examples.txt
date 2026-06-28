@@ -1,0 +1,14 @@
+أمثلة استخدام الإشعارات المنبثقة:
+
+من Laravel Controller:
+return redirect()->route('documents.index')->with('success', 'تم حفظ الكتاب بنجاح.');
+return back()->with('error', 'تعذر تنفيذ العملية.');
+return back()->with('warning', 'يوجد تنبيه يحتاج مراجعة.');
+return back()->with('info', 'تم تحديث البيانات.');
+
+من JavaScript:
+window.showAppNotification({
+    type: 'success',
+    title: 'تم الحفظ',
+    message: 'تم حفظ البيانات بنجاح.'
+});
