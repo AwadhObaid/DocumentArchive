@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\DocumentQrController;
 use App\Http\Controllers\ActivityLogController;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\BackupController;
@@ -217,3 +218,5 @@ Route::middleware(['auth'])->group(function () {
     Route::post('/notifications/{notification}/hide', [\App\Http\Controllers\NotificationCenterController::class, 'hide'])->name('notifications.hide');
     Route::delete('/notifications/{notification}', [\App\Http\Controllers\NotificationCenterController::class, 'destroy'])->name('notifications.destroy');
 });
+
+Route::get('/documents/{document}/qr.svg', [DocumentQrController::class, 'show'])->middleware('auth')->name('documents.qr');

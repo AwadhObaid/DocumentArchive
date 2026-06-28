@@ -77,4 +77,13 @@
             <p>لا توجد مرفقات.</p>
         @endforelse
     </div>
+
+{{-- QR Code للكتاب --}}
+<div class="document-qr-panel no-print" style="margin:16px 0;padding:14px;border:1px solid rgba(148,163,184,.25);border-radius:16px;display:flex;align-items:center;gap:14px;background:rgba(15,23,42,.35);">
+    <img src="{{ route('documents.qr', $document) }}" alt="QR Code" width="116" height="116" style="background:#fff;padding:8px;border-radius:12px;">
+    <div>
+        <strong>QR Code للكتاب</strong>
+        <div style="font-size:13px;color:#94a3b8;margin-top:4px;">امسح الرمز للوصول مباشرة إلى صفحة الكتاب داخل النظام.</div>
+    </div>
+</div>
 @endsection

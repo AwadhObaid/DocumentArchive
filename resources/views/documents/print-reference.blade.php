@@ -114,5 +114,11 @@
     </div>
 </div>
 
+
+{{-- QR Code للكتاب في الطباعة --}}
+<div class="document-print-qr" style="margin-top:18px;text-align:center;">
+    <img src="{{ route('documents.qr', $document) }}" alt="QR Code" width="105" height="105" style="background:#fff;padding:6px;border:1px solid #d1d5db;border-radius:8px;">
+    <div style="font-size:11px;margin-top:6px;color:#374151;">رمز الوصول الإلكتروني للكتاب</div>
+</div>
 </body>
 </html>
