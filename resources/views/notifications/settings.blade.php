@@ -31,9 +31,12 @@
     <div class="notification-settings-header">
         <div class="notification-settings-title">
             <h1>⚙️ إعدادات الإشعارات</h1>
-            <p>حدد أنواع الإشعارات التي تريد أن ينشئها النظام ويحفظها داخل مركز الإشعارات.</p>
+            <p>حدد أنواع الإشعارات التي تريد أن ينشئها النظام
+ ويحفظها داخل م
+ركز الإشعارات.</p>
         </div>
-        <a href="{{ route('notifications.index') }}" class="btn btn-secondary">🔔 مركز الإشعارات</a>
+        <a href="{{ route('notifications.index') }}" class="btn btn-secondary">🔔 م
+ركز الإشعارات</a>
     </div>
 
     <form method="POST" action="{{ route('notification-settings.update') }}">
@@ -44,9 +47,12 @@
                 <section class="notification-settings-card">
                     <h2>
                         @switch($category)
-                            @case('system') تنبيهات النظام @break
-                            @case('events') أحداث الكتب والمرفقات @break
-                            @case('flash') رسائل العمليات @break
+                            @case('system') تنبيهات النظام
+ @break
+                            @case('events') أحداث الكتب والم
+رفقات @break
+                            @case('flash') رسائل العم
+ليات @break
                             @default {{ $category }}
                         @endswitch
                     </h2>
@@ -61,7 +67,8 @@
                             <input type="checkbox" name="enabled[{{ $key }}]" value="1" @checked($checked)>
                             <div>
                                 <strong>{{ $meta['label'] ?? $key }}</strong>
-                                <span>{{ $meta['description'] ?? 'إشعار داخل مركز الإشعارات.' }}</span>
+                                <span>{{ $meta['description'] ?? 'إشعار داخل م
+ركز الإشعارات.' }}</span>
                             </div>
                         </label>
                     @endforeach

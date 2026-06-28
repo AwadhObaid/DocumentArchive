@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\QrPrintSettingsController;
 use App\Http\Controllers\DocumentQrController;
 use App\Http\Controllers\ActivityLogController;
 use App\Http\Controllers\AuthController;
@@ -220,3 +221,9 @@ Route::middleware(['auth'])->group(function () {
 });
 
 Route::get('/documents/{document}/qr.svg', [DocumentQrController::class, 'show'])->middleware('auth')->name('documents.qr');
+
+
+Route::middleware(['auth'])->group(function () {
+    Route::get('/settings/qr-print-position', [QrPrintSettingsController::class, 'edit'])->name('settings.qr-print-position');
+    Route::post('/settings/qr-print-position', [QrPrintSettingsController::class, 'update'])->name('settings.qr-print-position.update');
+});

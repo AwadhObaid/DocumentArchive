@@ -1,12 +1,19 @@
 @extends('layouts.app')
 
-@section('title', 'إضافة مستخدم')
-@section('page_title', 'إضافة مستخدم')
-@section('page_subtitle', 'إنشاء حساب جديد وتحديد صلاحياته داخل نظام الأرشيف الإلكتروني')
+@section('title', 'إضافة م
+ستخدم
+')
+@section('page_title', 'إضافة م
+ستخدم
+')
+@section('page_subtitle', 'إنشاء حساب جديد وتحديد صلاحياته داخل نظام
+ الأرشيف الإلكتروني')
 
 @section('content')
     <div class="page-title">
-        <h2>إضافة مستخدم</h2>
+        <h2>إضافة م
+ستخدم
+</h2>
         @if(auth()->user()?->hasPermission('users.manage'))
         <a href="{{ route('users.index') }}" class="btn btn-secondary">رجوع</a>
         @endif
@@ -18,12 +25,16 @@
 
             <div class="form-grid">
                 <div class="form-group">
-                    <label>الاسم</label>
+                    <label>الاسم
+</label>
                     <input type="text" name="name" value="{{ old('name') }}" required>
                 </div>
 
                 <div class="form-group">
-                    <label>اسم المستخدم</label>
+                    <label>اسم
+ الم
+ستخدم
+</label>
                     <input type="text" name="username" value="{{ old('username') }}" required>
                 </div>
 
@@ -40,28 +51,42 @@
                 <div class="form-group">
                     <label>الدور</label>
                     <select name="role" id="roleSelect" required>
-                        <option value="user" @selected(old('role', 'user') === 'user')>مستخدم</option>
-                        <option value="viewer" @selected(old('role') === 'viewer')>مشاهد فقط</option>
-                        <option value="admin" @selected(old('role') === 'admin')>مدير النظام</option>
+                        <option value="user" @selected(old('role', 'user') === 'user')>م
+ستخدم
+</option>
+                        <option value="viewer" @selected(old('role') === 'viewer')>م
+شاهد فقط</option>
+                        <option value="admin" @selected(old('role') === 'admin')>م
+دير النظام
+</option>
                     </select>
-                    <small style="display:block;margin-top:6px;color:#64748b;">مدير النظام يملك كل الصلاحيات تلقائياً.</small>
+                    <small style="display:block;margin-top:6px;color:#64748b;">م
+دير النظام
+ يم
+لك كل الصلاحيات تلقائياً.</small>
                 </div>
 
                 <div class="form-group">
                     <label>الحالة</label>
                     <label class="checkbox-line">
                         <input type="checkbox" name="is_active" value="1" checked>
-                        مستخدم نشط
+                        م
+ستخدم
+ نشط
                     </label>
                 </div>
 
                 <div class="form-group">
-                    <label>كلمة المرور</label>
+                    <label>كلم
+ة الم
+رور</label>
                     <input type="password" name="password" required>
                 </div>
 
                 <div class="form-group">
-                    <label>تأكيد كلمة المرور</label>
+                    <label>تأكيد كلم
+ة الم
+رور</label>
                     <input type="password" name="password_confirmation" required>
                 </div>
             </div>
@@ -77,7 +102,12 @@
                 <div class="permissions-header">
                     <div>
                         <h3>الصلاحيات التفصيلية</h3>
-                        <p>اختر ما يمكن لهذا المستخدم الوصول إليه داخل النظام.</p>
+                        <p>اختر م
+ا يم
+كن لهذا الم
+ستخدم
+ الوصول إليه داخل النظام
+.</p>
                     </div>
                     <button type="button" class="btn btn-secondary" onclick="toggleAllPermissions(true)">تحديد الكل</button>
                     <button type="button" class="btn btn-secondary" onclick="toggleAllPermissions(false)">إلغاء الكل</button>
@@ -99,7 +129,9 @@
             </div>
 
             <div style="margin-top:20px;">
-                <button type="submit" class="btn btn-success">حفظ المستخدم</button>
+                <button type="submit" class="btn btn-success">حفظ الم
+ستخدم
+</button>
             </div>
         </form>
     </div>

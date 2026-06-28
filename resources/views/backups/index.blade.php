@@ -6,7 +6,10 @@
 <div class="page-header">
     <div>
         <h1>النسخ الاحتياطي</h1>
-        <p>إنشاء نسخ احتياطية من قاعدة البيانات وملفات المرفقات وحفظها داخل التخزين الخاص.</p>
+        <p>إنشاء نسخ احتياطية م
+ن قاعدة البيانات وم
+لفات الم
+رفقات وحفظها داخل التخزين الخاص.</p>
     </div>
 </div>
 
@@ -21,7 +24,9 @@
 <div class="grid-cards backup-actions">
     <div class="card">
         <h3>نسخة قاعدة البيانات</h3>
-        <p>تصدير جداول النظام إلى ملف SQL داخل ZIP.</p>
+        <p>تصدير جداول النظام
+ إلى م
+لف SQL داخل ZIP.</p>
         @if(auth()->user()?->hasPermission('backups.create'))
         <form method="POST" action="{{ route('backups.database') }}">
             @csrf
@@ -31,45 +36,69 @@
     </div>
 
     <div class="card">
-        <h3>نسخة ملفات المرفقات</h3>
-        <p>نسخ ملفات الكتب والمرفقات من التخزين الخاص.</p>
+        <h3>نسخة م
+لفات الم
+رفقات</h3>
+        <p>نسخ م
+لفات الكتب والم
+رفقات م
+ن التخزين الخاص.</p>
         @if(auth()->user()?->hasPermission('backups.create'))
         <form method="POST" action="{{ route('backups.files') }}">
             @csrf
-            <button type="submit" class="btn btn-secondary">إنشاء نسخة الملفات</button>
+            <button type="submit" class="btn btn-secondary">إنشاء نسخة الم
+لفات</button>
         </form>
         @endif
     </div>
 
     <div class="card">
-        <h3>نسخة كاملة</h3>
-        <p>قاعدة البيانات + ملفات المرفقات في ملف ZIP واحد.</p>
+        <h3>نسخة كام
+لة</h3>
+        <p>قاعدة البيانات + م
+لفات الم
+رفقات في م
+لف ZIP واحد.</p>
         @if(auth()->user()?->hasPermission('backups.create'))
         <form method="POST" action="{{ route('backups.full') }}">
             @csrf
-            <button type="submit" class="btn btn-success">إنشاء نسخة كاملة</button>
+            <button type="submit" class="btn btn-success">إنشاء نسخة كام
+لة</button>
         </form>
         @endif
     </div>
 </div>
 
 <div class="alert alert-warning backup-note">
-    <strong>تنبيه مهم:</strong>
-    الاستعادة عملية حساسة. استخدم زر <strong>استعادة</strong> فقط بعد فحص النسخة والتأكد من محتوياتها. النظام سينشئ نسخة أمان تلقائياً قبل أي استعادة.
+    <strong>تنبيه م
+هم
+:</strong>
+    الاستعادة عم
+لية حساسة. استخدم
+ زر <strong>استعادة</strong> فقط بعد فحص النسخة والتأكد م
+ن م
+حتوياتها. النظام
+ سينشئ نسخة أم
+ان تلقائياً قبل أي استعادة.
 </div>
 
 <div class="card mt-4">
     <div class="card-header d-flex justify-content-between align-items-center">
-        <h3>ملفات النسخ الاحتياطية</h3>
-        <small>المسار: {{ $backupPath }}</small>
+        <h3>م
+لفات النسخ الاحتياطية</h3>
+        <small>الم
+سار: {{ $backupPath }}</small>
     </div>
 
     <div class="table-responsive">
         <table class="table table-hover align-middle">
             <thead>
                 <tr>
-                    <th>اسم الملف</th>
-                    <th>الحجم</th>
+                    <th>اسم
+ الم
+لف</th>
+                    <th>الحجم
+</th>
                     <th>تاريخ الإنشاء</th>
                     <th>الإجراءات</th>
                 </tr>
@@ -91,7 +120,8 @@
                             <a href="{{ route('backups.download', $backup['name']) }}" class="btn btn-sm btn-primary">تنزيل</a>
                             @endif
                             @if(auth()->user()?->hasPermission('backups.delete'))
-                            <form method="POST" action="{{ route('backups.destroy', $backup['name']) }}" class="d-inline" onsubmit="return confirm('هل تريد حذف ملف النسخة الاحتياطية؟')">
+                            <form method="POST" action="{{ route('backups.destroy', $backup['name']) }}" class="d-inline" onsubmit="return confirm('هل تريد حذف م
+لف النسخة الاحتياطية؟')">
                                 @csrf
                                 @method('DELETE')
                                 <button type="submit" class="btn btn-sm btn-danger">حذف</button>

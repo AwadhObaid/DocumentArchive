@@ -1,10 +1,12 @@
 @extends('layouts.app')
 
-@section('title', 'سلة المحذوفات')
+@section('title', 'سلة الم
+حذوفات')
 
 @section('content')
     <div class="page-title">
-        <h1>سلة المحذوفات</h1>
+        <h1>سلة الم
+حذوفات</h1>
 
         @if(auth()->user()?->hasPermission('documents.view'))
         <a href="{{ route('documents.index') }}" class="btn btn-secondary">رجوع للكتب</a>
@@ -15,9 +17,11 @@
         <table>
             <thead>
             <tr>
-                <th>رقم الكتاب</th>
+                <th>رقم
+ الكتاب</th>
                 <th>تاريخ الكتاب</th>
-                <th>موضوع الكتاب</th>
+                <th>م
+وضوع الكتاب</th>
                 <th>البوليصة الرئيسية</th>
                 <th>تاريخ الحذف</th>
                 <th>إجراءات</th>
@@ -41,7 +45,10 @@
                             @endif
 
                             @if(auth()->user()?->hasPermission('documents.force_delete'))
-                            <form method="POST" action="{{ route('documents.force-delete', $document->id) }}" data-confirm="تحذير: سيتم حذف الكتاب ومرفقاته نهائياً. هل أنت متأكد؟">
+                            <form method="POST" action="{{ route('documents.force-delete', $document->id) }}" data-confirm="تحذير: سيتم
+ حذف الكتاب وم
+رفقاته نهائياً. هل أنت م
+تأكد؟">
                                 @csrf
                                 @method('DELETE')
                                 <button type="submit" class="btn btn-danger">حذف نهائي</button>
@@ -52,7 +59,8 @@
                 </tr>
             @empty
                 <tr>
-                    <td colspan="6">سلة المحذوفات فارغة.</td>
+                    <td colspan="6">سلة الم
+حذوفات فارغة.</td>
                 </tr>
             @endforelse
             </tbody>
@@ -63,3 +71,5 @@
         </div>
     </div>
 @endsection
+
+

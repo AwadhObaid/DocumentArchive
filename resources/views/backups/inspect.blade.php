@@ -6,7 +6,11 @@
 <div class="page-header">
     <div>
         <h1>فحص النسخة الاحتياطية</h1>
-        <p>فحص محتويات ملف النسخة قبل الاعتماد عليه أو استخدامه في الاستعادة.</p>
+        <p>فحص م
+حتويات م
+لف النسخة قبل الاعتم
+اد عليه أو استخدام
+ه في الاستعادة.</p>
     </div>
     <div class="page-actions">
         @if(auth()->user()?->hasPermission('backups.restore'))
@@ -22,7 +26,8 @@
     <div class="backup-title-row">
         <div>
             <h3>{{ $fileName }}</h3>
-            <p>نوع النسخة المتوقع: <strong>{{ $inferredType }}</strong></p>
+            <p>نوع النسخة الم
+توقع: <strong>{{ $inferredType }}</strong></p>
         </div>
         @if(auth()->user()?->hasPermission('backups.download'))
         <a href="{{ route('backups.download', $fileName) }}" class="btn btn-primary">تنزيل النسخة</a>
@@ -30,12 +35,19 @@
     </div>
 
     <div class="backup-stats-grid">
-        <div class="stat-box"><span>حجم ملف ZIP</span><strong>{{ $fileSize }}</strong></div>
+        <div class="stat-box"><span>حجم
+ م
+لف ZIP</span><strong>{{ $fileSize }}</strong></div>
         <div class="stat-box"><span>تاريخ الإنشاء</span><strong>{{ $createdAt }}</strong></div>
-        <div class="stat-box"><span>عدد ملفات SQL</span><strong>{{ count($sqlFiles) }}</strong></div>
-        <div class="stat-box"><span>عدد ملفات المرفقات</span><strong>{{ $documentFilesCount }}</strong></div>
-        <div class="stat-box"><span>إجمالي عناصر ZIP</span><strong>{{ $totalZipEntries }}</strong></div>
-        <div class="stat-box"><span>الحجم بعد الفك تقريباً</span><strong>{{ $totalUncompressedSize }}</strong></div>
+        <div class="stat-box"><span>عدد م
+لفات SQL</span><strong>{{ count($sqlFiles) }}</strong></div>
+        <div class="stat-box"><span>عدد م
+لفات الم
+رفقات</span><strong>{{ $documentFilesCount }}</strong></div>
+        <div class="stat-box"><span>إجم
+الي عناصر ZIP</span><strong>{{ $totalZipEntries }}</strong></div>
+        <div class="stat-box"><span>الحجم
+ بعد الفك تقريباً</span><strong>{{ $totalUncompressedSize }}</strong></div>
     </div>
 </div>
 
@@ -50,13 +62,17 @@
     </div>
 @else
     <div class="alert alert-success mt-3">
-        لم يتم رصد مشاكل أساسية في بنية النسخة الاحتياطية حسب نوعها.
+        لم
+ يتم
+ رصد م
+شاكل أساسية في بنية النسخة الاحتياطية حسب نوعها.
     </div>
 @endif
 
 @if(count($sqlFiles) > 0)
     <div class="card mt-4">
-        <h3>ملفات قاعدة البيانات داخل النسخة</h3>
+        <h3>م
+لفات قاعدة البيانات داخل النسخة</h3>
         <ul class="backup-list-ltr">
             @foreach($sqlFiles as $sqlFile)
                 <li>{{ $sqlFile }}</li>
@@ -67,23 +83,29 @@
 
 @if(!empty($readmeContent))
     <div class="card mt-4">
-        <h3>ملف README داخل النسخة</h3>
+        <h3>م
+لف README داخل النسخة</h3>
         <pre class="backup-readme">{{ $readmeContent }}</pre>
     </div>
 @endif
 
 <div class="card mt-4">
     <div class="card-header d-flex justify-content-between align-items-center">
-        <h3>محتويات النسخة</h3>
-        <small>يتم عرض أول 300 عنصر فقط عند كبر حجم النسخة.</small>
+        <h3>م
+حتويات النسخة</h3>
+        <small>يتم
+ عرض أول 300 عنصر فقط عند كبر حجم
+ النسخة.</small>
     </div>
 
     <div class="table-responsive">
         <table class="table table-hover align-middle">
             <thead>
                 <tr>
-                    <th>المسار داخل ZIP</th>
-                    <th>الحجم</th>
+                    <th>الم
+سار داخل ZIP</th>
+                    <th>الحجم
+</th>
                 </tr>
             </thead>
             <tbody>
@@ -94,7 +116,8 @@
                     </tr>
                 @empty
                     <tr>
-                        <td colspan="2" class="text-center text-muted">لا توجد محتويات قابلة للعرض.</td>
+                        <td colspan="2" class="text-center text-muted">لا توجد م
+حتويات قابلة للعرض.</td>
                     </tr>
                 @endforelse
             </tbody>

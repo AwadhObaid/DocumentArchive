@@ -1,0 +1,36 @@
+/* QR Total Isolation V6
+   Hide leaked QR widgets from every normal app page. QR is allowed only on:
+   - /documents/{id}/print-reference
+   - /settings/qr-print-position
+*/
+body:not(.da-print-reference-page):not(.da-qr-settings-page) .document-qr-card,
+body:not(.da-print-reference-page):not(.da-qr-settings-page) .document-qr-wrapper,
+body:not(.da-print-reference-page):not(.da-qr-settings-page) .da-document-qr,
+body:not(.da-print-reference-page):not(.da-qr-settings-page) .da-document-qr-card,
+body:not(.da-print-reference-page):not(.da-qr-settings-page) .da-print-qr,
+body:not(.da-print-reference-page):not(.da-qr-settings-page) .da-print-qr-only,
+body:not(.da-print-reference-page):not(.da-qr-settings-page) .da-qr-print,
+body:not(.da-print-reference-page):not(.da-qr-settings-page) .da-qr-print-box,
+body:not(.da-print-reference-page):not(.da-qr-settings-page) .qr-print-position-card,
+body:not(.da-print-reference-page):not(.da-qr-settings-page) [data-da-qr],
+body:not(.da-print-reference-page):not(.da-qr-settings-page) [data-da-print-qr] {
+    display: none !important;
+    visibility: hidden !important;
+    opacity: 0 !important;
+    pointer-events: none !important;
+}
+@media print {
+    body:not(.da-print-reference-page) .document-qr-card,
+    body:not(.da-print-reference-page) .document-qr-wrapper,
+    body:not(.da-print-reference-page) .da-document-qr,
+    body:not(.da-print-reference-page) .da-document-qr-card,
+    body:not(.da-print-reference-page) .da-print-qr,
+    body:not(.da-print-reference-page) .da-print-qr-only,
+    body:not(.da-print-reference-page) .da-qr-print,
+    body:not(.da-print-reference-page) .da-qr-print-box,
+    body:not(.da-print-reference-page) .qr-print-position-card,
+    body:not(.da-print-reference-page) [data-da-qr],
+    body:not(.da-print-reference-page) [data-da-print-qr] {
+        display: none !important;
+    }
+}

@@ -121,7 +121,8 @@
     </style>
 
     <div class="notification-center-floating" data-notification-center>
-        <button type="button" class="notification-center-btn" data-notification-toggle aria-label="مركز الإشعارات">
+        <button type="button" class="notification-center-btn" data-notification-toggle aria-label="م
+ركز الإشعارات">
             🔔
             @if($notificationCenterUnread > 0)
                 <span class="notification-center-count">{{ $notificationCenterUnread > 99 ? '99+' : $notificationCenterUnread }}</span>
@@ -130,7 +131,8 @@
 
         <div class="notification-center-panel" data-notification-panel>
             <div class="notification-center-header">
-                <div class="notification-center-title">مركز الإشعارات</div>
+                <div class="notification-center-title">م
+ركز الإشعارات</div>
                 <a class="notification-center-link" href="{{ route('notifications.index') }}">عرض الكل</a>
             </div>
             <div class="notification-center-body">
@@ -152,7 +154,9 @@
             <div class="notification-center-footer">
                 <form method="POST" action="{{ route('notifications.read_all') }}">
                     @csrf
-                    <button class="notification-center-small-btn" type="submit">تعليم الكل كمقروء</button>
+                    <button class="notification-center-small-btn" type="submit">تعليم
+ الكل كم
+قروء</button>
                 </form>
             </div>
         </div>

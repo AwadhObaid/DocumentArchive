@@ -1,11 +1,13 @@
 @extends('layouts.app')
 
-@section('title', 'فحص النظام')
+@section('title', 'فحص النظام
+')
 
 @section('content')
     <div class="page-title">
         <div>
-            <h1>فحص النظام</h1>
+            <h1>فحص النظام
+</h1>
             <p class="muted">فحص سريع لحالة قاعدة البيانات، التخزين، النسخ الاحتياطي، والجلسات.</p>
         </div>
 
@@ -17,7 +19,8 @@
 
     <div class="stats-grid" style="margin-bottom: 18px;">
         <div class="stat-card">
-            <div class="stat-label">سليم</div>
+            <div class="stat-label">سليم
+</div>
             <div class="stat-value">{{ $summary['ok'] }}</div>
         </div>
         <div class="stat-card">
@@ -32,15 +35,22 @@
 
     @if($summary['error'] > 0)
         <div class="alert-error" style="margin-bottom: 18px;">
-            توجد أخطاء تحتاج معالجة قبل الاعتماد على النظام أو تنفيذ استعادة جديدة.
+            توجد أخطاء تحتاج م
+عالجة قبل الاعتم
+اد على النظام
+ أو تنفيذ استعادة جديدة.
         </div>
     @elseif($summary['warning'] > 0)
         <div class="alert-warning" style="margin-bottom: 18px;">
-            النظام يعمل، لكن توجد تنبيهات يفضل مراجعتها.
+            النظام
+ يعم
+ل، لكن توجد تنبيهات يفضل م
+راجعتها.
         </div>
     @else
         <div class="alert-success" style="margin-bottom: 18px;">
-            كل الفحوصات الأساسية سليمة.
+            كل الفحوصات الأساسية سليم
+ة.
         </div>
     @endif
 
@@ -58,7 +68,8 @@
                     <tr>
                         <td>
                             @if($check['status'] === 'ok')
-                                <span class="badge" style="background: rgba(34,197,94,.14); color: #22c55e; border: 1px solid rgba(34,197,94,.35);">سليم</span>
+                                <span class="badge" style="background: rgba(34,197,94,.14); color: #22c55e; border: 1px solid rgba(34,197,94,.35);">سليم
+</span>
                             @elseif($check['status'] === 'warning')
                                 <span class="badge" style="background: rgba(245,158,11,.14); color: #f59e0b; border: 1px solid rgba(245,158,11,.35);">تنبيه</span>
                             @else

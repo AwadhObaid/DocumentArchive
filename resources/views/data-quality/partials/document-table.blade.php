@@ -1,9 +1,11 @@
 <table>
     <thead>
         <tr>
-            <th style="width: 16%;">رقم الكتاب</th>
+            <th style="width: 16%;">رقم
+ الكتاب</th>
             <th style="width: 14%;">التاريخ</th>
-            <th>الموضوع</th>
+            <th>الم
+وضوع</th>
             <th style="width: 18%;">البوليصة الرئيسية</th>
             <th style="width: 18%;">البوليصة الفرعية</th>
         </tr>

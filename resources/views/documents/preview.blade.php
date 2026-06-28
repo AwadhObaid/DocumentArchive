@@ -7,13 +7,22 @@
     $inlineUrl = route('attachments.inline', $attachment);
 @endphp
 
-@section('title', 'معاينة المرفق')
-@section('page_title', 'معاينة المرفق')
-@section('page_subtitle', 'استعراض ملفات PDF والصور داخل النظام بدون كشف مسار التخزين الحقيقي')
+@section('title', 'م
+عاينة الم
+رفق')
+@section('page_title', 'م
+عاينة الم
+رفق')
+@section('page_subtitle', 'استعراض م
+لفات PDF والصور داخل النظام
+ بدون كشف م
+سار التخزين الحقيقي')
 
 @section('content')
     <div class="page-title">
-        <h1>معاينة المرفق</h1>
+        <h1>م
+عاينة الم
+رفق</h1>
 
         <div class="actions">
             @if($attachment->document && !$attachment->document->trashed())
@@ -22,12 +31,14 @@
                 @endif
             @else
                 @if(auth()->user()?->hasPermission('documents.restore'))
-                <a href="{{ route('documents.trash') }}" class="btn btn-secondary">رجوع لسلة المحذوفات</a>
+                <a href="{{ route('documents.trash') }}" class="btn btn-secondary">رجوع لسلة الم
+حذوفات</a>
                 @endif
             @endif
 
             @if(auth()->user()?->hasPermission('attachments.download'))
-            <a href="{{ route('attachments.download', $attachment) }}" class="btn btn-primary">تنزيل المرفق</a>
+            <a href="{{ route('attachments.download', $attachment) }}" class="btn btn-primary">تنزيل الم
+رفق</a>
             @endif
             <a href="{{ $inlineUrl }}" target="_blank" class="btn btn-warning">فتح في تبويب جديد</a>
         </div>
@@ -39,7 +50,8 @@
                 <h2>{{ $attachment->original_name }}</h2>
                 <p class="muted">
                     النوع: {{ strtoupper($extension ?: '-') }} |
-                    الحجم: {{ $attachment->file_size_for_humans }} |
+                    الحجم
+: {{ $attachment->file_size_for_humans }} |
                     النسخة: {{ $attachment->version_no }}
                 </p>
             </div>
@@ -62,8 +74,11 @@
             </div>
 
             <p class="muted" style="margin-top:12px;">
-                إذا لم تظهر المعاينة داخل الصفحة، اضغط زر
-                <strong>فتح في تبويب جديد</strong> أو <strong>تنزيل المرفق</strong>.
+                إذا لم
+ تظهر الم
+عاينة داخل الصفحة، اضغط زر
+                <strong>فتح في تبويب جديد</strong> أو <strong>تنزيل الم
+رفق</strong>.
             </p>
         @elseif($isImage)
             <div class="image-preview-wrap">
@@ -71,10 +86,18 @@
             </div>
         @else
             <div class="empty-state">
-                <h3>لا يمكن معاينة هذا النوع مباشرة داخل المتصفح</h3>
-                <p>يمكنك تنزيل الملف وفتحه من جهازك.</p>
+                <h3>لا يم
+كن م
+عاينة هذا النوع م
+باشرة داخل الم
+تصفح</h3>
+                <p>يم
+كنك تنزيل الم
+لف وفتحه م
+ن جهازك.</p>
                 @if(auth()->user()?->hasPermission('attachments.download'))
-                <a href="{{ route('attachments.download', $attachment) }}" class="btn btn-primary">تنزيل المرفق</a>
+                <a href="{{ route('attachments.download', $attachment) }}" class="btn btn-primary">تنزيل الم
+رفق</a>
                 @endif
             </div>
         @endif

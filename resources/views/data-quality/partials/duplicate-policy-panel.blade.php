@@ -14,9 +14,11 @@
             <table class="dq-table">
                 <thead>
                     <tr>
-                        <th>رقم البوليصة</th>
+                        <th>رقم
+ البوليصة</th>
                         <th>عدد التكرار</th>
-                        <th>الكتب المرتبطة</th>
+                        <th>الكتب الم
+رتبطة</th>
                         <th class="no-print">نسخ</th>
                     </tr>
                 </thead>
@@ -33,7 +35,8 @@
                                 @endforeach
                             </td>
                             <td class="no-print">
-                                <button class="dq-copy" type="button" onclick="copyDQValue(@js($item['policy']))">نسخ الرقم</button>
+                                <button class="dq-copy" type="button" onclick="copyDQValue(@js($item['policy']))">نسخ الرقم
+</button>
                             </td>
                         </tr>
                     @endforeach

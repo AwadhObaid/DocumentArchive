@@ -1,6 +1,23 @@
 @extends('layouts.app')
 
-@section('title', 'لوحة التحكم')
+
+@php
+    if (! function_exists('da_dashboard_value')) {
+        function da_dashboard_value($item, string $key, $default = '') {
+            if (is_array($item)) {
+                return $item[$key] ?? $default;
+            }
+
+            if (is_object($item)) {
+                return $item->{$key} ?? $default;
+            }
+
+            return $default;
+        }
+    }
+@endphp
+@section('title', 'لوحة التحكم
+')
 
 @section('content')
 @php
@@ -15,7 +32,9 @@
             return true;
         }
 
-        if (isset($user->role) && in_array($user->role, ['admin', 'مدير النظام'], true)) {
+        if (isset($user->role) && in_array($user->role, ['admin', 'م
+دير النظام
+'], true)) {
             return true;
         }
 
@@ -39,17 +58,17 @@
     $routeExists = fn (string $name): bool => \Illuminate\Support\Facades\Route::has($name);
     $dashboardAlerts = $dashboardAlerts ?? [];
 
-    $months = $charts['documents_by_month'] ?? [];
-    $maxMonthValue = max(1, ...array_map(fn ($item) => (int) ($item['count'] ?? 0), $months));
+    $months = da_dashboard_value($charts, 'documents_by_month') ?? [];
+    $maxMonthValue = max(1, ...array_map(fn ($item) => (int) (da_dashboard_value($item, 'count') ?? 0), $months));
     $barWidth = 72;
     $gap = 22;
     $chartHeight = 190;
     $plotWidth = max(1, count($months) * ($barWidth + $gap));
 
-    $departmentRows = $charts['documents_by_department'] ?? [];
-    $typeRows = $charts['documents_by_type'] ?? [];
-    $maxDepartment = max(1, ...array_map(fn ($item) => (int) ($item['count'] ?? 0), $departmentRows ?: [['count' => 0]]));
-    $maxType = max(1, ...array_map(fn ($item) => (int) ($item['count'] ?? 0), $typeRows ?: [['count' => 0]]));
+    $departmentRows = da_dashboard_value($charts, 'documents_by_department') ?? [];
+    $typeRows = da_dashboard_value($charts, 'documents_by_type') ?? [];
+    $maxDepartment = max(1, ...array_map(fn ($item) => (int) (da_dashboard_value($item, 'count') ?? 0), $departmentRows ?: [['count' => 0]]));
+    $maxType = max(1, ...array_map(fn ($item) => (int) (da_dashboard_value($item, 'count') ?? 0), $typeRows ?: [['count' => 0]]));
 @endphp
 
 <style>
@@ -303,8 +322,11 @@
 <div class="da-dashboard" dir="rtl">
     <div class="da-page-head">
         <div>
-            <h1 class="da-page-title">لوحة التحكم</h1>
-            <p class="da-page-subtitle">ملخص سريع لحالة الأرشيف الإلكتروني والكتب والمرفقات والنسخ الاحتياطي.</p>
+            <h1 class="da-page-title">لوحة التحكم
+</h1>
+            <p class="da-page-subtitle">م
+لخص سريع لحالة الأرشيف الإلكتروني والكتب والم
+رفقات والنسخ الاحتياطي.</p>
         </div>
 
         <div class="da-actions">
@@ -320,38 +342,45 @@
         </div>
     </div>
 
-    @if(!empty($healthSummary['warnings']))
-        <div class="da-alert">⚠️ توجد تنبيهات في فحص النظام: {{ implode('، ', $healthSummary['warnings']) }}</div>
+    @if(!empty(da_dashboard_value($healthSummary, 'warnings')))
+        <div class="da-alert">⚠️ توجد تنبيهات في فحص النظام
+: {{ implode('، ', da_dashboard_value($healthSummary, 'warnings')) }}</div>
     @endif
 
 
     <div class="da-card">
         <div class="da-section-title">
             <h2>التنبيهات الإدارية</h2>
-            <span class="da-section-hint">مؤشرات تحتاج مراجعة سريعة</span>
+            <span class="da-section-hint">م
+ؤشرات تحتاج م
+راجعة سريعة</span>
         </div>
 
         @if(!empty($dashboardAlerts))
             <div class="da-admin-alerts">
                 @foreach($dashboardAlerts as $alert)
-                    <div class="da-admin-alert-item {{ $alert['type'] ?? 'info' }}">
-                        <div class="da-admin-alert-icon">{{ $alert['icon'] ?? '🔔' }}</div>
+                    <div class="da-admin-alert-item {{ da_dashboard_value($alert, 'type') ?? 'info' }}">
+                        <div class="da-admin-alert-icon">{{ da_dashboard_value($alert, 'icon') ?? '🔔' }}</div>
                         <div>
-                            <div class="da-admin-alert-title">{{ $alert['title'] ?? 'تنبيه' }}</div>
-                            <div class="da-admin-alert-message">{{ $alert['message'] ?? '' }}</div>
+                            <div class="da-admin-alert-title">{{ da_dashboard_value($alert, 'title') ?? 'تنبيه' }}</div>
+                            <div class="da-admin-alert-message">{{ da_dashboard_value($alert, 'message') ?? '' }}</div>
                         </div>
-                        @if(!empty($alert['url']))
-                            <a class="da-admin-alert-link" href="{{ $alert['url'] }}">{{ $alert['action'] ?? 'فتح' }}</a>
+                        @if(!empty(da_dashboard_value($alert, 'url')))
+                            <a class="da-admin-alert-link" href="{{ da_dashboard_value($alert, 'url') }}">{{ da_dashboard_value($alert, 'action') ?? 'فتح' }}</a>
                         @endif
                     </div>
                 @endforeach
             </div>
         @else
             <div class="da-admin-alert-item da-admin-alert-ok">
-                <div class="da-admin-alert-icon">✅</div>
+                <div class="da-admin-alert-icon">م
+</div>
                 <div>
                     <div class="da-admin-alert-title">لا توجد تنبيهات حالياً</div>
-                    <div class="da-admin-alert-message">النسخ الاحتياطي والكتب والمرفقات وحالة النظام تبدو مستقرة.</div>
+                    <div class="da-admin-alert-message">النسخ الاحتياطي والكتب والم
+رفقات وحالة النظام
+ تبدو م
+ستقرة.</div>
                 </div>
             </div>
         @endif
@@ -359,24 +388,34 @@
 
     <div class="da-grid da-grid-stats">
         <div class="da-card da-stat">
-            <div class="da-stat-label">إجمالي الكتب</div>
-            <div class="da-stat-value">{{ number_format($stats['documents_total'] ?? 0) }}</div>
-            <div class="da-stat-note">كل الكتب المسجلة في النظام</div>
+            <div class="da-stat-label">إجم
+الي الكتب</div>
+            <div class="da-stat-value">{{ number_format(da_dashboard_value($stats, 'documents_total') ?? 0) }}</div>
+            <div class="da-stat-note">كل الكتب الم
+سجلة في النظام
+</div>
         </div>
         <div class="da-card da-stat">
             <div class="da-stat-label">الكتب الفعالة</div>
-            <div class="da-stat-value">{{ number_format($stats['documents_active'] ?? 0) }}</div>
-            <div class="da-stat-note">بدون سلة المحذوفات</div>
+            <div class="da-stat-value">{{ number_format(da_dashboard_value($stats, 'documents_active') ?? 0) }}</div>
+            <div class="da-stat-note">بدون سلة الم
+حذوفات</div>
         </div>
         <div class="da-card da-stat">
-            <div class="da-stat-label">كتب اليوم</div>
-            <div class="da-stat-value">{{ number_format($stats['documents_today'] ?? 0) }}</div>
-            <div class="da-stat-note">المدخلة خلال اليوم الحالي</div>
+            <div class="da-stat-label">كتب اليوم
+</div>
+            <div class="da-stat-value">{{ number_format(da_dashboard_value($stats, 'documents_today') ?? 0) }}</div>
+            <div class="da-stat-note">الم
+دخلة خلال اليوم
+ الحالي</div>
         </div>
         <div class="da-card da-stat">
-            <div class="da-stat-label">المرفقات</div>
-            <div class="da-stat-value">{{ number_format($stats['attachments_total'] ?? 0) }}</div>
-            <div class="da-stat-note">ملفات PDF والصور المرفوعة</div>
+            <div class="da-stat-label">الم
+رفقات</div>
+            <div class="da-stat-value">{{ number_format(da_dashboard_value($stats, 'attachments_total') ?? 0) }}</div>
+            <div class="da-stat-note">م
+لفات PDF والصور الم
+رفوعة</div>
         </div>
     </div>
 
@@ -392,19 +431,20 @@
                     <div class="da-chart-bars">
                         @foreach($months as $month)
                             @php
-                                $value = (int) ($month['count'] ?? 0);
+                                $value = (int) (da_dashboard_value($month, 'count') ?? 0);
                                 $height = max(8, (int) round(($value / $maxMonthValue) * 170));
                             @endphp
-                            <div class="da-month-bar" title="{{ $month['label'] }}: {{ $value }}">
+                            <div class="da-month-bar" title="{{ da_dashboard_value($month, 'label') }}: {{ $value }}">
                                 <div class="da-month-value">{{ number_format($value) }}</div>
                                 <div class="da-month-fill" style="height: {{ $height }}px"></div>
-                                <div class="da-month-label">{{ $month['label'] }}</div>
+                                <div class="da-month-label">{{ da_dashboard_value($month, 'label') }}</div>
                             </div>
                         @endforeach
                     </div>
                 </div>
             @else
-                <div class="da-empty">لا توجد بيانات شهرية متاحة.</div>
+                <div class="da-empty">لا توجد بيانات شهرية م
+تاحة.</div>
             @endif
         </div>
 
@@ -418,11 +458,11 @@
                     <div class="da-horizontal-chart">
                         @foreach($departmentRows as $row)
                             @php
-                                $value = (int) ($row['count'] ?? 0);
+                                $value = (int) (da_dashboard_value($row, 'count') ?? 0);
                                 $width = max(4, (int) round(($value / $maxDepartment) * 100));
                             @endphp
-                            <div class="da-bar-row" title="{{ $row['label'] }}: {{ $value }}">
-                                <div class="da-bar-label">{{ $row['label'] }}</div>
+                            <div class="da-bar-row" title="{{ da_dashboard_value($row, 'label') }}: {{ $value }}">
+                                <div class="da-bar-label">{{ da_dashboard_value($row, 'label') }}</div>
                                 <div class="da-bar-track"><div class="da-bar-fill" style="width: {{ $width }}%"></div></div>
                                 <div class="da-bar-count">{{ number_format($value) }}</div>
                             </div>
@@ -442,11 +482,11 @@
                     <div class="da-horizontal-chart">
                         @foreach($typeRows as $row)
                             @php
-                                $value = (int) ($row['count'] ?? 0);
+                                $value = (int) (da_dashboard_value($row, 'count') ?? 0);
                                 $width = max(4, (int) round(($value / $maxType) * 100));
                             @endphp
-                            <div class="da-bar-row" title="{{ $row['label'] }}: {{ $value }}">
-                                <div class="da-bar-label">{{ $row['label'] }}</div>
+                            <div class="da-bar-row" title="{{ da_dashboard_value($row, 'label') }}: {{ $value }}">
+                                <div class="da-bar-label">{{ da_dashboard_value($row, 'label') }}</div>
                                 <div class="da-bar-track"><div class="da-bar-fill" style="width: {{ $width }}%"></div></div>
                                 <div class="da-bar-count">{{ number_format($value) }}</div>
                             </div>
@@ -462,7 +502,8 @@
     <div class="da-grid da-grid-main">
         <div class="da-card">
             <div class="da-section-title">
-                <h2>آخر الكتب المضافة</h2>
+                <h2>آخر الكتب الم
+ضافة</h2>
                 @if($routeExists('documents.index'))
                     <a class="da-btn" href="{{ route('documents.index') }}">عرض الكل</a>
                 @endif
@@ -473,8 +514,10 @@
                     <table class="da-table">
                         <thead>
                             <tr>
-                                <th>رقم الكتاب</th>
-                                <th>الموضوع</th>
+                                <th>رقم
+ الكتاب</th>
+                                <th>الم
+وضوع</th>
                                 <th>البوليصة الرئيسية</th>
                                 <th>البوليصة الفرعية</th>
                                 <th>التاريخ</th>
@@ -484,42 +527,49 @@
                             @foreach($latestDocuments as $document)
                                 <tr>
                                     <td>
-                                        @if($routeExists('documents.show') && !empty($document['id']))
-                                            <a href="{{ route('documents.show', $document['id']) }}" style="color:#bfdbfe;text-decoration:none;">
-                                                {{ $document['reference_number'] ?? ('#' . $document['id']) }}
+                                        @if($routeExists('documents.show') && !empty(da_dashboard_value($document, 'id')))
+                                            <a href="{{ route('documents.show', da_dashboard_value($document, 'id')) }}" style="color:#bfdbfe;text-decoration:none;">
+                                                {{ da_dashboard_value($document, 'reference_number') ?? ('#' . da_dashboard_value($document, 'id')) }}
                                             </a>
                                         @else
-                                            {{ $document['reference_number'] ?? ('#' . ($document['id'] ?? '')) }}
+                                            {{ da_dashboard_value($document, 'reference_number') ?? ('#' . (da_dashboard_value($document, 'id') ?? '')) }}
                                         @endif
                                     </td>
-                                    <td>{{ \Illuminate\Support\Str::limit($document['subject'] ?? 'بدون موضوع', 42) }}</td>
-                                    <td class="da-muted">{{ $document['main_policy_number'] ?? '-' }}</td>
-                                    <td class="da-muted">{{ $document['sub_policy_number'] ?? '-' }}</td>
-                                    <td class="da-muted">{{ !empty($document['reference_date']) ? \Carbon\Carbon::parse($document['reference_date'])->format('Y-m-d') : (!empty($document['created_at']) ? \Carbon\Carbon::parse($document['created_at'])->format('Y-m-d') : '-') }}</td>
+                                    <td>{{ \Illuminate\Support\Str::limit(da_dashboard_value($document, 'subject') ?? 'بدون م
+وضوع', 42) }}</td>
+                                    <td class="da-muted">{{ da_dashboard_value($document, 'main_policy_number') ?? '-' }}</td>
+                                    <td class="da-muted">{{ da_dashboard_value($document, 'sub_policy_number') ?? '-' }}</td>
+                                    <td class="da-muted">{{ !empty(da_dashboard_value($document, 'reference_date')) ? \Carbon\Carbon::parse(da_dashboard_value($document, 'reference_date'))->format('Y-m-d') : (!empty(da_dashboard_value($document, 'created_at')) ? \Carbon\Carbon::parse(da_dashboard_value($document, 'created_at'))->format('Y-m-d') : '-') }}</td>
                                 </tr>
                             @endforeach
                         </tbody>
                     </table>
                 </div>
             @else
-                <div class="da-empty">لا توجد كتب مضافة حتى الآن.</div>
+                <div class="da-empty">لا توجد كتب م
+ضافة حتى الآن.</div>
             @endif
         </div>
 
         <div class="da-side-list">
             <div class="da-card">
                 <div class="da-section-title">
-                    <h2>حالة النظام</h2>
-                    <span class="da-badge {{ ($healthSummary['ok'] ?? false) ? 'da-badge-ok' : 'da-badge-warn' }}">
-                        {{ $healthSummary['status_text'] ?? 'غير معروف' }}
+                    <h2>حالة النظام
+</h2>
+                    <span class="da-badge {{ (da_dashboard_value($healthSummary, 'ok') ?? false) ? 'da-badge-ok' : 'da-badge-warn' }}">
+                        {{ da_dashboard_value($healthSummary, 'status_text') ?? 'غير م
+عروف' }}
                     </span>
                 </div>
 
                 <div class="da-side-list">
-                    <div class="da-info-row"><span class="da-muted">جداول قاعدة البيانات</span><strong>{{ empty($healthSummary['missing_tables']) ? 'مكتملة' : 'ناقصة' }}</strong></div>
-                    <div class="da-info-row"><span class="da-muted">الإدارات</span><strong>{{ number_format($stats['departments_total'] ?? 0) }}</strong></div>
-                    <div class="da-info-row"><span class="da-muted">أنواع الكتب</span><strong>{{ number_format($stats['document_types_total'] ?? 0) }}</strong></div>
-                    <div class="da-info-row"><span class="da-muted">أنشطة النظام</span><strong>{{ number_format($stats['activities_total'] ?? 0) }}</strong></div>
+                    <div class="da-info-row"><span class="da-muted">جداول قاعدة البيانات</span><strong>{{ empty(da_dashboard_value($healthSummary, 'missing_tables')) ? 'م
+كتم
+لة' : 'ناقصة' }}</strong></div>
+                    <div class="da-info-row"><span class="da-muted">الإدارات</span><strong>{{ number_format(da_dashboard_value($stats, 'departments_total') ?? 0) }}</strong></div>
+                    <div class="da-info-row"><span class="da-muted">أنواع الكتب</span><strong>{{ number_format(da_dashboard_value($stats, 'document_types_total') ?? 0) }}</strong></div>
+                    <div class="da-info-row"><span class="da-muted">أنشطة النظام
+</span><strong>{{ number_format(da_dashboard_value($stats, 'activities_total') ?? 0) }}</strong></div>
                 </div>
             </div>
 
@@ -527,21 +577,26 @@
                 <div class="da-section-title">
                     <h2>آخر نسخة احتياطية</h2>
                     @if($latestBackup)
-                        <span class="da-badge da-badge-ok">موجودة</span>
+                        <span class="da-badge da-badge-ok">م
+وجودة</span>
                     @else
-                        <span class="da-badge da-badge-warn">غير موجودة</span>
+                        <span class="da-badge da-badge-warn">غير م
+وجودة</span>
                     @endif
                 </div>
 
                 @if($latestBackup)
                     <div class="da-side-list">
-                        <div class="da-info-row"><span class="da-muted">النوع</span><strong>{{ $latestBackup['type'] }}</strong></div>
-                        <div class="da-info-row"><span class="da-muted">الحجم</span><strong>{{ $latestBackup['size'] }}</strong></div>
-                        <div class="da-info-row"><span class="da-muted">التاريخ</span><strong>{{ $latestBackup['created_at'] }}</strong></div>
+                        <div class="da-info-row"><span class="da-muted">النوع</span><strong>{{ da_dashboard_value($latestBackup, 'type') }}</strong></div>
+                        <div class="da-info-row"><span class="da-muted">الحجم
+</span><strong>{{ da_dashboard_value($latestBackup, 'size') }}</strong></div>
+                        <div class="da-info-row"><span class="da-muted">التاريخ</span><strong>{{ da_dashboard_value($latestBackup, 'created_at') }}</strong></div>
                     </div>
-                    <div class="da-muted" style="margin-top:12px;font-size:12px;word-break:break-all;">{{ $latestBackup['name'] }}</div>
+                    <div class="da-muted" style="margin-top:12px;font-size:12px;word-break:break-all;">{{ da_dashboard_value($latestBackup, 'name') }}</div>
                 @else
-                    <div class="da-empty">لم يتم إنشاء نسخة احتياطية بعد.</div>
+                    <div class="da-empty">لم
+ يتم
+ إنشاء نسخة احتياطية بعد.</div>
                 @endif
             </div>
         </div>
@@ -559,19 +614,21 @@
             <div class="da-activity">
                 @foreach($latestActivities as $activity)
                     <div class="da-activity-item">
-                        <div class="da-activity-title">{{ $activity['description'] ?? $activity['action'] ?? 'نشاط' }}</div>
+                        <div class="da-activity-title">{{ da_dashboard_value($activity, 'description') ?? da_dashboard_value($activity, 'action') ?? 'نشاط' }}</div>
                         <div class="da-activity-meta">
-                            {{ !empty($activity['created_at']) ? \Carbon\Carbon::parse($activity['created_at'])->format('Y-m-d H:i') : '' }}
-                            @if(!empty($activity['model_type']))
-                                · {{ class_basename($activity['model_type']) }} {{ $activity['model_id'] ?? '' }}
+                            {{ !empty(da_dashboard_value($activity, 'created_at')) ? \Carbon\Carbon::parse(da_dashboard_value($activity, 'created_at'))->format('Y-m-d H:i') : '' }}
+                            @if(!empty(da_dashboard_value($activity, 'model_type')))
+                                · {{ class_basename(da_dashboard_value($activity, 'model_type')) }} {{ da_dashboard_value($activity, 'model_id') ?? '' }}
                             @endif
                         </div>
                     </div>
                 @endforeach
             </div>
         @else
-            <div class="da-empty">لا توجد أنشطة مسجلة حتى الآن.</div>
+            <div class="da-empty">لا توجد أنشطة م
+سجلة حتى الآن.</div>
         @endif
     </div>
 </div>
 @endsection
+

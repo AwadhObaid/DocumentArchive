@@ -1,6 +1,7 @@
 @extends('layouts.app')
 
-@section('title', 'مركز الإشعارات')
+@section('title', 'م
+ركز الإشعارات')
 
 @section('content')
 @php
@@ -317,9 +318,19 @@
         <div class="notifications-hero-main-v9">
             <div class="notifications-hero-icon-v9">🔔</div>
             <div>
-                <h1 class="notifications-title-v9">مركز الإشعارات</h1>
+                <h1 class="notifications-title-v9">م
+ركز الإشعارات</h1>
                 <p class="notifications-subtitle-v9">
-                    متابعة تنبيهات النظام والعمليات المهمة بشكل واضح ومنظم مع إمكانية القراءة والإخفاء والتنظيف.
+                    م
+تابعة تنبيهات النظام
+ والعم
+ليات الم
+هم
+ة بشكل واضح وم
+نظم
+ م
+ع إم
+كانية القراءة والإخفاء والتنظيف.
                 </p>
             </div>
         </div>
@@ -329,31 +340,42 @@
 
             <form method="POST" action="{{ $bulkReadUrl }}">
                 @csrf
-                <button class="notif-btn-v9 notif-btn-blue-v9" type="submit">✅ تعليم الكل كمقروءة</button>
+                <button class="notif-btn-v9 notif-btn-blue-v9" type="submit">م
+ تعليم
+ الكل كم
+قروءة</button>
             </form>
 
             <form method="POST" action="{{ $hideReadUrl }}">
                 @csrf
-                <button class="notif-btn-v9 notif-btn-orange-v9" type="submit">🙈 إخفاء المقروء</button>
+                <button class="notif-btn-v9 notif-btn-orange-v9" type="submit">🙈 إخفاء الم
+قروء</button>
             </form>
 
-            <form method="POST" action="{{ $deleteHiddenUrl }}" onsubmit="return confirm('هل تريد حذف الإشعارات المخفية نهائياً؟');">
+            <form method="POST" action="{{ $deleteHiddenUrl }}" onsubmit="return confirm('هل تريد حذف الإشعارات الم
+خفية نهائياً؟');">
                 @csrf
-                <button class="notif-btn-v9 notif-btn-red-v9" type="submit">🗑 حذف المخفية</button>
+                <button class="notif-btn-v9 notif-btn-red-v9" type="submit">🗑 حذف الم
+خفية</button>
             </form>
         </div>
     </section>
 
     <section class="notifications-stats-v9">
-        <div class="notifications-stat-v9"><span>الإجمالي</span><strong>{{ number_format((int) $total) }}</strong></div>
-        <div class="notifications-stat-v9"><span>غير مقروءة</span><strong>{{ number_format((int) $unread) }}</strong></div>
-        <div class="notifications-stat-v9"><span>مقروءة</span><strong>{{ number_format((int) $read) }}</strong></div>
-        <div class="notifications-stat-v9"><span>مخفية</span><strong>{{ number_format((int) $hidden) }}</strong></div>
+        <div class="notifications-stat-v9"><span>الإجم
+الي</span><strong>{{ number_format((int) $total) }}</strong></div>
+        <div class="notifications-stat-v9"><span>غير م
+قروءة</span><strong>{{ number_format((int) $unread) }}</strong></div>
+        <div class="notifications-stat-v9"><span>م
+قروءة</span><strong>{{ number_format((int) $read) }}</strong></div>
+        <div class="notifications-stat-v9"><span>م
+خفية</span><strong>{{ number_format((int) $hidden) }}</strong></div>
     </section>
 
     <section class="notifications-list-card-v9">
         <div class="notifications-list-head-v9">
-            <h2>قائمة الإشعارات</h2>
+            <h2>قائم
+ة الإشعارات</h2>
             <small>{{ number_format($itemsCount) }} عنصر ظاهر في هذه الصفحة</small>
         </div>
 
@@ -363,7 +385,8 @@
                 $title = data_get($notification, 'title')
                     ?: data_get($notification, 'subject')
                     ?: data_get($notification, 'heading')
-                    ?: 'إشعار النظام';
+                    ?: 'إشعار النظام
+';
 
                 $message = data_get($notification, 'message')
                     ?: data_get($notification, 'body')
@@ -388,7 +411,8 @@
                     <div class="notification-item-title-row-v9">
                         <h3 class="notification-item-title-v9">{{ $title }}</h3>
                         <span class="notification-badge-v9">{{ $type }}</span>
-                        <span class="notification-badge-v9">{{ $readAt ? 'مقروء' : 'جديد' }}</span>
+                        <span class="notification-badge-v9">{{ $readAt ? 'م
+قروء' : 'جديد' }}</span>
                     </div>
 
                     <p class="notification-message-v9">{{ $message }}</p>

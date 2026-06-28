@@ -1,0 +1,25 @@
+/* Emergency QR leak guard. QR must only appear inside .da-print-reference-page. */
+body:not(.da-print-reference-page) .document-qr-card,
+body:not(.da-print-reference-page) .document-print-qr,
+body:not(.da-print-reference-page) .da-document-print-qr,
+body:not(.da-print-reference-page) .da-qr-print-box,
+body:not(.da-print-reference-page) .da-qr-print-wrapper,
+body:not(.da-print-reference-page) img[src*="/qr.svg"],
+body:not(.da-print-reference-page) iframe[src*="/qr.svg"],
+body:not(.da-print-reference-page) object[data*="/qr.svg"] {
+    display: none !important;
+    visibility: hidden !important;
+    opacity: 0 !important;
+    width: 0 !important;
+    height: 0 !important;
+    overflow: hidden !important;
+    pointer-events: none !important;
+}
+@media print {
+    body:not(.da-print-reference-page) .document-qr-card,
+    body:not(.da-print-reference-page) .document-print-qr,
+    body:not(.da-print-reference-page) .da-document-print-qr,
+    body:not(.da-print-reference-page) img[src*="/qr.svg"] {
+        display: none !important;
+    }
+}

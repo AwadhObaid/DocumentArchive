@@ -1,0 +1,30 @@
+/* Arabic UI final fix: prevent unwanted clipping/ellipsis in Arabic interface text. */
+html[dir="rtl"] body,
+html[dir="rtl"] body * {
+    text-overflow: clip !important;
+}
+
+html[dir="rtl"] .sidebar,
+html[dir="rtl"] .sidebar *,
+html[dir="rtl"] nav,
+html[dir="rtl"] nav *,
+html[dir="rtl"] header,
+html[dir="rtl"] header *,
+html[dir="rtl"] .card,
+html[dir="rtl"] .card *,
+html[dir="rtl"] .btn,
+html[dir="rtl"] button,
+html[dir="rtl"] .alert,
+html[dir="rtl"] .alert *,
+html[dir="rtl"] table,
+html[dir="rtl"] th,
+html[dir="rtl"] td {
+    white-space: normal !important;
+    overflow-wrap: anywhere !important;
+    word-break: normal !important;
+}
+
+html[dir="rtl"] .sidebar,
+html[dir="rtl"] .sidebar * {
+    overflow: visible !important;
+}

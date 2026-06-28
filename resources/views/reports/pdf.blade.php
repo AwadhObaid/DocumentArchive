@@ -134,7 +134,10 @@
 <body>
     <div class="header">
         <h1>التقارير</h1>
-        <p class="subtitle">تقرير شامل للكتب والمرفقات حسب الفلاتر المحددة</p>
+        <p class="subtitle">تقرير شام
+ل للكتب والم
+رفقات حسب الفلاتر الم
+حددة</p>
         <div class="meta">
             <span>تاريخ التصدير: {{ now()->format('Y-m-d H:i') }}</span>
             <br>
@@ -149,7 +152,8 @@
     <table class="stats">
         <tr>
             <td class="stat-card">
-                <div class="stat-label">إجمالي الكتب حسب الفلتر</div>
+                <div class="stat-label">إجم
+الي الكتب حسب الفلتر</div>
                 <div class="stat-value">{{ number_format($stats['total_documents']) }}</div>
             </td>
             <td class="stat-card">
@@ -157,11 +161,14 @@
                 <div class="stat-value">{{ number_format($stats['this_month']) }}</div>
             </td>
             <td class="stat-card">
-                <div class="stat-label">إجمالي المرفقات</div>
+                <div class="stat-label">إجم
+الي الم
+رفقات</div>
                 <div class="stat-value">{{ number_format($stats['attachments_count']) }}</div>
             </td>
             <td class="stat-card">
-                <div class="stat-label">كتب في سلة المحذوفات</div>
+                <div class="stat-label">كتب في سلة الم
+حذوفات</div>
                 <div class="stat-value">{{ number_format($stats['deleted_documents']) }}</div>
             </td>
         </tr>
@@ -206,9 +213,11 @@
     <table class="data-table details-table">
         <thead>
             <tr>
-                <th>رقم الكتاب</th>
+                <th>رقم
+ الكتاب</th>
                 <th>تاريخ الكتاب</th>
-                <th>الموضوع</th>
+                <th>الم
+وضوع</th>
                 <th>الإدارة</th>
                 <th>نوع الكتاب</th>
                 <th>البوليصة</th>
@@ -229,10 +238,13 @@
                 </tr>
             @empty
                 <tr>
-                    <td colspan="6" class="muted">لا توجد كتب مطابقة للفلاتر الحالية.</td>
+                    <td colspan="6" class="muted">لا توجد كتب م
+طابقة للفلاتر الحالية.</td>
                 </tr>
             @endforelse
         </tbody>
     </table>
+
+
 </body>
 </html>

@@ -1,0 +1,66 @@
+/* Arabic no-truncate V4: loaded late to override accidental ellipsis on Arabic UI text. */
+html[dir="rtl"] h1,
+html[dir="rtl"] h2,
+html[dir="rtl"] h3,
+html[dir="rtl"] h4,
+html[dir="rtl"] h5,
+html[dir="rtl"] h6,
+html[dir="rtl"] p,
+html[dir="rtl"] label,
+html[dir="rtl"] th,
+html[dir="rtl"] td,
+html[dir="rtl"] a,
+html[dir="rtl"] button,
+html[dir="rtl"] .btn,
+html[dir="rtl"] .nav-link,
+html[dir="rtl"] .menu-link,
+html[dir="rtl"] .sidebar a,
+html[dir="rtl"] .app-sidebar a,
+html[dir="rtl"] .sidebar .nav-link,
+html[dir="rtl"] .app-sidebar .nav-link,
+html[dir="rtl"] .page-title,
+html[dir="rtl"] .page-subtitle,
+html[dir="rtl"] .card-title,
+html[dir="rtl"] .stat-title,
+html[dir="rtl"] .stat-label,
+html[dir="rtl"] .notification-title,
+html[dir="rtl"] .notification-text,
+html[dir="rtl"] [class*="title"],
+html[dir="rtl"] [class*="label"],
+html[dir="rtl"] [class*="text"] {
+    text-overflow: clip !important;
+    white-space: normal !important;
+    overflow: visible !important;
+    max-width: none !important;
+    word-break: normal !important;
+    overflow-wrap: normal !important;
+}
+
+html[dir="rtl"] .truncate,
+html[dir="rtl"] .text-truncate,
+html[dir="rtl"] [style*="text-overflow"],
+html[dir="rtl"] [style*="white-space: nowrap"],
+html[dir="rtl"] [style*="overflow: hidden"] {
+    text-overflow: clip !important;
+    white-space: normal !important;
+    overflow: visible !important;
+}
+
+html[dir="rtl"] aside,
+html[dir="rtl"] .sidebar,
+html[dir="rtl"] .app-sidebar,
+html[dir="rtl"] .sidebar-menu,
+html[dir="rtl"] .nav-menu {
+    overflow-x: visible !important;
+}
+
+html[dir="rtl"] .sidebar a,
+html[dir="rtl"] .app-sidebar a,
+html[dir="rtl"] aside a,
+html[dir="rtl"] .sidebar button,
+html[dir="rtl"] .app-sidebar button,
+html[dir="rtl"] aside button {
+    min-height: 44px !important;
+    height: auto !important;
+    line-height: 1.65 !important;
+}

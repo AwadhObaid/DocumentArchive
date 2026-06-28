@@ -15,7 +15,8 @@
     </div>
 
     <div class="card">
-        <h2>رقم الكتاب: {{ $document->reference_number }}</h2>
+        <h2>رقم
+ الكتاب: {{ $document->reference_number }}</h2>
 
         @if(auth()->user()?->hasPermission('documents.update'))
         <form method="POST" action="{{ route('documents.update', $document) }}" enctype="multipart/form-data">
@@ -44,7 +45,8 @@
                 </div>
 
                 <div class="form-group full">
-                    <label>موضوع الكتاب</label>
+                    <label>م
+وضوع الكتاب</label>
                     <textarea name="subject" required>{{ old('subject', $document->subject) }}</textarea>
                 </div>
 
@@ -73,22 +75,28 @@
                 </div>
 
                 <div class="form-group">
-                    <label>المرسل</label>
+                    <label>الم
+رسل</label>
                     <input type="text" name="sender" value="{{ old('sender', $document->sender) }}">
                 </div>
 
                 <div class="form-group">
-                    <label>المستلم</label>
+                    <label>الم
+ستلم
+</label>
                     <input type="text" name="receiver" value="{{ old('receiver', $document->receiver) }}">
                 </div>
 
                 <div class="form-group">
                     <label>الحالة</label>
                     <select name="status" required>
-                        <option value="registered" @selected(old('status', $document->status) === 'registered')>مسجل</option>
-                        <option value="archived" @selected(old('status', $document->status) === 'archived')>مؤرشف</option>
+                        <option value="registered" @selected(old('status', $document->status) === 'registered')>م
+سجل</option>
+                        <option value="archived" @selected(old('status', $document->status) === 'archived')>م
+ؤرشف</option>
                         <option value="active" @selected(old('status', $document->status) === 'active')>نشط</option>
-                        <option value="cancelled" @selected(old('status', $document->status) === 'cancelled')>ملغي</option>
+                        <option value="cancelled" @selected(old('status', $document->status) === 'cancelled')>م
+لغي</option>
                     </select>
                 </div>
 
@@ -105,7 +113,8 @@
                     <label>الأولوية</label>
                     <select name="priority" required>
                         <option value="normal" @selected(old('priority', $document->priority) === 'normal')>عادي</option>
-                        <option value="high" @selected(old('priority', $document->priority) === 'high')>هام</option>
+                        <option value="high" @selected(old('priority', $document->priority) === 'high')>هام
+</option>
                         <option value="urgent" @selected(old('priority', $document->priority) === 'urgent')>عاجل</option>
                     </select>
                 </div>
@@ -116,13 +125,20 @@
                 </div>
 
                 <div class="form-group full">
-                    <label>رفع نسخة كتاب ممسوحة / مرفق جديد</label>
+                    <label>رفع نسخة كتاب م
+م
+سوحة / م
+رفق جديد</label>
                     <input type="file" name="attachment">
-                    <small>عند رفع مرفق جديد سيتم حفظه كنسخة جديدة، ولن يتم حذف النسخ السابقة.</small>
+                    <small>عند رفع م
+رفق جديد سيتم
+ حفظه كنسخة جديدة، ولن يتم
+ حذف النسخ السابقة.</small>
                 </div>
 
                 <div class="form-group full">
-                    <label>ملاحظات</label>
+                    <label>م
+لاحظات</label>
                     <textarea name="notes">{{ old('notes', $document->notes) }}</textarea>
                 </div>
             </div>
@@ -216,14 +232,20 @@
         backdrop.className = 'da-policy-modal-backdrop-v4';
         backdrop.innerHTML = `
             <div class="da-policy-modal-v4" role="dialog" aria-modal="true">
-                <div class="da-policy-modal-head-v4"><strong>تنبيه: رقم البوليصة موجود مسبقاً</strong></div>
+                <div class="da-policy-modal-head-v4"><strong>تنبيه: رقم
+ البوليصة م
+وجود م
+سبقاً</strong></div>
                 <div class="da-policy-modal-body-v4">
                     <div id="daPolicyMsgV4"></div>
                     <div id="daPolicyInfoV4" class="da-policy-modal-info-v4"></div>
                 </div>
                 <div class="da-policy-modal-actions-v4">
-                    <button type="button" class="da-policy-yes-v4" id="daPolicyYesV4">نعم، مواصلة الإدراج</button>
-                    <button type="button" class="da-policy-no-v4" id="daPolicyNoV4">لا، منع الإدراج</button>
+                    <button type="button" class="da-policy-yes-v4" id="daPolicyYesV4">نعم
+، م
+واصلة الإدراج</button>
+                    <button type="button" class="da-policy-no-v4" id="daPolicyNoV4">لا، م
+نع الإدراج</button>
                 </div>
             </div>`;
         document.body.appendChild(backdrop);
@@ -231,7 +253,8 @@
     }
 
     async function askUser(label, value, data) {
-        // يمنع فتح نافذتين في نفس اللحظة.
+        // يم
+نع فتح نافذتين في نفس اللحظة.
         while (globalModalPromise) {
             try { await globalModalPromise; } catch (e) {}
         }
@@ -245,14 +268,22 @@
             const no = m.querySelector('#daPolicyNoV4');
 
             msg.innerHTML = `
-                الرقم المدخل في <strong>${escapeHtml(label)}</strong> موجود مسبقاً:<br>
+                الرقم
+ الم
+دخل في <strong>${escapeHtml(label)}</strong> م
+وجود م
+سبقاً:<br>
                 <strong style="direction:ltr;display:inline-block;font-size:18px">${escapeHtml(value)}</strong><br>
-                هل تريد المواصلة وإدراج نفس رقم البوليصة؟
+                هل تريد الم
+واصلة وإدراج نفس رقم
+ البوليصة؟
             `;
             info.innerHTML = `
-                <div><strong>رقم الكتاب السابق:</strong> ${escapeHtml(doc.reference_number || '-')}</div>
+                <div><strong>رقم
+ الكتاب السابق:</strong> ${escapeHtml(doc.reference_number || '-')}</div>
                 <div><strong>تاريخ الكتاب:</strong> ${escapeHtml(doc.reference_date || '-')}</div>
-                <div><strong>الموضوع:</strong> ${escapeHtml(doc.subject || doc.title || '-')}</div>
+                <div><strong>الم
+وضوع:</strong> ${escapeHtml(doc.subject || doc.title || '-')}</div>
                 <div><strong>البوليصة الرئيسية:</strong> ${escapeHtml(doc.main_policy_number || '-')}</div>
                 <div><strong>البوليصة الفرعية:</strong> ${escapeHtml(doc.sub_policy_number || '-')}</div>
             `;
@@ -306,7 +337,10 @@
 
                 const contentType = response.headers.get('content-type') || '';
                 if (!contentType.includes('application/json')) {
-                    setNote(input, 'تعذر فحص التكرار: مسار الفحص لم يرجع JSON. نفّذ route:clear ثم أعد التجربة.', 'warning');
+                    setNote(input, 'تعذر فحص التكرار: م
+سار الفحص لم
+ يرجع JSON. نفّذ route:clear ثم
+ أعد التجربة.', 'warning');
                     return true;
                 }
 
@@ -318,18 +352,31 @@
                     return true;
                 }
 
-                setNote(input, 'هذا الرقم موجود مسبقاً، الرجاء اختيار المواصلة أو المنع.', 'warning');
+                setNote(input, 'هذا الرقم
+ م
+وجود م
+سبقاً، الرجاء اختيار الم
+واصلة أو الم
+نع.', 'warning');
                 const allow = await askUser(fieldConfig[field] || field, value, data);
 
                 if (allow) {
                     input.dataset.policyAllowedValue = value;
-                    setNote(input, 'تم السماح بتكرار هذا الرقم بناءً على موافقتك.', 'ok');
+                    setNote(input, 'تم
+ السم
+اح بتكرار هذا الرقم
+ بناءً على م
+وافقتك.', 'ok');
                     return true;
                 }
 
                 input.dataset.policyAllowedValue = '';
                 input.value = '';
-                setNote(input, 'تم منع إدراج الرقم المكرر.', 'warning');
+                setNote(input, 'تم
+ م
+نع إدراج الرقم
+ الم
+كرر.', 'warning');
                 if (!options.noFocus) setTimeout(() => input.focus(), 40);
                 return false;
             } catch (error) {
@@ -404,3 +451,5 @@
 </script>
 <!-- DA_POLICY_DUPLICATE_WARNING_V4_END -->
 @endsection
+
+

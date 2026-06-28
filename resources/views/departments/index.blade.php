@@ -14,11 +14,13 @@
         <table>
             <thead>
             <tr>
-                <th>الاسم</th>
+                <th>الاسم
+</th>
                 <th>الكود</th>
                 <th>الوصف</th>
                 <th>الحالة</th>
-                <th>عدد المستندات</th>
+                <th>عدد الم
+ستندات</th>
                 <th>إجراءات</th>
             </tr>
             </thead>
@@ -32,7 +34,8 @@
                         @if($department->is_active)
                             <span class="badge">نشطة</span>
                         @else
-                            <span class="badge">معطلة</span>
+                            <span class="badge">م
+عطلة</span>
                         @endif
                     </td>
                     <td>{{ $department->documents_count }}</td>
@@ -41,7 +44,9 @@
                             @if(auth()->user()?->hasPermission('departments.manage'))
                             <a href="{{ route('departments.edit', $department) }}" class="btn btn-primary">تعديل</a>
                             @endif
-                            <form method="POST" action="{{ route('departments.destroy', $department) }}" data-confirm="هل أنت متأكد من حذف أو تعطيل هذه الإدارة؟">
+                            <form method="POST" action="{{ route('departments.destroy', $department) }}" data-confirm="هل أنت م
+تأكد م
+ن حذف أو تعطيل هذه الإدارة؟">
                                 @csrf
                                 @method('DELETE')
                                 <button type="submit" class="btn btn-danger">حذف</button>

@@ -5,7 +5,8 @@
 @section('content')
 <div class="dq-print-report-action" style="display:flex;justify-content:flex-start;gap:8px;margin:10px 0 16px;">
     <a href="{{ route('data-quality.print') }}" target="_blank" class="btn btn-primary" style="display:inline-flex;align-items:center;gap:6px;text-decoration:none;">
-        🖨️ تقرير منسق للطباعة
+        🖨️ تقرير م
+نسق للطباعة
     </a>
 </div>
 <style>
@@ -49,74 +50,124 @@
 <div class="dq-page">
     <div class="page-header">
         <h1>جودة البيانات 🧭</h1>
-        <p>مراجعة الكتب التي تحتاج انتباه: مرفقات ناقصة، بوالص مكررة، أو بيانات غير مكتملة.</p>
+        <p>م
+راجعة الكتب التي تحتاج انتباه: م
+رفقات ناقصة، بوالص م
+كررة، أو بيانات غير م
+كتم
+لة.</p>
     </div>
 
     <div class="dq-actions no-print">
         <a class="dq-btn secondary" href="{{ url()->previous() }}">رجوع</a>
-        <a class="dq-btn" href="{{ route('data-quality.index') }}">تحديث المراجعة</a>
+        <a class="dq-btn" href="{{ route('data-quality.index') }}">تحديث الم
+راجعة</a>
         <button class="dq-btn ghost" type="button" onclick="window.print()">طباعة التقرير</button>
     </div>
 
     @unless($documentsTableExists)
-        <div class="dq-warning">جدول الكتب غير موجود حالياً. تأكد من تشغيل migrations أو استعادة قاعدة بيانات سليمة.</div>
+        <div class="dq-warning">جدول الكتب غير م
+وجود حالياً. تأكد م
+ن تشغيل migrations أو استعادة قاعدة بيانات سليم
+ة.</div>
     @endunless
 
     <div class="dq-grid">
-        <div class="dq-card"><span>كتب بلا مرفقات</span><strong>{{ $summary['without_attachments'] }}</strong></div>
-        <div class="dq-card"><span>بوالص رئيسية مكررة</span><strong>{{ $summary['duplicate_main_policies'] }}</strong></div>
-        <div class="dq-card"><span>بوالص فرعية مكررة</span><strong>{{ $summary['duplicate_sub_policies'] }}</strong></div>
-        <div class="dq-card"><span>كتب في سلة المحذوفات</span><strong>{{ $summary['trashed_documents'] }}</strong></div>
+        <div class="dq-card"><span>كتب بلا م
+رفقات</span><strong>{{ $summary['without_attachments'] }}</strong></div>
+        <div class="dq-card"><span>بوالص رئيسية م
+كررة</span><strong>{{ $summary['duplicate_main_policies'] }}</strong></div>
+        <div class="dq-card"><span>بوالص فرعية م
+كررة</span><strong>{{ $summary['duplicate_sub_policies'] }}</strong></div>
+        <div class="dq-card"><span>كتب في سلة الم
+حذوفات</span><strong>{{ $summary['trashed_documents'] }}</strong></div>
     </div>
 
     @if(array_sum($summary) > 0)
-        <div class="dq-warning">توجد ملاحظات يفضل مراجعتها. هذه الصفحة لا تمنع العمل، لكنها تساعد المدير على تنظيف البيانات.</div>
+        <div class="dq-warning">توجد م
+لاحظات يفضل م
+راجعتها. هذه الصفحة لا تم
+نع العم
+ل، لكنها تساعد الم
+دير على تنظيف البيانات.</div>
     @else
-        <div class="dq-warning" style="border-color:rgba(34,197,94,.55);background:rgba(20,83,45,.28);color:#bbf7d0;">لا توجد ملاحظات حالياً. جودة البيانات سليمة.</div>
+        <div class="dq-warning" style="border-color:rgba(34,197,94,.55);background:rgba(20,83,45,.28);color:#bbf7d0;">لا توجد م
+لاحظات حالياً. جودة البيانات سليم
+ة.</div>
     @endif
 
     <div class="dq-two">
         @include('data-quality.partials.documents-panel', [
-            'title' => 'كتب بلا مرفقات',
-            'subtitle' => 'كتب تم إنشاؤها ولم يتم رفع مرفق لها بعد.',
+            'title' => 'كتب بلا م
+رفقات',
+            'subtitle' => 'كتب تم
+ إنشاؤها ولم
+ يتم
+ رفع م
+رفق لها بعد.',
             'documents' => $withoutAttachments,
-            'empty' => 'لا توجد كتب بلا مرفقات.'
+            'empty' => 'لا توجد كتب بلا م
+رفقات.'
         ])
 
         @include('data-quality.partials.documents-panel', [
-            'title' => 'كتب في سلة المحذوفات',
-            'subtitle' => 'كتب محذوفة حذفاً مؤقتاً ويمكن مراجعتها من سلة المحذوفات.',
+            'title' => 'كتب في سلة الم
+حذوفات',
+            'subtitle' => 'كتب م
+حذوفة حذفاً م
+ؤقتاً ويم
+كن م
+راجعتها م
+ن سلة الم
+حذوفات.',
             'documents' => $trashedDocuments,
-            'empty' => 'لا توجد كتب محذوفة حالياً.',
+            'empty' => 'لا توجد كتب م
+حذوفة حالياً.',
             'trashed' => true
         ])
     </div>
 
     @include('data-quality.partials.duplicate-policy-panel', [
-        'title' => 'البوالص الرئيسية المكررة',
-        'subtitle' => 'أرقام بوالص رئيسية مرتبطة بأكثر من كتاب.',
+        'title' => 'البوالص الرئيسية الم
+كررة',
+        'subtitle' => 'أرقام
+ بوالص رئيسية م
+رتبطة بأكثر م
+ن كتاب.',
         'items' => $duplicateMainPolicies,
-        'empty' => 'لا توجد بوالص رئيسية مكررة.'
+        'empty' => 'لا توجد بوالص رئيسية م
+كررة.'
     ])
 
     @include('data-quality.partials.duplicate-policy-panel', [
-        'title' => 'البوالص الفرعية المكررة',
-        'subtitle' => 'أرقام بوالص فرعية مرتبطة بأكثر من كتاب.',
+        'title' => 'البوالص الفرعية الم
+كررة',
+        'subtitle' => 'أرقام
+ بوالص فرعية م
+رتبطة بأكثر م
+ن كتاب.',
         'items' => $duplicateSubPolicies,
-        'empty' => 'لا توجد بوالص فرعية مكررة.'
+        'empty' => 'لا توجد بوالص فرعية م
+كررة.'
     ])
 
     <div class="dq-two">
         @include('data-quality.partials.documents-panel', [
             'title' => 'كتب بدون بوليصة رئيسية',
-            'subtitle' => 'كتب لم يتم إدخال رقم البوليصة الرئيسية لها.',
+            'subtitle' => 'كتب لم
+ يتم
+ إدخال رقم
+ البوليصة الرئيسية لها.',
             'documents' => $withoutMainPolicy,
             'empty' => 'لا توجد نتائج.'
         ])
 
         @include('data-quality.partials.documents-panel', [
             'title' => 'كتب بدون بوليصة فرعية',
-            'subtitle' => 'كتب لم يتم إدخال رقم البوليصة الفرعية لها.',
+            'subtitle' => 'كتب لم
+ يتم
+ إدخال رقم
+ البوليصة الفرعية لها.',
             'documents' => $withoutSubPolicy,
             'empty' => 'لا توجد نتائج.'
         ])
@@ -128,7 +179,9 @@ function copyDQValue(value) {
     if (!value) return;
     navigator.clipboard?.writeText(value).then(function () {
         const toast = document.createElement('div');
-        toast.textContent = 'تم نسخ الرقم: ' + value;
+        toast.textContent = 'تم
+ نسخ الرقم
+: ' + value;
         toast.style.position = 'fixed';
         toast.style.bottom = '20px';
         toast.style.left = '20px';

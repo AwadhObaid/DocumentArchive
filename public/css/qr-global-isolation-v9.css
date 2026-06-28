@@ -1,0 +1,16 @@
+/* QR Emergency Isolation V9
+   يمنع ظهور أي QR متسرب في الصفحات العامة.
+   صفحة الطباعة نفسها لا تعتمد على هذا الملف لإظهار QR، بل على قالبها المستقل. */
+body:not(.document-print-reference-page) .document-qr-card,
+body:not(.document-print-reference-page) .da-document-qr,
+body:not(.document-print-reference-page) .da-qr-print,
+body:not(.document-print-reference-page) .da-print-qr,
+body:not(.document-print-reference-page) .qr-print-position,
+body:not(.document-print-reference-page) .qr-position-card,
+body:not(.document-print-reference-page) [data-da-qr],
+body:not(.document-print-reference-page) [id*="qr" i][class*="document" i] {
+    display: none !important;
+    visibility: hidden !important;
+    opacity: 0 !important;
+    pointer-events: none !important;
+}

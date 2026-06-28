@@ -1,6 +1,9 @@
 @php
     $reportTitle = 'تقرير جودة البيانات';
-    $systemTitle = 'نظام الأرشيف الإلكتروني الخاص بقسم الشحن والتأمين';
+    $systemTitle = 'نظام
+ الأرشيف الإلكتروني الخاص بقسم
+ الشحن والتأم
+ين';
     $fmtDate = function ($value) {
         if (empty($value)) return '—';
         try { return \Illuminate\Support\Carbon::parse($value)->format('Y-m-d'); } catch (\Throwable $e) { return $value; }
@@ -343,7 +346,9 @@
                     <div class="brand-icon">📁</div>
                     <div>
                         <h1>{{ $systemTitle }}</h1>
-                        <p>إدارة الكتب، المرفقات، البوالص، والطباعة الرسمية</p>
+                        <p>إدارة الكتب، الم
+رفقات، البوالص، والطباعة الرسم
+ية</p>
                     </div>
                 </div>
                 <div class="meta-box">
@@ -356,24 +361,37 @@
 
             <section class="title-block">
                 <h2>{{ $reportTitle }}</h2>
-                <p>تقرير رسمي لمراجعة سلامة بيانات الأرشيف: المرفقات الناقصة، البوالص المكررة، البيانات غير المكتملة، والكتب المحذوفة مؤقتاً.</p>
+                <p>تقرير رسم
+ي لم
+راجعة سلام
+ة بيانات الأرشيف: الم
+رفقات الناقصة، البوالص الم
+كررة، البيانات غير الم
+كتم
+لة، والكتب الم
+حذوفة م
+ؤقتاً.</p>
             </section>
 
             <section class="summary-grid">
                 <div class="summary-card success">
-                    <div class="label">إجمالي الكتب الفعالة</div>
+                    <div class="label">إجم
+الي الكتب الفعالة</div>
                     <div class="value">{{ $summary['active_documents'] }}</div>
                 </div>
                 <div class="summary-card {{ $summary['without_attachments'] > 0 ? 'warning' : 'success' }}">
-                    <div class="label">كتب بلا مرفقات</div>
+                    <div class="label">كتب بلا م
+رفقات</div>
                     <div class="value">{{ $summary['without_attachments'] }}</div>
                 </div>
                 <div class="summary-card {{ $summary['duplicate_main_policies'] > 0 ? 'warning' : 'success' }}">
-                    <div class="label">بوالص رئيسية مكررة</div>
+                    <div class="label">بوالص رئيسية م
+كررة</div>
                     <div class="value">{{ $summary['duplicate_main_policies'] }}</div>
                 </div>
                 <div class="summary-card {{ $summary['duplicate_sub_policies'] > 0 ? 'warning' : 'success' }}">
-                    <div class="label">بوالص فرعية مكررة</div>
+                    <div class="label">بوالص فرعية م
+كررة</div>
                     <div class="value">{{ $summary['duplicate_sub_policies'] }}</div>
                 </div>
             </section>
@@ -381,8 +399,13 @@
             <section class="section">
                 <div class="section-header">
                     <div>
-                        <h3 class="section-title">ملخص نتيجة المراجعة</h3>
-                        <p class="section-desc">قراءة سريعة للحالات التي تحتاج متابعة من المدير.</p>
+                        <h3 class="section-title">م
+لخص نتيجة الم
+راجعة</h3>
+                        <p class="section-desc">قراءة سريعة للحالات التي تحتاج م
+تابعة م
+ن الم
+دير.</p>
                     </div>
                     <span class="badge">{{ $summary['issues_total'] }}</span>
                 </div>
@@ -395,32 +418,62 @@
                         </tr>
                     </thead>
                     <tbody>
-                        <tr><td>كتب بلا مرفقات</td><td>{{ $summary['without_attachments'] }}</td><td class="{{ $summary['without_attachments'] > 0 ? 'warn' : 'ok' }}">{{ $summary['without_attachments'] > 0 ? 'يحتاج مراجعة' : 'سليم' }}</td></tr>
-                        <tr><td>بوالص رئيسية مكررة</td><td>{{ $summary['duplicate_main_policies'] }}</td><td class="{{ $summary['duplicate_main_policies'] > 0 ? 'warn' : 'ok' }}">{{ $summary['duplicate_main_policies'] > 0 ? 'يحتاج مراجعة' : 'سليم' }}</td></tr>
-                        <tr><td>بوالص فرعية مكررة</td><td>{{ $summary['duplicate_sub_policies'] }}</td><td class="{{ $summary['duplicate_sub_policies'] > 0 ? 'warn' : 'ok' }}">{{ $summary['duplicate_sub_policies'] > 0 ? 'يحتاج مراجعة' : 'سليم' }}</td></tr>
-                        <tr><td>كتب بدون بوليصة رئيسية</td><td>{{ $summary['missing_main_policy'] }}</td><td class="{{ $summary['missing_main_policy'] > 0 ? 'warn' : 'ok' }}">{{ $summary['missing_main_policy'] > 0 ? 'يحتاج مراجعة' : 'سليم' }}</td></tr>
-                        <tr><td>كتب بدون بوليصة فرعية</td><td>{{ $summary['missing_sub_policy'] }}</td><td class="{{ $summary['missing_sub_policy'] > 0 ? 'warn' : 'ok' }}">{{ $summary['missing_sub_policy'] > 0 ? 'يحتاج مراجعة' : 'سليم' }}</td></tr>
-                        <tr><td>كتب في سلة المحذوفات</td><td>{{ $summary['trashed_documents'] }}</td><td class="{{ $summary['trashed_documents'] > 0 ? 'warn' : 'ok' }}">{{ $summary['trashed_documents'] > 0 ? 'يحتاج مراجعة' : 'سليم' }}</td></tr>
+                        <tr><td>كتب بلا م
+رفقات</td><td>{{ $summary['without_attachments'] }}</td><td class="{{ $summary['without_attachments'] > 0 ? 'warn' : 'ok' }}">{{ $summary['without_attachments'] > 0 ? 'يحتاج م
+راجعة' : 'سليم
+' }}</td></tr>
+                        <tr><td>بوالص رئيسية م
+كررة</td><td>{{ $summary['duplicate_main_policies'] }}</td><td class="{{ $summary['duplicate_main_policies'] > 0 ? 'warn' : 'ok' }}">{{ $summary['duplicate_main_policies'] > 0 ? 'يحتاج م
+راجعة' : 'سليم
+' }}</td></tr>
+                        <tr><td>بوالص فرعية م
+كررة</td><td>{{ $summary['duplicate_sub_policies'] }}</td><td class="{{ $summary['duplicate_sub_policies'] > 0 ? 'warn' : 'ok' }}">{{ $summary['duplicate_sub_policies'] > 0 ? 'يحتاج م
+راجعة' : 'سليم
+' }}</td></tr>
+                        <tr><td>كتب بدون بوليصة رئيسية</td><td>{{ $summary['missing_main_policy'] }}</td><td class="{{ $summary['missing_main_policy'] > 0 ? 'warn' : 'ok' }}">{{ $summary['missing_main_policy'] > 0 ? 'يحتاج م
+راجعة' : 'سليم
+' }}</td></tr>
+                        <tr><td>كتب بدون بوليصة فرعية</td><td>{{ $summary['missing_sub_policy'] }}</td><td class="{{ $summary['missing_sub_policy'] > 0 ? 'warn' : 'ok' }}">{{ $summary['missing_sub_policy'] > 0 ? 'يحتاج م
+راجعة' : 'سليم
+' }}</td></tr>
+                        <tr><td>كتب في سلة الم
+حذوفات</td><td>{{ $summary['trashed_documents'] }}</td><td class="{{ $summary['trashed_documents'] > 0 ? 'warn' : 'ok' }}">{{ $summary['trashed_documents'] > 0 ? 'يحتاج م
+راجعة' : 'سليم
+' }}</td></tr>
                     </tbody>
                 </table>
             </section>
 
             @if($summary['issues_total'] > 0)
-                <div class="notice">توجد ملاحظات تحتاج مراجعة. هذا التقرير لا يمنع سير العمل، لكنه يساعد الإدارة على تنظيف بيانات الأرشيف قبل الاعتماد النهائي.</div>
+                <div class="notice">توجد م
+لاحظات تحتاج م
+راجعة. هذا التقرير لا يم
+نع سير العم
+ل، لكنه يساعد الإدارة على تنظيف بيانات الأرشيف قبل الاعتم
+اد النهائي.</div>
             @else
-                <div class="notice" style="border-color:#22c55e;background:#f0fdf4;color:#047857;">لا توجد ملاحظات مؤثرة حالياً. بيانات الأرشيف سليمة حسب الفحوصات الحالية.</div>
+                <div class="notice" style="border-color:#22c55e;background:#f0fdf4;color:#047857;">لا توجد م
+لاحظات م
+ؤثرة حالياً. بيانات الأرشيف سليم
+ة حسب الفحوصات الحالية.</div>
             @endif
 
             <section class="section">
                 <div class="section-header">
                     <div>
-                        <h3 class="section-title">كتب بلا مرفقات</h3>
-                        <p class="section-desc">كتب تم إنشاؤها ولم يتم رفع مرفق لها بعد.</p>
+                        <h3 class="section-title">كتب بلا م
+رفقات</h3>
+                        <p class="section-desc">كتب تم
+ إنشاؤها ولم
+ يتم
+ رفع م
+رفق لها بعد.</p>
                     </div>
                     <span class="badge">{{ $withoutAttachments->count() }}</span>
                 </div>
                 @if($withoutAttachments->isEmpty())
-                    <div class="empty">لا توجد كتب بلا مرفقات.</div>
+                    <div class="empty">لا توجد كتب بلا م
+رفقات.</div>
                 @else
                     @include('data-quality.partials.document-table', ['rows' => $withoutAttachments])
                 @endif
@@ -429,8 +482,12 @@
             <section class="section">
                 <div class="section-header">
                     <div>
-                        <h3 class="section-title">البوالص الرئيسية المكررة</h3>
-                        <p class="section-desc">أرقام بوالص رئيسية مرتبطة بأكثر من كتاب.</p>
+                        <h3 class="section-title">البوالص الرئيسية الم
+كررة</h3>
+                        <p class="section-desc">أرقام
+ بوالص رئيسية م
+رتبطة بأكثر م
+ن كتاب.</p>
                     </div>
                     <span class="badge">{{ $duplicateMainPolicies->count() }}</span>
                 </div>
@@ -440,8 +497,12 @@
             <section class="section">
                 <div class="section-header">
                     <div>
-                        <h3 class="section-title">البوالص الفرعية المكررة</h3>
-                        <p class="section-desc">أرقام بوالص فرعية مرتبطة بأكثر من كتاب.</p>
+                        <h3 class="section-title">البوالص الفرعية الم
+كررة</h3>
+                        <p class="section-desc">أرقام
+ بوالص فرعية م
+رتبطة بأكثر م
+ن كتاب.</p>
                     </div>
                     <span class="badge">{{ $duplicateSubPolicies->count() }}</span>
                 </div>
@@ -452,7 +513,10 @@
                 <div class="section-header">
                     <div>
                         <h3 class="section-title">كتب بدون بوليصة رئيسية</h3>
-                        <p class="section-desc">كتب لم يتم إدخال رقم البوليصة الرئيسية لها.</p>
+                        <p class="section-desc">كتب لم
+ يتم
+ إدخال رقم
+ البوليصة الرئيسية لها.</p>
                     </div>
                     <span class="badge">{{ $missingMainPolicy->count() }}</span>
                 </div>
@@ -467,7 +531,10 @@
                 <div class="section-header">
                     <div>
                         <h3 class="section-title">كتب بدون بوليصة فرعية</h3>
-                        <p class="section-desc">كتب لم يتم إدخال رقم البوليصة الفرعية لها.</p>
+                        <p class="section-desc">كتب لم
+ يتم
+ إدخال رقم
+ البوليصة الفرعية لها.</p>
                     </div>
                     <span class="badge">{{ $missingSubPolicy->count() }}</span>
                 </div>
@@ -481,13 +548,21 @@
             <section class="section">
                 <div class="section-header">
                     <div>
-                        <h3 class="section-title">كتب في سلة المحذوفات</h3>
-                        <p class="section-desc">كتب محذوفة مؤقتاً ويمكن مراجعتها من سلة المحذوفات.</p>
+                        <h3 class="section-title">كتب في سلة الم
+حذوفات</h3>
+                        <p class="section-desc">كتب م
+حذوفة م
+ؤقتاً ويم
+كن م
+راجعتها م
+ن سلة الم
+حذوفات.</p>
                     </div>
                     <span class="badge">{{ $trashedDocuments->count() }}</span>
                 </div>
                 @if($trashedDocuments->isEmpty())
-                    <div class="empty">لا توجد كتب محذوفة حالياً.</div>
+                    <div class="empty">لا توجد كتب م
+حذوفة حالياً.</div>
                 @else
                     @include('data-quality.partials.document-table', ['rows' => $trashedDocuments])
                 @endif
@@ -495,7 +570,10 @@
 
             <footer class="report-footer">
                 <span>{{ $systemTitle }}</span>
-                <span>تم إنشاء التقرير آلياً من النظام بتاريخ {{ $generatedAt->format('Y-m-d H:i') }}</span>
+                <span>تم
+ إنشاء التقرير آلياً م
+ن النظام
+ بتاريخ {{ $generatedAt->format('Y-m-d H:i') }}</span>
             </footer>
         </article>
     </main>

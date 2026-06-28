@@ -36,7 +36,43 @@ class DashboardController extends Controller
             'documents_by_type' => $this->documentsByLookup('document_type_id', 'document_types', 'نوع الكتاب'),
         ];
 
-        return view('dashboard.index', compact(
+                // [DA-DASHBOARD-OBJECT-COMPAT-START]
+        $daObjectify = function ($items) {
+            if ($items instanceof \Illuminate\Support\Collection) {
+                return $items->map(function ($item) {
+                    return is_array($item) ? (object) $item : $item;
+                });
+            }
+
+            if (is_array($items)) {
+                return collect($items)->map(function ($item) {
+                    return is_array($item) ? (object) $item : $item;
+                });
+            }
+
+            return $items;
+        };
+
+        foreach ([
+            'latestDocuments',
+            'recentDocuments',
+            'lastDocuments',
+            'latestDocs',
+            'recentDocs',
+            'documents',
+            'latestActivityLogs',
+            'recentActivityLogs',
+            'activityLogs',
+            'latestActivities',
+            'recentActivities',
+            'activities',
+        ] as $daVarName) {
+            if (isset($$daVarName)) {
+                $$daVarName = $daObjectify($$daVarName);
+            }
+        }
+        // [DA-DASHBOARD-OBJECT-COMPAT-END]
+return view('dashboard.index', compact(
             'stats',
             'latestDocuments',
             'latestActivities',

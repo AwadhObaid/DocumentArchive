@@ -1,0 +1,100 @@
+/*
+ * Arabic ellipsis/display clipping fix
+ * Purpose: show Arabic words fully instead of truncating them as "...".
+ * This file intentionally runs after the main application CSS.
+ */
+
+html[dir="rtl"] body:not(.da-print-reference-page) {
+    text-rendering: optimizeLegibility;
+}
+
+/* General Arabic text: disable aggressive truncation/line-clamp. */
+html[dir="rtl"] body:not(.da-print-reference-page) h1,
+html[dir="rtl"] body:not(.da-print-reference-page) h2,
+html[dir="rtl"] body:not(.da-print-reference-page) h3,
+html[dir="rtl"] body:not(.da-print-reference-page) h4,
+html[dir="rtl"] body:not(.da-print-reference-page) h5,
+html[dir="rtl"] body:not(.da-print-reference-page) h6,
+html[dir="rtl"] body:not(.da-print-reference-page) p,
+html[dir="rtl"] body:not(.da-print-reference-page) label,
+html[dir="rtl"] body:not(.da-print-reference-page) th,
+html[dir="rtl"] body:not(.da-print-reference-page) td,
+html[dir="rtl"] body:not(.da-print-reference-page) button,
+html[dir="rtl"] body:not(.da-print-reference-page) .btn,
+html[dir="rtl"] body:not(.da-print-reference-page) .alert,
+html[dir="rtl"] body:not(.da-print-reference-page) .badge,
+html[dir="rtl"] body:not(.da-print-reference-page) .card,
+html[dir="rtl"] body:not(.da-print-reference-page) .card *,
+html[dir="rtl"] body:not(.da-print-reference-page) .page-title,
+html[dir="rtl"] body:not(.da-print-reference-page) .page-subtitle,
+html[dir="rtl"] body:not(.da-print-reference-page) .brand-title,
+html[dir="rtl"] body:not(.da-print-reference-page) .brand-subtitle,
+html[dir="rtl"] body:not(.da-print-reference-page) .section-title,
+html[dir="rtl"] body:not(.da-print-reference-page) .stat-title,
+html[dir="rtl"] body:not(.da-print-reference-page) .stat-label,
+html[dir="rtl"] body:not(.da-print-reference-page) .stat-value,
+html[dir="rtl"] body:not(.da-print-reference-page) .table,
+html[dir="rtl"] body:not(.da-print-reference-page) .table *,
+html[dir="rtl"] body:not(.da-print-reference-page) .form-label,
+html[dir="rtl"] body:not(.da-print-reference-page) .form-control,
+html[dir="rtl"] body:not(.da-print-reference-page) .form-select {
+    text-overflow: clip !important;
+    -webkit-line-clamp: unset !important;
+    line-clamp: unset !important;
+    white-space: normal !important;
+    word-break: normal !important;
+    overflow-wrap: break-word !important;
+}
+
+/* Sidebar/header/nav items often had nowrap + ellipsis. */
+html[dir="rtl"] body:not(.da-print-reference-page) aside a,
+html[dir="rtl"] body:not(.da-print-reference-page) aside button,
+html[dir="rtl"] body:not(.da-print-reference-page) aside span,
+html[dir="rtl"] body:not(.da-print-reference-page) aside div,
+html[dir="rtl"] body:not(.da-print-reference-page) .sidebar a,
+html[dir="rtl"] body:not(.da-print-reference-page) .sidebar button,
+html[dir="rtl"] body:not(.da-print-reference-page) .sidebar span,
+html[dir="rtl"] body:not(.da-print-reference-page) .app-sidebar a,
+html[dir="rtl"] body:not(.da-print-reference-page) .app-sidebar button,
+html[dir="rtl"] body:not(.da-print-reference-page) .app-sidebar span,
+html[dir="rtl"] body:not(.da-print-reference-page) .nav-link,
+html[dir="rtl"] body:not(.da-print-reference-page) .navbar a,
+html[dir="rtl"] body:not(.da-print-reference-page) .navbar span,
+html[dir="rtl"] body:not(.da-print-reference-page) header a,
+html[dir="rtl"] body:not(.da-print-reference-page) header span,
+html[dir="rtl"] body:not(.da-print-reference-page) header div {
+    text-overflow: clip !important;
+    -webkit-line-clamp: unset !important;
+    line-clamp: unset !important;
+    white-space: normal !important;
+    word-break: normal !important;
+    overflow-wrap: break-word !important;
+}
+
+/* Avoid flex children being squeezed until text is clipped. */
+html[dir="rtl"] body:not(.da-print-reference-page) .d-flex > *,
+html[dir="rtl"] body:not(.da-print-reference-page) .flex > *,
+html[dir="rtl"] body:not(.da-print-reference-page) .row > *,
+html[dir="rtl"] body:not(.da-print-reference-page) header > *,
+html[dir="rtl"] body:not(.da-print-reference-page) aside > *,
+html[dir="rtl"] body:not(.da-print-reference-page) main > * {
+    min-width: 0;
+}
+
+html[dir="rtl"] body:not(.da-print-reference-page) aside .nav-link,
+html[dir="rtl"] body:not(.da-print-reference-page) .sidebar .nav-link,
+html[dir="rtl"] body:not(.da-print-reference-page) .app-sidebar .nav-link,
+html[dir="rtl"] body:not(.da-print-reference-page) .menu-link {
+    min-height: 42px;
+    line-height: 1.65 !important;
+    gap: 8px;
+}
+
+html[dir="rtl"] body:not(.da-print-reference-page) .da-force-no-ellipsis,
+html[dir="rtl"] body:not(.da-print-reference-page) .da-force-no-ellipsis * {
+    text-overflow: clip !important;
+    -webkit-line-clamp: unset !important;
+    line-clamp: unset !important;
+    white-space: normal !important;
+    overflow: visible !important;
+}

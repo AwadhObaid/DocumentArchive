@@ -6,7 +6,11 @@
 <div class="page-header">
     <div>
         <h1>استعادة نسخة احتياطية</h1>
-        <p>اختر نوع الاستعادة بعد مراجعة محتويات النسخة. سيتم إنشاء نسخة أمان تلقائياً قبل الاستعادة.</p>
+        <p>اختر نوع الاستعادة بعد م
+راجعة م
+حتويات النسخة. سيتم
+ إنشاء نسخة أم
+ان تلقائياً قبل الاستعادة.</p>
     </div>
     <div class="page-actions">
         @if(auth()->user()?->hasPermission('backups.view'))
@@ -21,17 +25,27 @@
 @endif
 
 <div class="alert alert-danger restore-danger">
-    <strong>تنبيه شديد الأهمية:</strong>
-    الاستعادة ستستبدل البيانات أو الملفات الحالية حسب الخيار المحدد. لا تنفذها إلا بعد التأكد من النسخة وفهم أثر العملية.
+    <strong>تنبيه شديد الأهم
+ية:</strong>
+    الاستعادة ستستبدل البيانات أو الم
+لفات الحالية حسب الخيار الم
+حدد. لا تنفذها إلا بعد التأكد م
+ن النسخة وفهم
+ أثر العم
+لية.
 </div>
 
 <div class="card restore-summary">
     <h3>{{ $fileName }}</h3>
     <div class="restore-stats-grid">
         <div class="stat-box"><span>نوع النسخة</span><strong>{{ $inferredType }}</strong></div>
-        <div class="stat-box"><span>حجم النسخة</span><strong>{{ $fileSize }}</strong></div>
-        <div class="stat-box"><span>ملفات SQL</span><strong>{{ count($sqlFiles) }}</strong></div>
-        <div class="stat-box"><span>ملفات المرفقات</span><strong>{{ $documentFilesCount }}</strong></div>
+        <div class="stat-box"><span>حجم
+ النسخة</span><strong>{{ $fileSize }}</strong></div>
+        <div class="stat-box"><span>م
+لفات SQL</span><strong>{{ count($sqlFiles) }}</strong></div>
+        <div class="stat-box"><span>م
+لفات الم
+رفقات</span><strong>{{ $documentFilesCount }}</strong></div>
     </div>
 </div>
 
@@ -49,7 +63,10 @@
 <div class="restore-grid mt-4">
     <div class="card restore-card {{ count($sqlFiles) === 0 ? 'disabled-card' : '' }}">
         <h3>استعادة قاعدة البيانات</h3>
-        <p>تستبدل جداول النظام الحالية بالبيانات الموجودة داخل ملف SQL في النسخة.</p>
+        <p>تستبدل جداول النظام
+ الحالية بالبيانات الم
+وجودة داخل م
+لف SQL في النسخة.</p>
         @if(count($sqlFiles) > 0)
             @if(auth()->user()?->hasPermission('backups.restore'))
             <form method="POST" action="{{ route('backups.restore.database', $fileName) }}" onsubmit="return confirm('تأكيد نهائي: هل تريد استعادة قاعدة البيانات؟')">
@@ -59,39 +76,62 @@
             </form>
             @endif
         @else
-            <div class="alert alert-warning">لا يوجد ملف SQL داخل هذه النسخة.</div>
+            <div class="alert alert-warning">لا يوجد م
+لف SQL داخل هذه النسخة.</div>
         @endif
     </div>
 
     <div class="card restore-card {{ $documentFilesCount === 0 ? 'disabled-card' : '' }}">
-        <h3>استعادة ملفات المرفقات</h3>
-        <p>تستبدل مجلد المرفقات الحالي بمجلد <strong>documents</strong> الموجود داخل النسخة.</p>
+        <h3>استعادة م
+لفات الم
+رفقات</h3>
+        <p>تستبدل م
+جلد الم
+رفقات الحالي بم
+جلد <strong>documents</strong> الم
+وجود داخل النسخة.</p>
         @if($documentFilesCount > 0)
             @if(auth()->user()?->hasPermission('backups.restore'))
-            <form method="POST" action="{{ route('backups.restore.files', $fileName) }}" onsubmit="return confirm('تأكيد نهائي: هل تريد استعادة ملفات المرفقات؟')">
+            <form method="POST" action="{{ route('backups.restore.files', $fileName) }}" onsubmit="return confirm('تأكيد نهائي: هل تريد استعادة م
+لفات الم
+رفقات؟')">
                 @csrf
                 @include('backups.restore-confirm-fields')
-                <button type="submit" class="btn btn-danger">استعادة ملفات المرفقات</button>
+                <button type="submit" class="btn btn-danger">استعادة م
+لفات الم
+رفقات</button>
             </form>
             @endif
         @else
-            <div class="alert alert-warning">لا توجد ملفات مرفقات داخل هذه النسخة.</div>
+            <div class="alert alert-warning">لا توجد م
+لفات م
+رفقات داخل هذه النسخة.</div>
         @endif
     </div>
 
     <div class="card restore-card {{ count($sqlFiles) === 0 || $documentFilesCount === 0 ? 'disabled-card' : '' }}">
-        <h3>استعادة نسخة كاملة</h3>
-        <p>تستعيد قاعدة البيانات وملفات المرفقات معاً. استخدم هذا الخيار للنسخ الكاملة فقط.</p>
+        <h3>استعادة نسخة كام
+لة</h3>
+        <p>تستعيد قاعدة البيانات وم
+لفات الم
+رفقات م
+عاً. استخدم
+ هذا الخيار للنسخ الكام
+لة فقط.</p>
         @if(count($sqlFiles) > 0 && $documentFilesCount > 0)
             @if(auth()->user()?->hasPermission('backups.restore'))
-            <form method="POST" action="{{ route('backups.restore.full', $fileName) }}" onsubmit="return confirm('تأكيد نهائي: هل تريد استعادة النسخة الكاملة؟')">
+            <form method="POST" action="{{ route('backups.restore.full', $fileName) }}" onsubmit="return confirm('تأكيد نهائي: هل تريد استعادة النسخة الكام
+لة؟')">
                 @csrf
                 @include('backups.restore-confirm-fields')
-                <button type="submit" class="btn btn-danger">استعادة النسخة الكاملة</button>
+                <button type="submit" class="btn btn-danger">استعادة النسخة الكام
+لة</button>
             </form>
             @endif
         @else
-            <div class="alert alert-warning">هذه النسخة لا تحتوي على قاعدة بيانات ومرفقات معاً.</div>
+            <div class="alert alert-warning">هذه النسخة لا تحتوي على قاعدة بيانات وم
+رفقات م
+عاً.</div>
         @endif
     </div>
 </div>

@@ -3,7 +3,8 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>403 - غير مصرح</title>
+    <title>403 - غير م
+صرح</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;600;700;800&display=swap" rel="stylesheet">
@@ -226,8 +227,12 @@
             <div class="brand">
                 <div class="brand-icon">📁</div>
                 <div>
-                    <div class="brand-title">نظام الأرشيف الإلكتروني الخاص بقسم الشحن والتأمين</div>
-                    <div class="brand-subtitle">إدارة الكتب، المرفقات، الصلاحيات والنسخ الاحتياطي</div>
+                    <div class="brand-title">نظام
+ الأرشيف الإلكتروني الخاص بقسم
+ الشحن والتأم
+ين</div>
+                    <div class="brand-subtitle">إدارة الكتب، الم
+رفقات، الصلاحيات والنسخ الاحتياطي</div>
                 </div>
             </div>
             <div class="code-badge">403</div>
@@ -236,19 +241,31 @@
         <section class="content">
             <div class="lock-icon">🔒</div>
 
-            <h1>غير مصرح لك بالدخول</h1>
+            <h1>غير م
+صرح لك بالدخول</h1>
 
             <p class="message">
-                هذه الصفحة محمية بصلاحيات خاصة. لا يمكن فتحها إلا من حساب يملك صلاحية مناسبة داخل النظام.
+                هذه الصفحة م
+حم
+ية بصلاحيات خاصة. لا يم
+كن فتحها إلا م
+ن حساب يم
+لك صلاحية م
+ناسبة داخل النظام
+.
             </p>
 
             <div class="notice">
-                {{ $exception->getMessage() ?: 'هذه الصفحة متاحة لمدير النظام فقط.' }}
+                {{ $exception->getMessage() ?: 'هذه الصفحة م
+تاحة لم
+دير النظام
+ فقط.' }}
             </div>
 
             <div class="actions">
                 @auth
-                    <a class="btn btn-primary" href="{{ route('dashboard') }}">🏠 العودة إلى لوحة التحكم</a>
+                    <a class="btn btn-primary" href="{{ route('dashboard') }}">🏠 العودة إلى لوحة التحكم
+</a>
                 @else
                     <a class="btn btn-primary" href="{{ route('login') }}">🔐 تسجيل الدخول</a>
                 @endauth
@@ -260,7 +277,10 @@
         </section>
 
         <footer class="footer">
-            في حال كنت تحتاج هذه الصلاحية، يرجى مراجعة مدير النظام.
+            في حال كنت تحتاج هذه الصلاحية، يرجى م
+راجعة م
+دير النظام
+.
         </footer>
     </main>
 </body>

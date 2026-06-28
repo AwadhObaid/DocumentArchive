@@ -1,11 +1,14 @@
 @extends('layouts.app')
 
-@section('title', 'معاينة المرفق')
+@section('title', 'م
+عاينة الم
+رفق')
 
 @section('content')
 @php
     $document = $attachment->document ?? null;
-    $fileName = $attachment->original_name ?: ($attachment->file_name ?: 'المرفق');
+    $fileName = $attachment->original_name ?: ($attachment->file_name ?: 'الم
+رفق');
     $extension = strtolower($attachment->extension ?: pathinfo($fileName, PATHINFO_EXTENSION));
     $mimeType = strtolower($attachment->mime_type ?: '');
 @endphp
@@ -211,8 +214,12 @@
 
 <div class="page-header mb-3">
     <div>
-        <h1 class="page-title">معاينة المرفق</h1>
-        <p class="page-subtitle">استعراض PDF والصور داخل النظام بدون كشف مسار التخزين الحقيقي.</p>
+        <h1 class="page-title">م
+عاينة الم
+رفق</h1>
+        <p class="page-subtitle">استعراض PDF والصور داخل النظام
+ بدون كشف م
+سار التخزين الحقيقي.</p>
     </div>
 </div>
 
@@ -226,7 +233,8 @@
     @endif
 
     @if(auth()->user()?->hasPermission('attachments.download'))
-    <a href="{{ route('attachments.download', $attachment) }}" class="btn btn-primary">تنزيل المرفق</a>
+    <a href="{{ route('attachments.download', $attachment) }}" class="btn btn-primary">تنزيل الم
+رفق</a>
     @endif
 </div>
 
@@ -236,14 +244,16 @@
         <div class="attachment-preview-meta">
             النوع: {{ strtoupper($extension ?: 'FILE') }}
             <span class="mx-1">|</span>
-            الحجم: {{ number_format(($attachment->file_size ?? 0) / 1024 / 1024, 2) }} MB
+            الحجم
+: {{ number_format(($attachment->file_size ?? 0) / 1024 / 1024, 2) }} MB
             <span class="mx-1">|</span>
             النسخة: {{ $attachment->version_no ?? 1 }}
         </div>
     </div>
 
     <div class="attachment-preview-toolbar">
-        <button type="button" class="btn-soft-success" id="printAttachmentBtn">🖨️ طباعة المرفق</button>
+        <button type="button" class="btn-soft-success" id="printAttachmentBtn">🖨️ طباعة الم
+رفق</button>
         <button type="button" class="btn-soft-muted" id="zoomOutBtn">- تصغير</button>
         <button type="button" class="btn-soft-muted" id="zoomInBtn">+ تكبير</button>
         <button type="button" class="btn-soft-muted" id="reloadPreviewBtn">↻ تحديث</button>
@@ -253,7 +263,10 @@
     </div>
 
     <div class="attachment-viewer-box" id="attachmentViewerBox">
-        <div class="preview-status" id="previewStatus">جاري تحميل المرفق للمعاينة...</div>
+        <div class="preview-status" id="previewStatus">جاري تحم
+يل الم
+رفق للم
+عاينة...</div>
         <div class="pdf-pages-wrapper" id="pdf-pages-wrapper"></div>
     </div>
 </div>
@@ -348,14 +361,18 @@
         });
 
         if (!response.ok) {
-            throw new Error('تعذر تحميل بيانات المرفق. رمز الخطأ: ' + response.status);
+            throw new Error('تعذر تحم
+يل بيانات الم
+رفق. رم
+ز الخطأ: ' + response.status);
         }
 
         const data = await response.json();
         const base64 = getPayloadBase64(data);
 
         if (!base64) {
-            throw new Error('استجابة المرفق لا تحتوي على بيانات Base64.');
+            throw new Error('استجابة الم
+رفق لا تحتوي على بيانات Base64.');
         }
 
         payload = data;
@@ -365,7 +382,10 @@
 
     async function renderPdf(scale = currentScale) {
         if (!window.pdfjsLib) {
-            throw new Error('تعذر تحميل PDF.js. تحقق من اتصال الإنترنت أو أضف PDF.js محلياً.');
+            throw new Error('تعذر تحم
+يل PDF.js. تحقق م
+ن اتصال الإنترنت أو أضف PDF.js م
+حلياً.');
         }
 
         if (!payload || !binaryBytes) {
@@ -397,7 +417,10 @@
             }).promise;
         }
 
-        setStatus('تم تحميل المعاينة بنجاح.', 'success');
+        setStatus('تم
+ تحم
+يل الم
+عاينة بنجاح.', 'success');
         setTimeout(() => setStatus('', 'success'), 900);
         isRendering = false;
     }
@@ -415,13 +438,19 @@
         image.alt = FILE_NAME;
         image.src = `data:${mime};base64,${base64}`;
         pagesWrapper.appendChild(image);
-        setStatus('تم تحميل المعاينة بنجاح.', 'success');
+        setStatus('تم
+ تحم
+يل الم
+عاينة بنجاح.', 'success');
         setTimeout(() => setStatus('', 'success'), 900);
     }
 
     async function renderPreview() {
         try {
-            setStatus('جاري تحميل المرفق للمعاينة...', 'info');
+            setStatus('جاري تحم
+يل الم
+رفق للم
+عاينة...', 'info');
             pagesWrapper.innerHTML = '';
             await loadPayload();
 
@@ -435,10 +464,20 @@
                 return;
             }
 
-            setStatus('هذا النوع من الملفات لا يدعم المعاينة المباشرة. يمكنك تنزيله من زر تنزيل المرفق.', 'error');
+            setStatus('هذا النوع م
+ن الم
+لفات لا يدعم
+ الم
+عاينة الم
+باشرة. يم
+كنك تنزيله م
+ن زر تنزيل الم
+رفق.', 'error');
         } catch (error) {
             console.error(error);
-            setStatus(error.message || 'حدث خطأ أثناء تحميل المعاينة.', 'error');
+            setStatus(error.message || 'حدث خطأ أثناء تحم
+يل الم
+عاينة.', 'error');
         } finally {
             isRendering = false;
         }
@@ -458,7 +497,8 @@
 
     async function addPdfPagesToPrintArea() {
         if (!window.pdfjsLib) {
-            throw new Error('PDF.js غير متاح حالياً.');
+            throw new Error('PDF.js غير م
+تاح حالياً.');
         }
 
         if (!payload || !binaryBytes) {
@@ -469,7 +509,8 @@
         printArea.innerHTML = '';
 
         for (let pageNumber = 1; pageNumber <= printDoc.numPages; pageNumber++) {
-            setStatus('جاري تجهيز صفحة الطباعة ' + pageNumber + ' من ' + printDoc.numPages + '...', 'info');
+            setStatus('جاري تجهيز صفحة الطباعة ' + pageNumber + ' م
+ن ' + printDoc.numPages + '...', 'info');
 
             const page = await printDoc.getPage(pageNumber);
             const viewport = page.getViewport({ scale: 2.25 });
@@ -515,7 +556,8 @@
     function cleanupPrintArea() {
         isPrinting = false;
         printButton.disabled = false;
-        printButton.textContent = '🖨️ طباعة المرفق';
+        printButton.textContent = '🖨️ طباعة الم
+رفق';
         printArea.innerHTML = '';
         printArea.setAttribute('aria-hidden', 'true');
         setStatus('', 'success');
@@ -529,7 +571,8 @@
             isPrinting = true;
             printButton.disabled = true;
             printButton.textContent = 'جاري تجهيز الطباعة...';
-            setStatus('جاري تجهيز المرفق للطباعة...', 'info');
+            setStatus('جاري تجهيز الم
+رفق للطباعة...', 'info');
             printArea.innerHTML = '';
             printArea.setAttribute('aria-hidden', 'false');
 
@@ -542,10 +585,15 @@
             } else if (isImageFile(payload)) {
                 await addImageToPrintArea();
             } else {
-                throw new Error('هذا النوع من الملفات لا يدعم الطباعة المباشرة.');
+                throw new Error('هذا النوع م
+ن الم
+لفات لا يدعم
+ الطباعة الم
+باشرة.');
             }
 
-            setStatus('تم تجهيز الطباعة. ستظهر نافذة الطابعة الآن.', 'success');
+            setStatus('تم
+ تجهيز الطباعة. ستظهر نافذة الطابعة الآن.', 'success');
             window.addEventListener('afterprint', cleanupPrintArea);
 
             requestAnimationFrame(() => {
@@ -558,10 +606,12 @@
             console.error(error);
             isPrinting = false;
             printButton.disabled = false;
-            printButton.textContent = '🖨️ طباعة المرفق';
+            printButton.textContent = '🖨️ طباعة الم
+رفق';
             printArea.innerHTML = '';
             printArea.setAttribute('aria-hidden', 'true');
-            setStatus(error.message || 'تعذر تجهيز الملف للطباعة.', 'error');
+            setStatus(error.message || 'تعذر تجهيز الم
+لف للطباعة.', 'error');
         }
     }
 

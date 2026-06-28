@@ -1,10 +1,12 @@
 @extends('layouts.app')
 
-@section('title', 'تعديل نوع مستند')
+@section('title', 'تعديل نوع م
+ستند')
 
 @section('content')
     <div class="page-title">
-        <h1>تعديل نوع مستند</h1>
+        <h1>تعديل نوع م
+ستند</h1>
         @if(auth()->user()?->hasPermission('document_types.manage'))
         <a href="{{ route('document-types.index') }}" class="btn btn-secondary">رجوع</a>
         @endif
@@ -16,7 +18,8 @@
             @method('PUT')
             <div class="form-grid">
                 <div class="form-group">
-                    <label>اسم النوع</label>
+                    <label>اسم
+ النوع</label>
                     <input type="text" name="name" value="{{ old('name', $documentType->name) }}" required>
                 </div>
                 <div class="form-group">

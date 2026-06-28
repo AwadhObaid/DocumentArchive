@@ -2,7 +2,11 @@
 
 @section('title', 'سجل النشاط')
 @section('page_title', 'سجل النشاط')
-@section('page_subtitle', 'متابعة العمليات التي تمت على الكتب، المرفقات، والطباعة')
+@section('page_subtitle', 'م
+تابعة العم
+ليات التي تم
+ت على الكتب، الم
+رفقات، والطباعة')
 
 @section('content')
     <div class="page-title">
@@ -15,13 +19,19 @@
             <div class="form-grid">
                 <div class="form-group">
                     <label>بحث</label>
-                    <input type="text" name="q" value="{{ request('q') }}" placeholder="العملية / الوصف / رقم السجل">
+                    <input type="text" name="q" value="{{ request('q') }}" placeholder="العم
+لية / الوصف / رقم
+ السجل">
                 </div>
 
                 <div class="form-group">
-                    <label>المستخدم</label>
+                    <label>الم
+ستخدم
+</label>
                     <select name="user_id">
-                        <option value="">كل المستخدمين</option>
+                        <option value="">كل الم
+ستخدم
+ين</option>
                         @foreach($users as $user)
                             <option value="{{ $user->id }}" @selected(request('user_id') == $user->id)>
                                 {{ $user->name }} - {{ $user->username }}
@@ -31,9 +41,11 @@
                 </div>
 
                 <div class="form-group">
-                    <label>نوع العملية</label>
+                    <label>نوع العم
+لية</label>
                     <select name="action">
-                        <option value="">كل العمليات</option>
+                        <option value="">كل العم
+ليات</option>
                         @foreach($actions as $action)
                             <option value="{{ $action }}" @selected(request('action') === $action)>
                                 {{ \App\Models\ActivityLog::actionLabel($action) }}
@@ -43,7 +55,8 @@
                 </div>
 
                 <div class="form-group">
-                    <label>من تاريخ</label>
+                    <label>م
+ن تاريخ</label>
                     <input type="date" name="date_from" value="{{ request('date_from') }}">
                 </div>
 
@@ -69,8 +82,11 @@
             <thead>
             <tr>
                 <th>التاريخ والوقت</th>
-                <th>المستخدم</th>
-                <th>العملية</th>
+                <th>الم
+ستخدم
+</th>
+                <th>العم
+لية</th>
                 <th>الوصف</th>
                 <th>العنصر</th>
             </tr>
@@ -79,14 +95,17 @@
             @forelse($logs as $log)
                 <tr>
                     <td>{{ $log->created_at?->format('Y-m-d H:i:s') }}</td>
-                    <td>{{ $log->user?->name ?? 'النظام' }}</td>
+                    <td>{{ $log->user?->name ?? 'النظام
+' }}</td>
                     <td><span class="badge">{{ $log->action_label }}</span></td>
                     <td>{{ $log->description ?? '-' }}</td>
                     <td>{{ $log->model_label }}</td>
                 </tr>
             @empty
                 <tr>
-                    <td colspan="5">لا توجد عمليات مسجلة حتى الآن.</td>
+                    <td colspan="5">لا توجد عم
+ليات م
+سجلة حتى الآن.</td>
                 </tr>
             @endforelse
             </tbody>
