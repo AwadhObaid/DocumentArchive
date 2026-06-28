@@ -114,8 +114,9 @@
             a { color: inherit; text-decoration: none; }
         }
     </style>
+    <link rel="stylesheet" href="{{ asset('css/professional-report-table-fit-fix.css') }}?v=20260628v2">
 </head>
-<body>
+<body class="professional-report-page">
     <div class="screen-toolbar">
         <a href="{{ route('reports.index', request()->query()) }}" class="btn-light">رجوع للتقارير</a>
         <button type="button" onclick="window.print()" class="btn-primary">🖨️ طباعة / حفظ PDF</button>
@@ -178,7 +179,7 @@
                 @if($documents->isEmpty())
                     <div class="empty">لا توجد كتب مطابقة للفلاتر الحالية.</div>
                 @else
-                    <table>
+                    <table class="professional-report-table professional-report-details-table">
                         <thead>
                             <tr>
                                 <th style="width: 13%;">رقم الكتاب</th>

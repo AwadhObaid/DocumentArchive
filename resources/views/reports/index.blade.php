@@ -65,7 +65,57 @@
 
         <div class="report-filter-box no-print">
             @if(auth()->user()?->hasPermission('reports.view'))
-            <form method="GET" action="{{ route('reports.index') }}" class="report-filter-grid">
+            
+{{-- REPORTS_PRINT_BUTTON_FIX_START --}}
+<style>
+    .reports-print-button-panel {
+        display: flex;
+        justify-content: flex-start;
+        align-items: center;
+        gap: .65rem;
+        flex-wrap: wrap;
+        margin: 0 0 1rem 0;
+        direction: rtl;
+    }
+
+    .reports-print-button-panel .report-print-professional-btn {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: .45rem;
+        min-height: 40px;
+        padding: .65rem 1rem;
+        border-radius: .7rem;
+        border: 1px solid rgba(59, 130, 246, .35);
+        background: linear-gradient(135deg, #2563eb, #1d4ed8);
+        color: #fff !important;
+        text-decoration: none !important;
+        font-weight: 800;
+        line-height: 1;
+        box-shadow: 0 10px 22px rgba(37, 99, 235, .18);
+        white-space: nowrap;
+    }
+
+    .reports-print-button-panel .report-print-professional-btn:hover {
+        transform: translateY(-1px);
+        filter: brightness(1.04);
+    }
+
+    @media print {
+        .reports-print-button-panel {
+            display: none !important;
+        }
+    }
+</style>
+
+<div class="reports-print-button-panel" aria-label="إجراءات التقرير الرسمي">
+    <a href="{{ url('/reports/print') }}" class="report-print-professional-btn" target="_blank" rel="noopener">
+        <span aria-hidden="true">🧾</span>
+        <span>تقرير رسمي منسق</span>
+    </a>
+</div>
+{{-- REPORTS_PRINT_BUTTON_FIX_END --}}
+<form method="GET" action="{{ route('reports.index') }}" class="report-filter-grid">
                 <div>
                     <label>من تاريخ</label>
                     <input type="date" name="date_from" value="{{ $filters['date_from'] }}">

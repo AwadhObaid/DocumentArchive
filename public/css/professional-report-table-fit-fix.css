@@ -1,0 +1,138 @@
+/* Professional report table fit fix - V2 */
+
+.professional-report-page,
+body.professional-report-page {
+    overflow-x: visible !important;
+}
+
+.professional-report-page .professional-report-table,
+.professional-report-page table {
+    width: 100% !important;
+    max-width: 100% !important;
+    border-collapse: collapse !important;
+    table-layout: fixed !important;
+}
+
+.professional-report-page .professional-report-table th,
+.professional-report-page .professional-report-table td,
+.professional-report-page table th,
+.professional-report-page table td {
+    vertical-align: middle !important;
+    white-space: normal !important;
+    word-break: break-word !important;
+    overflow-wrap: anywhere !important;
+    line-height: 1.45 !important;
+}
+
+.professional-report-page .professional-report-details-table {
+    font-size: 10px !important;
+}
+
+.professional-report-page .professional-report-details-table th,
+.professional-report-page .professional-report-details-table td {
+    padding: 6px 5px !important;
+}
+
+/* Source order is respected even with RTL direction. These widths are tuned for the details table. */
+.professional-report-page .professional-report-details-table th:nth-child(1),
+.professional-report-page .professional-report-details-table td:nth-child(1) { width: 11% !important; }
+.professional-report-page .professional-report-details-table th:nth-child(2),
+.professional-report-page .professional-report-details-table td:nth-child(2) { width: 10% !important; }
+.professional-report-page .professional-report-details-table th:nth-child(3),
+.professional-report-page .professional-report-details-table td:nth-child(3) { width: 17% !important; }
+.professional-report-page .professional-report-details-table th:nth-child(4),
+.professional-report-page .professional-report-details-table td:nth-child(4) { width: 12% !important; }
+.professional-report-page .professional-report-details-table th:nth-child(5),
+.professional-report-page .professional-report-details-table td:nth-child(5) { width: 9% !important; }
+.professional-report-page .professional-report-details-table th:nth-child(6),
+.professional-report-page .professional-report-details-table td:nth-child(6) { width: 13% !important; }
+.professional-report-page .professional-report-details-table th:nth-child(7),
+.professional-report-page .professional-report-details-table td:nth-child(7) { width: 13% !important; }
+.professional-report-page .professional-report-details-table th:nth-child(8),
+.professional-report-page .professional-report-details-table td:nth-child(8) { width: 7% !important; }
+.professional-report-page .professional-report-details-table th:nth-child(9),
+.professional-report-page .professional-report-details-table td:nth-child(9) { width: 8% !important; }
+
+.professional-report-page .table-responsive,
+.professional-report-page .report-table-wrapper,
+.professional-report-page .overflow-x-auto {
+    overflow: visible !important;
+    max-width: 100% !important;
+}
+
+@media screen {
+    .professional-report-page .professional-report-details-table {
+        min-width: 0 !important;
+    }
+}
+
+@media print {
+    @page {
+        size: A4 landscape;
+        margin: 8mm;
+    }
+
+    html,
+    body {
+        width: auto !important;
+        min-width: 0 !important;
+        overflow: visible !important;
+        background: #ffffff !important;
+    }
+
+    .professional-report-page,
+    body.professional-report-page {
+        width: 100% !important;
+        max-width: none !important;
+        margin: 0 !important;
+        padding: 0 !important;
+        overflow: visible !important;
+        box-shadow: none !important;
+    }
+
+    .professional-report-page * {
+        -webkit-print-color-adjust: exact !important;
+        print-color-adjust: exact !important;
+    }
+
+    .professional-report-page .professional-report-table,
+    .professional-report-page table {
+        width: 100% !important;
+        max-width: 100% !important;
+        min-width: 0 !important;
+        table-layout: fixed !important;
+        page-break-inside: auto !important;
+    }
+
+    .professional-report-page thead {
+        display: table-header-group !important;
+    }
+
+    .professional-report-page tr {
+        page-break-inside: avoid !important;
+        break-inside: avoid !important;
+    }
+
+    .professional-report-page th,
+    .professional-report-page td {
+        font-size: 8.5px !important;
+        padding: 4px 3px !important;
+        line-height: 1.35 !important;
+        white-space: normal !important;
+        word-break: break-word !important;
+        overflow-wrap: anywhere !important;
+    }
+
+    .professional-report-page .professional-report-details-table th,
+    .professional-report-page .professional-report-details-table td {
+        font-size: 8px !important;
+        padding: 4px 3px !important;
+    }
+
+    .professional-report-page .print-actions,
+    .professional-report-page .no-print,
+    .professional-report-page button,
+    .professional-report-page a.btn {
+        display: none !important;
+    }
+}
