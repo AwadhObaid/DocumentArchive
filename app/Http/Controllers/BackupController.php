@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\ActivityLog;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -58,6 +59,8 @@ class BackupController extends Controller
             $zip->addFromString('README.txt', $this->backupReadme('نسخة قاعدة البيانات'));
             $zip->close();
 
+            $this->logBackupEvent('backup.database_created', $fileName, 'إنشاء نسخة احتياطية من قاعدة البيانات');
+
             return back()->with('success', 'تم إنشاء نسخة احتياطية من قاعدة البيانات بنجاح.');
         } catch (Throwable $e) {
             report($e);
@@ -82,6 +85,8 @@ class BackupController extends Controller
             $this->addDirectoryToZip($zip, storage_path('app/private/documents'), 'documents');
             $zip->addFromString('README.txt', $this->backupReadme('نسخة ملفات المرفقات'));
             $zip->close();
+
+            $this->logBackupEvent('backup.files_created', $fileName, 'إنشاء نسخة احتياطية من ملفات المرفقات');
 
             return back()->with('success', 'تم إنشاء نسخة احتياطية من ملفات المرفقات بنجاح.');
         } catch (Throwable $e) {
@@ -109,6 +114,8 @@ class BackupController extends Controller
             $this->addDirectoryToZip($zip, storage_path('app/private/documents'), 'documents');
             $zip->addFromString('README.txt', $this->backupReadme('نسخة كاملة: قاعدة البيانات + المرفقات'));
             $zip->close();
+
+            $this->logBackupEvent('backup.full_created', $fileName, 'إنشاء نسخة احتياطية كاملة');
 
             return back()->with('success', 'تم إنشاء نسخة احتياطية كاملة بنجاح.');
         } catch (Throwable $e) {
@@ -159,6 +166,7 @@ class BackupController extends Controller
         try {
             $this->createPreRestoreDatabaseBackup();
             $this->restoreDatabaseFromZip($fileName);
+            $this->logBackupEvent('backup.database_restored', $fileName, 'استعادة قاعدة البيانات من نسخة احتياطية');
 
             return redirect()
                 ->route('backups.index')
@@ -179,6 +187,7 @@ class BackupController extends Controller
         try {
             $this->createPreRestoreFilesBackup();
             $this->restoreDocumentsFromZip($fileName);
+            $this->logBackupEvent('backup.files_restored', $fileName, 'استعادة ملفات المرفقات من نسخة احتياطية');
 
             return redirect()
                 ->route('backups.index')
@@ -201,6 +210,7 @@ class BackupController extends Controller
             $this->createPreRestoreFilesBackup();
             $this->restoreDatabaseFromZip($fileName);
             $this->restoreDocumentsFromZip($fileName);
+            $this->logBackupEvent('backup.files_restored', $fileName, 'استعادة ملفات المرفقات من نسخة احتياطية');
 
             return redirect()
                 ->route('backups.index')
@@ -234,6 +244,7 @@ class BackupController extends Controller
 
         if (File::exists($path)) {
             File::delete($path);
+            $this->logBackupEvent('backup.deleted', $fileName, 'حذف ملف نسخة احتياطية');
         }
 
         return back()->with('success', 'تم حذف ملف النسخة الاحتياطية بنجاح.');
@@ -1139,6 +1150,28 @@ class BackupController extends Controller
         // لم تعد الاستعادة اليومية تغير جدول users نهائياً.
         // تبقى الدالة موجودة للتوافق مع أي استدعاءات قديمة فقط.
     }
+
+    private function logBackupEvent(string $action, string $fileName, string $description): void
+    {
+        try {
+            ActivityLog::create([
+                'user_id' => auth()->id(),
+                'action' => $action,
+                'model_type' => 'Backup',
+                'model_id' => null,
+                'description' => $description . ': ' . $fileName,
+                'properties' => [
+                    'file_name' => $fileName,
+                    'backup_path' => storage_path('app/private/' . $this->backupFolder . '/' . basename($fileName)),
+                ],
+                'ip_address' => request()?->ip(),
+                'user_agent' => substr((string) request()?->userAgent(), 0, 1000),
+            ]);
+        } catch (Throwable) {
+            // لا نوقف النسخ الاحتياطي أو الاستعادة إذا تعذر تسجيل النشاط.
+        }
+    }
+
     private function formatBytes(int $bytes): string
     {
         if ($bytes >= 1073741824) {

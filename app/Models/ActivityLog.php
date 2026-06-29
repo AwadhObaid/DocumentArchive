@@ -69,6 +69,14 @@ class ActivityLog extends Model
             'settings.updated' => 'تعديل الإعدادات',
             'auth.login' => 'تسجيل دخول',
             'auth.logout' => 'تسجيل خروج',
+
+            'backup.database_created' => 'إنشاء نسخة قاعدة البيانات',
+            'backup.files_created' => 'إنشاء نسخة ملفات المرفقات',
+            'backup.full_created' => 'إنشاء نسخة كاملة',
+            'backup.database_restored' => 'استعادة قاعدة البيانات من نسخة',
+            'backup.files_restored' => 'استعادة ملفات المرفقات من نسخة',
+            'backup.full_restored' => 'استعادة نسخة كاملة',
+            'backup.deleted' => 'حذف نسخة احتياطية',
         ];
     }
 
@@ -101,6 +109,7 @@ class ActivityLog extends Model
             'DocumentType' => 'نوع كتاب',
             'User' => 'مستخدم',
             'Setting' => 'إعداد',
+            'Backup' => 'نسخة احتياطية',
             default => $baseName,
         };
 
