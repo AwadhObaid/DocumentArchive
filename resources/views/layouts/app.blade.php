@@ -19,8 +19,6 @@
 <!-- Documents grid actions inline fix:start -->
 <link rel="stylesheet" href="{{ asset('css/documents-grid-actions-fix.css') }}">
 <!-- Documents grid actions inline fix:end -->
-    <link rel="stylesheet" href="{{ asset('css/qr-total-isolation-v6.css') }}?v={{ filemtime(public_path('css/qr-total-isolation-v6.css')) }}">
-    <link rel="stylesheet" href="{{ asset('css/qr-global-isolation-v9.css') }}">
     <link rel="stylesheet" href="{{ asset('css/arabic-ellipsis-display-fix.css') }}?v={{ time() }}">
     <link rel="stylesheet" href="{{ asset('css/arabic-ui-final-fix.css') }}?v=2026062802">
     {{-- Arabic UI V4 final guard --}}
@@ -152,13 +150,9 @@
 <!-- Documents grid actions inline fix script:end -->
     {{-- notification-center-include --}}
     @include('partials.notification-center')
-    <script src="{{ asset('js/qr-total-isolation-v6.js') }}?v={{ filemtime(public_path('js/qr-total-isolation-v6.js')) }}" defer></script>
-    <script src="{{ asset('js/qr-global-isolation-v9.js') }}" defer></script>
     <script src="{{ asset('js/arabic-ellipsis-display-fix.js') }}?v={{ time() }}"></script>
     <script src="{{ asset('js/arabic-ui-final-fix.js') }}?v=2026062802"></script>
     {{-- Arabic UI V4 final guard --}}
     <script src="{{ asset('js/arabic-text-mojibake-v4.js') }}?v={{ filemtime(public_path('js/arabic-text-mojibake-v4.js')) }}" defer></script>
 </body>
 </html>
-
-

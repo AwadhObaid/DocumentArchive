@@ -1,8 +1,6 @@
 @php
-    $doc = $document ?? ($daQrDocument ?? null);
-    $docId = data_get($doc, 'id');
+    $doc = $document ?? null;
     $referenceNumber = data_get($doc, 'reference_number', data_get($doc, 'document_no', ''));
-    $departmentName = data_get($doc, 'department.name') ?: data_get($doc, 'department_name') ?: data_get($doc, 'department') ?: 'الشحن والتأمين';
     $referenceDateRaw = data_get($doc, 'reference_date', data_get($doc, 'date', null));
 
     try {
@@ -11,53 +9,24 @@
         $referenceDate = (string) $referenceDateRaw;
     }
 
-    $settings = [];
-    try {
-        if (\Illuminate\Support\Facades\Schema::hasTable('qr_print_settings')) {
-            $settings = \Illuminate\Support\Facades\DB::table('qr_print_settings')->pluck('value', 'key')->toArray();
+    $setting = function (string $key, $default = null) {
+        try {
+            if (class_exists(\App\Models\Setting::class)) {
+                return \App\Models\Setting::getValue($key, $default);
+            }
+        } catch (\Throwable $e) {
+            return $default;
         }
-    } catch (\Throwable $e) {
-        $settings = [];
-    }
-
-    $setting = function (string $key, $default = null) use ($settings) {
-        return array_key_exists($key, $settings) && $settings[$key] !== '' && $settings[$key] !== null
-            ? $settings[$key]
-            : $default;
+        return $default;
     };
 
-    $boolSetting = function (string $key, bool $default = true) use ($setting) {
-        $value = $setting($key, $default ? '1' : '0');
-        $bool = filter_var($value, FILTER_VALIDATE_BOOLEAN, FILTER_NULL_ON_FAILURE);
-        return $bool === null ? ((string) $value !== '0') : $bool;
-    };
+    $departmentTitle = data_get($doc, 'print_title')
+        ?: $setting('print_department_title', data_get($doc, 'department.name') ?: 'الشحن والتأمين');
 
-    $num = function (string $key, $default) use ($setting) {
-        return (float) $setting($key, $default);
-    };
-
-    $showQr = $boolSetting('qr_enabled', true);
-    $showLabel = $boolSetting('qr_label_enabled', true);
-    $qrX = $num('qr_x_mm', 70);
-    $qrY = $num('qr_y_mm', 28);
-    $qrSize = $num('qr_size_mm', 16);
-    $qrPadding = $num('qr_card_padding_mm', 1);
-    $qrLabelText = trim((string) $setting('qr_label_text', 'رمز الوصول الإلكتروني'));
-    $qrLabelFont = $num('qr_label_font_size_mm', 2.1);
-    $qrBackground = $boolSetting('qr_background_enabled', true);
-    $qrBorder = $boolSetting('qr_show_border', true);
-
-    $blockX = $num('print_block_x_mm', 106);
-    $blockY = $num('print_block_y_mm', 28);
-    $fontSize = $num('print_font_size_pt', 10.5);
-    $departmentFontSize = $num('print_department_font_size_pt', 11);
-    $lineHeight = $num('print_line_height', 1.35);
-    $labelWidth = $num('print_label_width_mm', 27);
-    $colonWidth = $num('print_colon_width_mm', 4);
-    $valueWidth = $num('print_value_width_mm', 36);
-    $blockWidth = $labelWidth + $colonWidth + $valueWidth + 4;
-
-    $qrUrl = $docId ? url('/documents/' . $docId . '/qr.svg') : '';
+    $topMm = (float) (data_get($doc, 'print_top_mm') ?: $setting('print_top_mm', '53.30'));
+    $leftMm = (float) (data_get($doc, 'print_left_mm') ?: $setting('print_left_mm', '30.80'));
+    $fontSizePt = (float) $setting('print_font_size_pt', '12');
+    $docId = data_get($doc, 'id');
 @endphp
 <!doctype html>
 <html lang="ar" dir="rtl">
@@ -73,13 +42,13 @@
             padding: 0;
             background: #eef0f4;
             font-family: Tahoma, Arial, sans-serif;
-            color: #111827;
+            color: #000;
         }
         .da-toolbar {
             position: fixed;
             top: 10px;
             left: 10px;
-            z-index: 10;
+            z-index: 20;
             display: flex;
             gap: 8px;
         }
@@ -104,81 +73,34 @@
             overflow: hidden;
             box-shadow: 0 0 0 1px #d1d5db;
         }
-        .da-reference-block {
+        .reference-print-block {
             position: absolute;
-            left: {{ $blockX }}mm;
-            top: {{ $blockY }}mm;
-            width: {{ $blockWidth }}mm;
-            font-size: {{ $fontSize }}pt;
+            top: {{ $topMm }}mm;
+            left: {{ $leftMm }}mm;
+            width: 58mm;
+            direction: rtl;
+            text-align: right;
             font-weight: 700;
-            line-height: {{ $lineHeight }};
-            text-align: right;
-            direction: rtl;
-            color: #111827;
+            color: #000;
+            font-size: {{ $fontSizePt }}pt;
+            line-height: 1.35;
         }
-        .da-dept {
+        .reference-print-title {
             text-align: center;
-            margin: 0 0 1.8mm;
-            font-size: {{ $departmentFontSize }}pt;
-            font-weight: 800;
-            line-height: 1.25;
+            margin: 0 0 3mm;
+            font-size: {{ max(8, $fontSizePt - 1) }}pt;
+            font-weight: 700;
         }
-        .da-reference-table {
-            border-collapse: collapse;
-            width: 100%;
-        }
-        .da-reference-table th,
-        .da-reference-table td {
-            padding: 0.6mm 0;
-            border: 0;
-            background: transparent;
-            color: #111827;
-            font-size: {{ $fontSize }}pt;
-            font-weight: 800;
-            line-height: {{ $lineHeight }};
+        .reference-row {
+            display: grid;
+            grid-template-columns: 24mm 4mm 30mm;
+            align-items: baseline;
+            margin-bottom: 1.6mm;
             white-space: nowrap;
         }
-        .da-reference-table th {
-            width: {{ $labelWidth }}mm;
-            text-align: right;
-        }
-        .da-reference-table .da-colon {
-            width: {{ $colonWidth }}mm;
-            text-align: center;
-        }
-        .da-reference-table .da-value {
-            width: {{ $valueWidth }}mm;
-            text-align: left;
-            direction: ltr;
-        }
-        .da-print-qr-only {
-            position: absolute;
-            left: {{ $qrX }}mm;
-            top: {{ $qrY }}mm;
-            width: {{ $qrSize + ($qrPadding * 2) }}mm;
-            min-height: {{ $qrSize + ($qrPadding * 2) + 5 }}mm;
-            padding: {{ $qrPadding }}mm;
-            background: {{ $qrBackground ? '#fff' : 'transparent' }};
-            border: {{ $qrBorder ? '0.25mm solid #d1d5db' : '0' }};
-            border-radius: 2mm;
-            text-align: center;
-            direction: rtl;
-        }
-        .da-print-qr-only img {
-            display: block;
-            width: {{ $qrSize }}mm;
-            height: {{ $qrSize }}mm;
-            margin: 0 auto;
-            object-fit: contain;
-        }
-        .da-print-qr-label {
-            margin-top: 0.8mm;
-            font-size: {{ $qrLabelFont }}mm;
-            color: #555;
-            line-height: 1.15;
-            white-space: nowrap;
-            font-weight: 400;
-        }
+        .reference-label { text-align: right; direction: rtl; }
+        .reference-colon { text-align: center; }
+        .reference-value { text-align: left; direction: ltr; }
         @media print {
             html, body { background: #fff; }
             .da-toolbar { display: none !important; }
@@ -186,37 +108,26 @@
         }
     </style>
 </head>
-<body class="da-print-reference-page">
+<body class="print-reference-page no-qr-print-page">
     <div class="da-toolbar">
         <button class="da-btn da-btn-print" onclick="window.print()">طباعة</button>
         <a class="da-btn da-btn-back" href="{{ $docId ? url('/documents/' . $docId) : url('/documents') }}">رجوع</a>
     </div>
 
     <main class="da-a4-page">
-        <section class="da-reference-block">
-            <div class="da-dept">{{ $departmentName }}</div>
-            <table class="da-reference-table">
-                <tr>
-                    <th>رقم الكتاب</th>
-                    <td class="da-colon">:</td>
-                    <td class="da-value">{{ $referenceNumber }}</td>
-                </tr>
-                <tr>
-                    <th>تاريخ الكتاب</th>
-                    <td class="da-colon">:</td>
-                    <td class="da-value">{{ $referenceDate }}</td>
-                </tr>
-            </table>
+        <section class="reference-print-block">
+            <div class="reference-print-title">{{ $departmentTitle }}</div>
+            <div class="reference-row">
+                <div class="reference-label">رقم الكتاب</div>
+                <div class="reference-colon">:</div>
+                <div class="reference-value">{{ $referenceNumber }}</div>
+            </div>
+            <div class="reference-row">
+                <div class="reference-label">تاريخ الكتاب</div>
+                <div class="reference-colon">:</div>
+                <div class="reference-value">{{ $referenceDate }}</div>
+            </div>
         </section>
-
-        @if($showQr && $qrUrl)
-            <section class="da-print-qr-only" data-da-print-qr="1">
-                <img src="{{ $qrUrl }}" alt="رمز الوصول الإلكتروني">
-                @if($showLabel && $qrLabelText !== '')
-                    <div class="da-print-qr-label">{{ $qrLabelText }}</div>
-                @endif
-            </section>
-        @endif
     </main>
 </body>
 </html>

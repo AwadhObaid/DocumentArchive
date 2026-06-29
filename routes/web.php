@@ -1,7 +1,5 @@
 <?php
 
-use App\Http\Controllers\QrPrintSettingsController;
-use App\Http\Controllers\DocumentQrController;
 use App\Http\Controllers\ActivityLogController;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\BackupController;
@@ -127,7 +125,6 @@ Route::middleware(['auth', ApplyRoutePermissions::class])->group(function () {
 
     Route::resource('users', UserController::class)->except(['show']);
 
-
     // Reports routes
     Route::get('/reports', [ReportController::class, 'index'])->name('reports.index');
     Route::get('/reports/export', [ReportController::class, 'export'])->name('reports.export');
@@ -144,7 +141,6 @@ Route::middleware(['auth', ApplyRoutePermissions::class])->group(function () {
 
     Route::get('/backups/{fileName}/inspect', [BackupController::class, 'inspect'])->name('backups.inspect');
 });
-
 
 // Professional printable data quality report
 Route::get('/data-quality/print', [\App\Http\Controllers\DataQualityPrintController::class, 'index'])->middleware(['auth'])->name('data-quality.print');
@@ -170,7 +166,6 @@ Route::middleware(['auth'])->group(function () {
     Route::post('/notifications/hide-read', [\App\Http\Controllers\NotificationCenterController::class, 'hideRead'])->name('notifications.hide-read');
     Route::delete('/notifications/clear-hidden', [\App\Http\Controllers\NotificationCenterController::class, 'clearHidden'])->name('notifications.clear-hidden');
 });
-
 
 /*
 |--------------------------------------------------------------------------
@@ -218,12 +213,4 @@ Route::middleware(['auth'])->group(function () {
     Route::post('/notifications/{notification}/read', [\App\Http\Controllers\NotificationCenterController::class, 'read'])->name('notifications.read');
     Route::post('/notifications/{notification}/hide', [\App\Http\Controllers\NotificationCenterController::class, 'hide'])->name('notifications.hide');
     Route::delete('/notifications/{notification}', [\App\Http\Controllers\NotificationCenterController::class, 'destroy'])->name('notifications.destroy');
-});
-
-Route::get('/documents/{document}/qr.svg', [DocumentQrController::class, 'show'])->middleware('auth')->name('documents.qr');
-
-
-Route::middleware(['auth'])->group(function () {
-    Route::get('/settings/qr-print-position', [QrPrintSettingsController::class, 'edit'])->name('settings.qr-print-position');
-    Route::post('/settings/qr-print-position', [QrPrintSettingsController::class, 'update'])->name('settings.qr-print-position.update');
 });
