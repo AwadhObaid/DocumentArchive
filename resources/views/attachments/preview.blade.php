@@ -65,6 +65,11 @@
         margin-bottom: 14px;
     }
 
+    .attachment-preview-toolbar-clean .btn[disabled] {
+        opacity: .55;
+        cursor: not-allowed;
+    }
+
     .attachment-preview-box-clean {
         width: 100%;
         min-height: 72vh;
@@ -139,6 +144,17 @@
         display: none !important;
     }
 
+    .attachment-print-frame-hidden {
+        position: fixed;
+        inset-inline-start: -10000px;
+        top: 0;
+        width: 1px;
+        height: 1px;
+        border: 0;
+        opacity: 0;
+        pointer-events: none;
+    }
+
     @media print {
         .sidebar,
         .topbar,
@@ -200,14 +216,18 @@
                     <a href="{{ url()->previous() }}" class="btn btn-secondary">رجوع</a>
                 @endif
 
-                <a href="{{ $inlineUrl }}" target="_blank" rel="noopener" class="btn btn-warning">فتح في تبويب جديد</a>
+                @if($canPreview)
+                    <button type="button" class="btn btn-warning" id="attachmentOpenOriginalBtn" disabled>فتح في تبويب جديد</button>
+                @else
+                    <a href="{{ $inlineUrl }}" target="_blank" rel="noopener" class="btn btn-warning">فتح في تبويب جديد</a>
+                @endif
 
                 @if(auth()->user()?->hasPermission('attachments.download'))
                     <a href="{{ $downloadUrl }}" class="btn btn-primary">تنزيل المرفق</a>
                 @endif
 
                 @if($canPreview)
-                    <button type="button" class="btn btn-success" onclick="window.print()">طباعة المعاينة</button>
+                    <button type="button" class="btn btn-success" id="attachmentPrintOriginalBtn" disabled>طباعة المرفق</button>
                 @endif
             </div>
         </div>
@@ -230,6 +250,7 @@
                     @endif
                 </div>
             </div>
+            <iframe id="attachmentPrintFrame" class="attachment-print-frame-hidden" title="طباعة المرفق"></iframe>
         @else
             <div class="attachment-preview-message-clean">
                 <h3>لا يمكن معاينة هذا النوع مباشرة داخل المتصفح</h3>
@@ -251,15 +272,153 @@
     const box = document.getElementById('attachmentPreviewBox');
     const loading = document.getElementById('attachmentPreviewLoading');
     const fallback = document.getElementById('attachmentPreviewFallback');
+    const printButton = document.getElementById('attachmentPrintOriginalBtn');
+    const openButton = document.getElementById('attachmentOpenOriginalBtn');
+    const printFrame = document.getElementById('attachmentPrintFrame');
 
     if (!box) return;
 
     const previewType = box.dataset.previewType;
     const dataUrl = box.dataset.dataUrl;
 
+    let previewObjectUrl = null;
+    let previewPayload = null;
+
     function showFallback() {
         if (loading) loading.remove();
         if (fallback) fallback.classList.remove('attachment-preview-hidden');
+    }
+
+    function enableActions() {
+        if (openButton) openButton.disabled = false;
+        if (printButton) printButton.disabled = false;
+    }
+
+    function blobFromBase64(base64, mimeType) {
+        const byteCharacters = atob(base64);
+        const byteArrays = [];
+        const sliceSize = 1024;
+
+        for (let offset = 0; offset < byteCharacters.length; offset += sliceSize) {
+            const slice = byteCharacters.slice(offset, offset + sliceSize);
+            const byteNumbers = new Array(slice.length);
+
+            for (let i = 0; i < slice.length; i++) {
+                byteNumbers[i] = slice.charCodeAt(i);
+            }
+
+            byteArrays.push(new Uint8Array(byteNumbers));
+        }
+
+        return new Blob(byteArrays, { type: mimeType });
+    }
+
+    function renderImage(objectUrl, fileName) {
+        const wrap = document.createElement('div');
+        wrap.className = 'attachment-preview-image-wrap-clean';
+
+        const image = document.createElement('img');
+        image.className = 'attachment-preview-image-clean';
+        image.alt = fileName || 'معاينة المرفق';
+        image.src = objectUrl;
+
+        wrap.appendChild(image);
+        box.appendChild(wrap);
+    }
+
+    function renderPdf(objectUrl, fileName) {
+        const frame = document.createElement('iframe');
+        frame.className = 'attachment-preview-frame-clean';
+        frame.title = fileName || 'معاينة المرفق';
+        frame.src = objectUrl + '#toolbar=1&navpanes=0&scrollbar=1';
+        box.appendChild(frame);
+    }
+
+    function printImageOriginal() {
+        if (!printFrame || !previewObjectUrl) return false;
+
+        const frameWindow = printFrame.contentWindow;
+        const frameDocument = frameWindow.document;
+        const safeTitle = (previewPayload && previewPayload.file_name) ? previewPayload.file_name : 'طباعة المرفق';
+
+        frameDocument.open();
+        frameDocument.write('<!doctype html><html><head><meta charset="utf-8"><title>' + safeTitle.replace(/[<>&"]/g, '') + '</title><style>@page{margin:10mm;}html,body{margin:0;padding:0;background:#fff;}body{min-height:100vh;display:flex;align-items:center;justify-content:center;}img{max-width:100%;max-height:100vh;object-fit:contain;}</style></head><body><img id="printImage" src="' + previewObjectUrl + '" alt=""></body></html>');
+        frameDocument.close();
+
+        const image = frameDocument.getElementById('printImage');
+        const doPrint = function () {
+            try {
+                frameWindow.focus();
+                frameWindow.print();
+            } catch (error) {
+                alert('تعذرت الطباعة التلقائية. يمكنك فتح الملف في تبويب جديد ثم طباعته.');
+            }
+        };
+
+        if (image.complete) {
+            setTimeout(doPrint, 250);
+        } else {
+            image.onload = function () { setTimeout(doPrint, 250); };
+            image.onerror = function () { alert('تعذرت طباعة الصورة. يمكنك فتح الملف في تبويب جديد ثم طباعته.'); };
+        }
+
+        return true;
+    }
+
+    function printPdfOriginal() {
+        if (!printFrame || !previewObjectUrl) return false;
+
+        let printed = false;
+        printFrame.onload = function () {
+            if (printed) return;
+            printed = true;
+
+            setTimeout(function () {
+                try {
+                    printFrame.contentWindow.focus();
+                    printFrame.contentWindow.print();
+                } catch (error) {
+                    alert('تعذرت الطباعة التلقائية. يمكنك فتح الملف في تبويب جديد ثم طباعته.');
+                }
+            }, 800);
+        };
+
+        printFrame.src = previewObjectUrl;
+        return true;
+    }
+
+    function printOriginalAttachment() {
+        if (!previewObjectUrl || !previewPayload) {
+            alert('لم تكتمل المعاينة بعد. انتظر لحظة ثم حاول مرة أخرى.');
+            return;
+        }
+
+        if (previewType === 'image') {
+            printImageOriginal();
+            return;
+        }
+
+        printPdfOriginal();
+    }
+
+    function openOriginalAttachment() {
+        if (!previewObjectUrl) {
+            alert('لم تكتمل المعاينة بعد. انتظر لحظة ثم حاول مرة أخرى.');
+            return;
+        }
+
+        const opened = window.open(previewObjectUrl, '_blank', 'noopener');
+        if (!opened) {
+            alert('تعذر فتح التبويب الجديد. تحقق من إعدادات منع النوافذ المنبثقة في المتصفح.');
+        }
+    }
+
+    if (printButton) {
+        printButton.addEventListener('click', printOriginalAttachment);
+    }
+
+    if (openButton) {
+        openButton.addEventListener('click', openOriginalAttachment);
     }
 
     fetch(dataUrl, {
@@ -279,49 +438,29 @@
                 throw new Error('Invalid preview payload');
             }
 
-            const byteCharacters = atob(payload.base64);
-            const byteArrays = [];
-            const sliceSize = 1024;
-
-            for (let offset = 0; offset < byteCharacters.length; offset += sliceSize) {
-                const slice = byteCharacters.slice(offset, offset + sliceSize);
-                const byteNumbers = new Array(slice.length);
-
-                for (let i = 0; i < slice.length; i++) {
-                    byteNumbers[i] = slice.charCodeAt(i);
-                }
-
-                byteArrays.push(new Uint8Array(byteNumbers));
-            }
-
-            const blob = new Blob(byteArrays, { type: payload.mime_type });
-            const objectUrl = URL.createObjectURL(blob);
+            previewPayload = payload;
+            const blob = blobFromBase64(payload.base64, payload.mime_type);
+            previewObjectUrl = URL.createObjectURL(blob);
 
             if (loading) loading.remove();
 
             if (previewType === 'image') {
-                const wrap = document.createElement('div');
-                wrap.className = 'attachment-preview-image-wrap-clean';
-
-                const image = document.createElement('img');
-                image.className = 'attachment-preview-image-clean';
-                image.alt = payload.file_name || 'معاينة المرفق';
-                image.src = objectUrl;
-
-                wrap.appendChild(image);
-                box.appendChild(wrap);
-                return;
+                renderImage(previewObjectUrl, payload.file_name || payload.name);
+            } else {
+                renderPdf(previewObjectUrl, payload.file_name || payload.name);
             }
 
-            const frame = document.createElement('iframe');
-            frame.className = 'attachment-preview-frame-clean';
-            frame.title = payload.file_name || 'معاينة المرفق';
-            frame.src = objectUrl + '#toolbar=1&navpanes=0&scrollbar=1';
-            box.appendChild(frame);
+            enableActions();
         })
         .catch(function () {
             showFallback();
         });
+
+    window.addEventListener('beforeunload', function () {
+        if (previewObjectUrl) {
+            URL.revokeObjectURL(previewObjectUrl);
+        }
+    });
 })();
 </script>
 @endif
