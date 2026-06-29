@@ -117,7 +117,7 @@
 
             <div style="margin-top: 20px;">
                 <button type="submit" class="btn btn-success">
-                    حفظ وتوليد رقمالكتاب
+                    حفظ وتوليد رقم الكتاب
                 </button>
             </div>
         </form>
@@ -238,8 +238,8 @@
                 هل تريد المواصلة وإدراج نفس رقمالبوليصة؟
             `;
             info.innerHTML = `
-                <div><strong>رقمالكتاب السابق:</strong> ${escapeHtml(doc.reference_number || '-')}</div>
-                <div><strong>تاريخ الكتاب:</strong> ${escapeHtml(doc.reference_date || '-')}</div>
+                <div><strong>رقم الكتاب السابق:</strong> ${escapeHtml(doc.reference_number || '-')}</div>
+                <div><strong>تاريخ الكتاب :</strong> ${escapeHtml(doc.reference_date || '-')}</div>
                 <div><strong>الموضوع:</strong> ${escapeHtml(doc.subject || doc.title || '-')}</div>
                 <div><strong>البوليصة الرئيسية:</strong> ${escapeHtml(doc.main_policy_number || '-')}</div>
                 <div><strong>البوليصة الفرعية:</strong> ${escapeHtml(doc.sub_policy_number || '-')}</div>

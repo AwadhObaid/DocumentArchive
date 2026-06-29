@@ -1,5 +1,5 @@
 @php
-    $systemTitle = 'نظامالأرشيف الإلكتروني الخاص بقسمالشحن والتأمين';
+    $systemTitle = 'نظام الأرشيف الإلكتروني الخاص بقسم الشحن والتأمين';
     $reportTitle = 'تقرير الكتب والمرفقات';
     $formatDate = function ($value) {
         if (empty($value)) return '—';
@@ -182,7 +182,7 @@
                     <table class="professional-report-table professional-report-details-table">
                         <thead>
                             <tr>
-                                <th style="width: 13%;">رقمالكتاب</th>
+                                <th style="width: 13%;">رقم الكتاب</th>
                                 <th style="width: 11%;">التاريخ</th>
                                 <th style="width: 22%;">الموضوع</th>
                                 <th style="width: 14%;">الإدارة</th>
@@ -211,7 +211,7 @@
             </section>
 
             <footer class="footer">
-                <span>تمإنشاء هذا التقرير آلياً من نظامالأرشيف الإلكتروني.</span>
+                <span>تمإنشاء هذا التقرير آلياً من نظام الأرشيف الإلكتروني.</span>
                 <span>{{ $generatedAt->format('Y-m-d H:i:s') }}</span>
             </footer>
         </article>

@@ -4,7 +4,7 @@
 ')
 @section('page_title', 'إضافة مستخدم
 ')
-@section('page_subtitle', 'إنشاء حساب جديد وتحديد صلاحياته داخل نظامالأرشيف الإلكتروني')
+@section('page_subtitle', 'إنشاء حساب جديد وتحديد صلاحياته داخل نظام الأرشيف الإلكتروني')
 
 @section('content')
     <div class="page-title">

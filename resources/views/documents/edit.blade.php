@@ -15,7 +15,7 @@
     </div>
 
     <div class="card">
-        <h2>رقمالكتاب: {{ $document->reference_number }}</h2>
+        <h2>رقم الكتاب: {{ $document->reference_number }}</h2>
 
         @if(auth()->user()?->hasPermission('documents.update'))
         <form method="POST" action="{{ route('documents.update', $document) }}" enctype="multipart/form-data">
@@ -252,8 +252,8 @@
                 هل تريد المواصلة وإدراج نفس رقمالبوليصة؟
             `;
             info.innerHTML = `
-                <div><strong>رقمالكتاب السابق:</strong> ${escapeHtml(doc.reference_number || '-')}</div>
-                <div><strong>تاريخ الكتاب:</strong> ${escapeHtml(doc.reference_date || '-')}</div>
+                <div><strong>رقم الكتاب السابق:</strong> ${escapeHtml(doc.reference_number || '-')}</div>
+                <div><strong>تاريخ الكتاب :</strong> ${escapeHtml(doc.reference_date || '-')}</div>
                 <div><strong>الموضوع:</strong> ${escapeHtml(doc.subject || doc.title || '-')}</div>
                 <div><strong>البوليصة الرئيسية:</strong> ${escapeHtml(doc.main_policy_number || '-')}</div>
                 <div><strong>البوليصة الفرعية:</strong> ${escapeHtml(doc.sub_policy_number || '-')}</div>

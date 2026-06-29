@@ -22,14 +22,14 @@
         @if($docId)
             <a href="{{ url('/documents/'.$docId.'/edit') }}" class="btn btn-primary">تعديل</a>
             <a href="{{ url('/documents/'.$docId.'/activity') }}" class="btn btn-info">سجل الحركة</a>
-            <a href="{{ url('/documents/'.$docId.'/print-reference') }}" class="btn btn-warning">طباعة رقمالكتاب</a>
+            <a href="{{ url('/documents/'.$docId.'/print-reference') }}" class="btn btn-warning">طباعة رقم الكتاب</a>
         @endif
     </div>
 </div>
 
 <div class="card">
     <div class="card-header">
-        <h2>رقمالكتاب: {{ $value($document ?? null, 'reference_number') }}</h2>
+        <h2>رقم الكتاب: {{ $value($document ?? null, 'reference_number') }}</h2>
     </div>
     <div class="table-responsive">
         <table class="table details-table">

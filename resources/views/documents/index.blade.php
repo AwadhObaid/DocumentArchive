@@ -112,6 +112,147 @@
         .mobile-info-item strong { color: #f8fafc; font-weight: 950; text-align: left; direction: ltr; }
         .document-mobile-card .actions { justify-content: flex-start; }
     }
+
+    /* DOCUMENTS_INNER_SCROLL_REVIEWED_FIX_START
+       يمنع خروج جدول الكتب خارج الصفحة، ويجعل السكرول داخل بطاقة الجدول فقط.
+       لا يعتمد على أي ملف CSS عام ولا يلمس QR أو المعاينة. */
+    html,
+    body {
+        overflow-x: hidden !important;
+    }
+
+    .documents-page,
+    .documents-page .card {
+        width: 100% !important;
+        max-width: 100% !important;
+        min-width: 0 !important;
+        box-sizing: border-box !important;
+    }
+
+    .documents-page > .card {
+        overflow: hidden !important;
+    }
+
+    #documentsTableScroll {
+        display: block !important;
+        width: 100% !important;
+        max-width: 100% !important;
+        min-width: 0 !important;
+        overflow-x: auto !important;
+        overflow-y: hidden !important;
+        direction: ltr !important;
+        box-sizing: border-box !important;
+        padding: 0 0 14px 0 !important;
+        margin: 0 !important;
+        -webkit-overflow-scrolling: touch;
+        scrollbar-width: auto;
+        scrollbar-color: rgba(59,130,246,.85) rgba(148,163,184,.18);
+    }
+
+    #documentsTableScroll::-webkit-scrollbar {
+        height: 12px;
+    }
+
+    #documentsTableScroll::-webkit-scrollbar-track {
+        background: rgba(148,163,184,.18);
+        border-radius: 999px;
+    }
+
+    #documentsTableScroll::-webkit-scrollbar-thumb {
+        background: rgba(59,130,246,.85);
+        border-radius: 999px;
+    }
+
+    #documentsTableScroll .documents-table {
+        display: table !important;
+        direction: rtl !important;
+        width: max-content !important;
+        min-width: 1320px !important;
+        max-width: none !important;
+        table-layout: auto !important;
+        border-collapse: collapse !important;
+        margin: 0 !important;
+    }
+
+    #documentsTableScroll .documents-table th,
+    #documentsTableScroll .documents-table td {
+        overflow: hidden !important;
+        text-overflow: clip !important;
+        white-space: nowrap !important;
+        vertical-align: middle !important;
+        box-sizing: border-box !important;
+    }
+
+    #documentsTableScroll .documents-table th:nth-child(1),
+    #documentsTableScroll .documents-table td:nth-child(1) { min-width: 130px !important; }
+    #documentsTableScroll .documents-table th:nth-child(2),
+    #documentsTableScroll .documents-table td:nth-child(2) { min-width: 120px !important; }
+    #documentsTableScroll .documents-table th:nth-child(3),
+    #documentsTableScroll .documents-table td:nth-child(3) { min-width: 280px !important; max-width: 340px !important; }
+    #documentsTableScroll .documents-table th:nth-child(4),
+    #documentsTableScroll .documents-table td:nth-child(4) { min-width: 150px !important; }
+    #documentsTableScroll .documents-table th:nth-child(5),
+    #documentsTableScroll .documents-table td:nth-child(5) { min-width: 150px !important; }
+    #documentsTableScroll .documents-table th:nth-child(6),
+    #documentsTableScroll .documents-table td:nth-child(6) { min-width: 130px !important; }
+    #documentsTableScroll .documents-table th:nth-child(7),
+    #documentsTableScroll .documents-table td:nth-child(7) { min-width: 120px !important; }
+    #documentsTableScroll .documents-table th:nth-child(8),
+    #documentsTableScroll .documents-table td:nth-child(8) { min-width: 110px !important; }
+    #documentsTableScroll .documents-table th:nth-child(9),
+    #documentsTableScroll .documents-table td:nth-child(9) { min-width: 110px !important; }
+    #documentsTableScroll .documents-table th:nth-child(10),
+    #documentsTableScroll .documents-table td:nth-child(10) { min-width: 105px !important; }
+    #documentsTableScroll .documents-table th:nth-child(11),
+    #documentsTableScroll .documents-table td:nth-child(11) { min-width: 290px !important; }
+
+    #documentsTableScroll .document-subject-cell,
+    #documentsTableScroll .document-subject-cell strong,
+    #documentsTableScroll .document-subject-cell small {
+        white-space: normal !important;
+        overflow: visible !important;
+        line-height: 1.65 !important;
+    }
+
+    #documentsTableScroll .policy-cell strong {
+        white-space: nowrap !important;
+        direction: ltr !important;
+        text-align: right !important;
+    }
+
+    #documentsTableScroll .actions {
+        display: inline-flex !important;
+        flex-direction: row !important;
+        align-items: center !important;
+        justify-content: flex-start !important;
+        flex-wrap: nowrap !important;
+        gap: 8px !important;
+        width: max-content !important;
+        max-width: none !important;
+        white-space: nowrap !important;
+    }
+
+    #documentsTableScroll .actions form,
+    #documentsTableScroll .actions .btn,
+    #documentsTableScroll .actions button,
+    #documentsTableScroll .actions a {
+        flex: 0 0 auto !important;
+        white-space: nowrap !important;
+        margin: 0 !important;
+    }
+
+    @media (max-width: 760px) {
+        #documentsTableScroll {
+            overflow-x: visible !important;
+            padding-bottom: 0 !important;
+            direction: rtl !important;
+        }
+
+        #documentsTableScroll .documents-table {
+            display: none !important;
+        }
+    }
+    /* DOCUMENTS_INNER_SCROLL_REVIEWED_FIX_END */
 </style>
 
 <div class="documents-page">
@@ -142,7 +283,7 @@
                 <div class="form-group">
                     <label>بحث عام
 </label>
-                    <input type="text" name="q" value="{{ request('q') }}" placeholder="رقمالكتاب / الموضوع / البوليصة / المرسل">
+                    <input type="text" name="q" value="{{ request('q') }}" placeholder="رقم الكتاب / الموضوع / البوليصة / المرسل">
                 </div>
 
                 <div class="form-group">
@@ -209,7 +350,7 @@
                     <select name="sort">
                         <option value="created_at" @selected(request('sort', 'created_at') === 'created_at')>تاريخ الإضافة</option>
                         <option value="reference_date" @selected(request('sort') === 'reference_date')>تاريخ الكتاب</option>
-                        <option value="reference_number" @selected(request('sort') === 'reference_number')>رقمالكتاب</option>
+                        <option value="reference_number" @selected(request('sort') === 'reference_number')>رقم الكتاب</option>
                         <option value="title" @selected(request('sort') === 'title')>العنوان</option>
                     </select>
                 </div>
@@ -250,11 +391,11 @@
     </div>
 
     <div class="card">
-        <div class="documents-table-wrap">
+        <div class="documents-table-wrap" id="documentsTableScroll">
             <table class="documents-table">
                 <thead>
                 <tr>
-                    <th>رقمالكتاب</th>
+                    <th>رقم الكتاب</th>
                     <th>التاريخ</th>
                     <th>الموضوع</th>
                     <th>البوليصة الرئيسية</th>
@@ -344,7 +485,7 @@
                     <div class="document-mobile-card">
                         <h3>{{ \Illuminate\Support\Str::limit($subject, 90) }}</h3>
                         <div class="mobile-info-grid">
-                            <div class="mobile-info-item"><span>رقمالكتاب</span><strong>{{ $document->reference_number }}</strong></div>
+                            <div class="mobile-info-item"><span>رقم الكتاب</span><strong>{{ $document->reference_number }}</strong></div>
                             <div class="mobile-info-item"><span>التاريخ</span><strong>{{ $formatDocumentDate($document) }}</strong></div>
                             <div class="mobile-info-item"><span>البوليصة الرئيسية</span><strong>{{ $mainPolicy }}</strong></div>
                             <div class="mobile-info-item"><span>البوليصة الفرعية</span><strong>{{ $subPolicy }}</strong></div>
@@ -373,6 +514,22 @@
         </div>
     </div>
 </div>
+<script>
+(function () {
+    function alignDocumentsTableScroll() {
+        var wrap = document.getElementById('documentsTableScroll');
+        if (!wrap || window.innerWidth <= 760) return;
+        // Wrapper is LTR while the table is RTL, so max scrollLeft shows the first Arabic/rightmost columns.
+        wrap.scrollLeft = wrap.scrollWidth;
+    }
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', alignDocumentsTableScroll);
+    } else {
+        alignDocumentsTableScroll();
+    }
+    window.addEventListener('resize', alignDocumentsTableScroll);
+})();
+</script>
 @endsection
 
 

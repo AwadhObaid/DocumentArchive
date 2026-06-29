@@ -149,7 +149,7 @@
                 </div>
                 <div>
                     <label>بحث</label>
-                    <input type="text" name="keyword" value="{{ $filters['keyword'] }}" placeholder="رقمالكتاب، الموضوع، البوليصة...">
+                    <input type="text" name="keyword" value="{{ $filters['keyword'] }}" placeholder="رقم الكتاب، الموضوع، البوليصة...">
                 </div>
                 <div>
                     <label>خيارات</label>
@@ -222,7 +222,7 @@
                 <table class="report-table">
                     <thead>
                         <tr>
-                            <th>رقمالكتاب</th>
+                            <th>رقم الكتاب</th>
                             <th>تاريخ الكتاب</th>
                             <th>الموضوع</th>
                             <th>الإدارة</th>

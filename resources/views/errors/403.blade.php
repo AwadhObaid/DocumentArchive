@@ -226,7 +226,7 @@
             <div class="brand">
                 <div class="brand-icon">📁</div>
                 <div>
-                    <div class="brand-title">نظامالأرشيف الإلكتروني الخاص بقسمالشحن والتأمين</div>
+                    <div class="brand-title">نظام الأرشيف الإلكتروني الخاص بقسم الشحن والتأمين</div>
                     <div class="brand-subtitle">إدارة الكتب، المرفقات، الصلاحيات والنسخ الاحتياطي</div>
                 </div>
             </div>

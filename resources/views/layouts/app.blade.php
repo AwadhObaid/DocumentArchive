@@ -2,7 +2,7 @@
 <html lang="ar" dir="rtl" data-theme="light">
 <head>
     <meta charset="UTF-8">
-    <title>@yield('title', 'نظامالأرشيف الإلكتروني')</title>
+    <title>@yield('title', 'نظام الأرشيف الإلكتروني')</title>
     <meta name="viewport" content="width=device-width, initial-scale=1">
 
     <link rel="stylesheet" href="{{ asset('css/app.css') }}">
@@ -109,7 +109,7 @@
             <button class="menu-toggle" type="button" data-toggle-sidebar>☰</button>
 
             <div>
-                <h1>@yield('page_title', 'نظامالأرشيف الإلكتروني الخاص بقسمالشحن والتأمين')</h1>
+                <h1>@yield('page_title', 'نظام الأرشيف الإلكتروني الخاص بقسم الشحن والتأمين')</h1>
                 <p>@yield('page_subtitle', 'إدارة الكتب، المرفقات، البوالص، والطباعة الرسمية')</p>
             </div>
 

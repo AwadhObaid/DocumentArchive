@@ -206,7 +206,7 @@
     <table class="data-table details-table">
         <thead>
             <tr>
-                <th>رقمالكتاب</th>
+                <th>رقم الكتاب</th>
                 <th>تاريخ الكتاب</th>
                 <th>الموضوع</th>
                 <th>الإدارة</th>

@@ -1,6 +1,6 @@
 @php
     $reportTitle = 'تقرير جودة البيانات';
-    $systemTitle = 'نظامالأرشيف الإلكتروني الخاص بقسمالشحن والتأمين';
+    $systemTitle = 'نظام الأرشيف الإلكتروني الخاص بقسم الشحن والتأمين';
     $fmtDate = function ($value) {
         if (empty($value)) return '—';
         try { return \Illuminate\Support\Carbon::parse($value)->format('Y-m-d'); } catch (\Throwable $e) { return $value; }
