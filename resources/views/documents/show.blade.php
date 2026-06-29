@@ -10,6 +10,57 @@
     };
     $docId = $value($document ?? null, 'id', null);
     $attachmentsList = collect(data_get($document ?? null, 'attachments', $attachments ?? []));
+
+    $arabicDocumentValue = function (string $field, $raw) {
+        if ($raw === null || $raw === '') {
+            return '-';
+        }
+
+        $display = trim((string) $raw);
+        if ($display === '-' || $display === '') {
+            return $display === '' ? '-' : $display;
+        }
+
+        $key = strtolower(trim($display));
+
+        $maps = [
+            'status' => [
+                'active' => 'نشط',
+                'inactive' => 'غير نشط',
+                'enabled' => 'مفعل',
+                'disabled' => 'غير مفعل',
+                'draft' => 'مسودة',
+                'pending' => 'قيد المتابعة',
+                'completed' => 'مكتمل',
+                'done' => 'مكتمل',
+                'cancelled' => 'ملغى',
+                'canceled' => 'ملغى',
+                'archived' => 'مؤرشف',
+                'deleted' => 'محذوف',
+            ],
+            'confidentiality' => [
+                'normal' => 'عادي',
+                'public' => 'عام',
+                'internal' => 'داخلي',
+                'confidential' => 'سري',
+                'secret' => 'سري',
+                'top_secret' => 'سري للغاية',
+                'top secret' => 'سري للغاية',
+                'very_secret' => 'سري جداً',
+                'very secret' => 'سري جداً',
+            ],
+            'priority' => [
+                'normal' => 'عادي',
+                'low' => 'منخفض',
+                'medium' => 'متوسط',
+                'high' => 'عالي',
+                'urgent' => 'عاجل',
+                'critical' => 'حرج',
+            ],
+        ];
+
+        return $maps[$field][$key] ?? $display;
+    };
 @endphp
 
 <div class="page-header">
@@ -44,9 +95,9 @@
                 <tr><th>المرسل</th><td>{{ $value($document ?? null, 'sender') }}</td></tr>
                 <tr><th>المستلم
 </th><td>{{ $value($document ?? null, 'recipient') }}</td></tr>
-                <tr><th>الحالة</th><td>{{ $value($document ?? null, 'status') }}</td></tr>
-                <tr><th>درجة السرية</th><td>{{ $value($document ?? null, 'confidentiality') }}</td></tr>
-                <tr><th>الأولوية</th><td>{{ $value($document ?? null, 'priority') }}</td></tr>
+                <tr><th>الحالة</th><td>{{ $arabicDocumentValue('status', $value($document ?? null, 'status')) }}</td></tr>
+                <tr><th>درجة السرية</th><td>{{ $arabicDocumentValue('confidentiality', $value($document ?? null, 'confidentiality')) }}</td></tr>
+                <tr><th>الأولوية</th><td>{{ $arabicDocumentValue('priority', $value($document ?? null, 'priority')) }}</td></tr>
                 <tr><th>الوصف</th><td>{{ $value($document ?? null, 'description') }}</td></tr>
                 <tr><th>الملاحظات</th><td>{{ $value($document ?? null, 'notes') }}</td></tr>
             </tbody>
