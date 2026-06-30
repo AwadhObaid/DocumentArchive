@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Schema;
+use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
 
 class ProfileController extends Controller
@@ -30,13 +31,24 @@ class ProfileController extends Controller
             $rules['phone'] = ['nullable', 'string', 'max:50'];
         }
 
-        $validated = $request->validate($rules);
+        $validated = $request->validate($rules, [
+            'name.required' => 'الاسم مطلوب.',
+            'name.max' => 'الاسم طويل جداً.',
+            'email.email' => 'صيغة البريد الإلكتروني غير صحيحة.',
+            'email.unique' => 'هذا البريد الإلكتروني مستخدم من حساب آخر.',
+            'phone.max' => 'رقم الهاتف طويل جداً.',
+        ]);
 
-        if (!Schema::hasColumn('users', 'phone')) {
-            unset($validated['phone']);
+        $data = [
+            'name' => trim((string) $validated['name']),
+            'email' => filled($validated['email'] ?? null) ? trim((string) $validated['email']) : null,
+        ];
+
+        if (Schema::hasColumn('users', 'phone')) {
+            $data['phone'] = filled($validated['phone'] ?? null) ? trim((string) $validated['phone']) : null;
         }
 
-        $user->forceFill($validated)->save();
+        $user->forceFill($data)->save();
 
         return back()->with('success', 'تم تحديث بيانات الملف الشخصي بنجاح.');
     }
@@ -53,16 +65,27 @@ class ProfileController extends Controller
             'password.confirmed' => 'تأكيد كلمة المرور الجديدة غير مطابق.',
         ]);
 
-        if (!Hash::check($validated['current_password'], $request->user()->password)) {
-            return back()
-                ->withErrors(['current_password' => 'كلمة المرور الحالية غير صحيحة.'])
-                ->onlyInput();
+        $user = $request->user();
+
+        if (!Hash::check($validated['current_password'], $user->password)) {
+            return back()->withErrors([
+                'current_password' => 'كلمة المرور الحالية غير صحيحة.',
+            ]);
         }
 
-        $request->user()->forceFill([
+        if (Hash::check($validated['password'], $user->password)) {
+            return back()->withErrors([
+                'password' => 'كلمة المرور الجديدة يجب أن تكون مختلفة عن كلمة المرور الحالية.',
+            ]);
+        }
+
+        $user->forceFill([
             'password' => Hash::make($validated['password']),
+            'remember_token' => Str::random(60),
         ])->save();
 
-        return back()->with('success', 'تم تغيير كلمة المرور بنجاح. استخدمها في تسجيل الدخول القادم.');
+        $request->session()->regenerate();
+
+        return back()->with('success', 'تم تغيير كلمة المرور بنجاح. استخدم كلمة المرور الجديدة في تسجيل الدخول القادم.');
     }
 }
