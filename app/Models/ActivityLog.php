@@ -67,6 +67,7 @@ class ActivityLog extends Model
             'document_type.deleted' => 'حذف نوع كتاب',
 
             'settings.updated' => 'تعديل الإعدادات',
+
             'auth.login' => 'تسجيل دخول',
             'auth.logout' => 'تسجيل خروج',
 
@@ -77,6 +78,12 @@ class ActivityLog extends Model
             'backup.files_restored' => 'استعادة ملفات المرفقات من نسخة',
             'backup.full_restored' => 'استعادة نسخة كاملة',
             'backup.deleted' => 'حذف نسخة احتياطية',
+
+            'report.viewed' => 'عرض تقرير',
+            'report.printed' => 'طباعة تقرير',
+            'report.exported' => 'تصدير تقرير',
+            'data_quality.viewed' => 'فحص جودة البيانات',
+            'system_health.viewed' => 'فحص النظام',
         ];
     }
 
@@ -94,15 +101,78 @@ class ActivityLog extends Model
         return self::actionLabel($this->action);
     }
 
+    public static function actionTone(?string $action): string
+    {
+        $action = (string) $action;
+
+        if (str_contains($action, 'deleted') || str_contains($action, 'restored')) {
+            return 'danger';
+        }
+
+        if (str_contains($action, 'backup') || str_contains($action, 'settings') || str_contains($action, 'password')) {
+            return 'warning';
+        }
+
+        if (str_contains($action, 'created') || str_contains($action, 'uploaded')) {
+            return 'success';
+        }
+
+        if (str_contains($action, 'printed') || str_contains($action, 'downloaded') || str_contains($action, 'exported')) {
+            return 'info';
+        }
+
+        return 'neutral';
+    }
+
+    public function getActionToneAttribute(): string
+    {
+        return self::actionTone($this->action);
+    }
+
+    public static function actionGroup(?string $action): string
+    {
+        $action = (string) $action;
+
+        return match (true) {
+            str_starts_with($action, 'document.') => 'الكتب',
+            str_starts_with($action, 'attachment.') => 'المرفقات',
+            str_starts_with($action, 'backup.') => 'النسخ الاحتياطي',
+            str_starts_with($action, 'user.') => 'المستخدمون',
+            str_starts_with($action, 'department.') => 'الإدارات',
+            str_starts_with($action, 'document_type.') => 'أنواع الكتب',
+            str_starts_with($action, 'settings.') => 'الإعدادات',
+            str_starts_with($action, 'auth.') => 'الدخول والخروج',
+            str_starts_with($action, 'report.') => 'التقارير',
+            default => 'عمليات أخرى',
+        };
+    }
+
+    public function getActionGroupAttribute(): string
+    {
+        return self::actionGroup($this->action);
+    }
+
+    public static function modelTypeLabels(): array
+    {
+        return [
+            'App\\Models\\Document' => 'كتاب',
+            'App\\Models\\DocumentAttachment' => 'مرفق',
+            'App\\Models\\Department' => 'إدارة',
+            'App\\Models\\DocumentType' => 'نوع كتاب',
+            'App\\Models\\User' => 'مستخدم',
+            'App\\Models\\Setting' => 'إعداد',
+            'backup' => 'نسخة احتياطية',
+            'system' => 'النظام',
+        ];
+    }
+
     public static function modelLabel(?string $modelType, mixed $modelId = null): string
     {
         if (blank($modelType)) {
             return '-';
         }
 
-        $baseName = class_basename($modelType);
-
-        $label = match ($baseName) {
+        $label = self::modelTypeLabels()[$modelType] ?? match (class_basename($modelType)) {
             'Document' => 'كتاب',
             'DocumentAttachment' => 'مرفق',
             'Department' => 'إدارة',
@@ -110,7 +180,7 @@ class ActivityLog extends Model
             'User' => 'مستخدم',
             'Setting' => 'إعداد',
             'Backup' => 'نسخة احتياطية',
-            default => $baseName,
+            default => class_basename($modelType),
         };
 
         return $modelId ? $label . ' #' . $modelId : $label;
@@ -119,5 +189,77 @@ class ActivityLog extends Model
     public function getModelLabelAttribute(): string
     {
         return self::modelLabel($this->model_type, $this->model_id);
+    }
+
+    public function getActorLabelAttribute(): string
+    {
+        if ($this->user) {
+            return $this->user->name ?: ($this->user->username ?: 'مستخدم #' . $this->user->id);
+        }
+
+        return 'النظام';
+    }
+
+    public function getIpLabelAttribute(): string
+    {
+        return $this->ip_address ?: '-';
+    }
+
+    public function shortUserAgent(int $limit = 70): string
+    {
+        $agent = trim((string) $this->user_agent);
+
+        if ($agent === '') {
+            return '-';
+        }
+
+        return mb_strlen($agent) > $limit
+            ? mb_substr($agent, 0, $limit) . '…'
+            : $agent;
+    }
+
+    public function propertiesRows(): array
+    {
+        $properties = $this->properties;
+
+        if (! is_array($properties) || empty($properties)) {
+            return [];
+        }
+
+        $rows = [];
+
+        foreach ($properties as $key => $value) {
+            if (is_array($value) || is_object($value)) {
+                $value = json_encode($value, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+            }
+
+            $rows[] = [
+                'key' => self::propertyLabel((string) $key),
+                'value' => filled($value) ? (string) $value : '-',
+            ];
+        }
+
+        return $rows;
+    }
+
+    public static function propertyLabel(string $key): string
+    {
+        return [
+            'reference_number' => 'رقم الكتاب',
+            'document_id' => 'رقم الكتاب الداخلي',
+            'attachment_id' => 'رقم المرفق',
+            'file_name' => 'اسم الملف',
+            'original_name' => 'الاسم الأصلي',
+            'backup_file' => 'ملف النسخة',
+            'file' => 'الملف',
+            'role' => 'الدور',
+            'username' => 'اسم المستخدم',
+            'name' => 'الاسم',
+            'email' => 'البريد',
+            'department' => 'الإدارة',
+            'document_type' => 'نوع الكتاب',
+            'status' => 'الحالة',
+            'priority' => 'الأولوية',
+        ][$key] ?? $key;
     }
 }
