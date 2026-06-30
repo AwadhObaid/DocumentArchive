@@ -187,7 +187,29 @@ class DocumentController extends Controller
             ->orderBy('name')
             ->get();
 
-        return view('documents.create', compact('departments', 'documentTypes'));
+        $initialNextReference = ReferenceNumberGenerator::preview(date('Y-m-d'));
+
+        return view('documents.create', compact('departments', 'documentTypes', 'initialNextReference'));
+    }
+
+    public function nextReferenceNumber(Request $request)
+    {
+        $validated = $request->validate([
+            'reference_date' => ['nullable', 'date'],
+        ]);
+
+        $preview = ReferenceNumberGenerator::preview($validated['reference_date'] ?? null);
+
+        return response()->json([
+            'ok' => true,
+            'reference_number' => $preview['reference_number'],
+            'reference_year' => $preview['reference_year'],
+            'reference_sequence' => $preview['reference_sequence'],
+            'reference_date' => $preview['reference_date'],
+            'start_number' => $preview['start_number'],
+            'reserved' => false,
+            'message' => 'هذا رقم مبدئي للعرض فقط، ويتم حجز الرقم النهائي عند الحفظ.',
+        ]);
     }
 
     public function store(Request $request)
@@ -208,6 +230,9 @@ class DocumentController extends Controller
             'attachment' => ['nullable', 'file', 'max:20480'],
             'notes' => ['nullable', 'string'],
         ]);
+
+        $validated['main_policy_number'] = $this->normalizeDocumentNumber($validated['main_policy_number'] ?? null);
+        $validated['sub_policy_number'] = $this->normalizeDocumentNumber($validated['sub_policy_number'] ?? null);
 
         $document = DB::transaction(function () use ($request, $validated) {
             $reference = ReferenceNumberGenerator::generate($validated['reference_date']);
@@ -305,6 +330,9 @@ class DocumentController extends Controller
             'attachment' => ['nullable', 'file', 'max:20480'],
             'notes' => ['nullable', 'string'],
         ]);
+
+        $validated['main_policy_number'] = $this->normalizeDocumentNumber($validated['main_policy_number'] ?? null);
+        $validated['sub_policy_number'] = $this->normalizeDocumentNumber($validated['sub_policy_number'] ?? null);
 
         DB::transaction(function () use ($request, $document, $validated) {
             $document->update([
@@ -593,7 +621,7 @@ class DocumentController extends Controller
         ]);
 
         $field = $validated['field'] ?? null;
-        $value = trim((string) $validated['value']);
+        $value = $this->normalizeDocumentNumber($validated['value']) ?? '';
 
         if ($value === '') {
             return response()->json(['exists' => false, 'message' => null, 'document' => null]);
@@ -619,10 +647,10 @@ class DocumentController extends Controller
 
             $query->where(function ($q) use ($value, $hasMain, $hasSub) {
                 if ($hasMain) {
-                    $q->orWhereRaw("TRIM(COALESCE(main_policy_number, '')) = ?", [$value]);
+                    $q->orWhereRaw("REPLACE(REPLACE(REPLACE(TRIM(COALESCE(main_policy_number, '')), ' ', ''), CHAR(9), ''), CHAR(10), '') = ?", [$value]);
                 }
                 if ($hasSub) {
-                    $q->orWhereRaw("TRIM(COALESCE(sub_policy_number, '')) = ?", [$value]);
+                    $q->orWhereRaw("REPLACE(REPLACE(REPLACE(TRIM(COALESCE(sub_policy_number, '')), ' ', ''), CHAR(9), ''), CHAR(10), '') = ?", [$value]);
                 }
             });
 
@@ -642,9 +670,9 @@ class DocumentController extends Controller
             }
 
             $matchedField = null;
-            if ($hasMain && trim((string) ($document->main_policy_number ?? '')) === $value) {
+            if ($hasMain && $this->normalizeDocumentNumber((string) ($document->main_policy_number ?? '')) === $value) {
                 $matchedField = 'main_policy_number';
-            } elseif ($hasSub && trim((string) ($document->sub_policy_number ?? '')) === $value) {
+            } elseif ($hasSub && $this->normalizeDocumentNumber((string) ($document->sub_policy_number ?? '')) === $value) {
                 $matchedField = 'sub_policy_number';
             }
 
@@ -737,6 +765,23 @@ class DocumentController extends Controller
         );
     }
 
+    private function normalizeDocumentNumber(?string $value): ?string
+    {
+        if ($value === null) {
+            return null;
+        }
+
+        $value = trim((string) $value);
+
+        if ($value === '') {
+            return null;
+        }
+
+        // Policy/reference numbers are identifiers; accidental spaces should not create false duplicates.
+        $value = preg_replace('/\s+/u', '', $value) ?: $value;
+
+        return $value === '' ? null : $value;
+    }
     private function buildSearchText(array $data): string
     {
         return trim(

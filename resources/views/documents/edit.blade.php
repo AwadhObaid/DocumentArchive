@@ -218,7 +218,7 @@
         backdrop.className = 'da-policy-modal-backdrop-v4';
         backdrop.innerHTML = `
             <div class="da-policy-modal-v4" role="dialog" aria-modal="true">
-                <div class="da-policy-modal-head-v4"><strong>تنبيه: رقمالبوليصة موجود مسبقاً</strong></div>
+                <div class="da-policy-modal-head-v4"><strong>تنبيه: رقم البوليصة موجود مسبقاً</strong></div>
                 <div class="da-policy-modal-body-v4">
                     <div id="daPolicyMsgV4"></div>
                     <div id="daPolicyInfoV4" class="da-policy-modal-info-v4"></div>
@@ -249,7 +249,7 @@
             msg.innerHTML = `
                 الرقمالمدخل في <strong>${escapeHtml(label)}</strong> موجود مسبقاً:<br>
                 <strong style="direction:ltr;display:inline-block;font-size:18px">${escapeHtml(value)}</strong><br>
-                هل تريد المواصلة وإدراج نفس رقمالبوليصة؟
+                هل تريد المواصلة وإدراج نفس رقم البوليصة؟
             `;
             info.innerHTML = `
                 <div><strong>رقم الكتاب السابق:</strong> ${escapeHtml(doc.reference_number || '-')}</div>

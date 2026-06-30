@@ -24,7 +24,7 @@
                     <div class="form-group">
                         <label>رقم بداية الكتاب</label>
                         <input type="number" name="reference_start_number" value="{{ old('reference_start_number', $settings['reference_start_number']) }}" required>
-                        <small>مثال: 251230000. يبدأ منه النظام أول كل سنة.</small>
+                        <small>مثال: 251230000. يبدأ منه النظام أول كل سنة جديدة. تغيير هذا الرقم لا يعيد ترقيم الكتب السابقة ولا يغير عداد سنة بدأت فعلياً.</small>
                     </div>
                 </div>
 

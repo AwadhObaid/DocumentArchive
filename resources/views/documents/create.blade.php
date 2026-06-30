@@ -13,6 +13,78 @@
         @endif
     </div>
 
+
+    <!-- DA_NEXT_REFERENCE_PREVIEW_START -->
+    <div class="card da-next-reference-card" data-next-reference-url="{{ route('documents.next-reference-number') }}">
+        <style>
+            .da-next-reference-card {
+                border: 1px solid rgba(59, 130, 246, .28);
+                background: linear-gradient(135deg, rgba(37, 99, 235, .13), rgba(15, 23, 42, .10));
+            }
+            .da-next-reference-grid {
+                display: grid;
+                grid-template-columns: minmax(180px, 260px) 1fr;
+                gap: 14px;
+                align-items: center;
+            }
+            .da-next-reference-number {
+                direction: ltr;
+                text-align: center;
+                display: inline-flex;
+                align-items: center;
+                justify-content: center;
+                min-width: 190px;
+                padding: 12px 18px;
+                border-radius: 16px;
+                background: rgba(15, 23, 42, .70);
+                color: #f8fafc;
+                border: 1px solid rgba(148, 163, 184, .28);
+                font-size: 28px;
+                font-weight: 950;
+                letter-spacing: .6px;
+            }
+            .da-next-reference-meta {
+                display: flex;
+                gap: 8px;
+                flex-wrap: wrap;
+                margin-top: 10px;
+                color: #94a3b8;
+                font-size: 13px;
+                font-weight: 800;
+            }
+            .da-next-reference-meta span {
+                border: 1px solid rgba(148, 163, 184, .24);
+                border-radius: 999px;
+                padding: 5px 10px;
+                background: rgba(15, 23, 42, .22);
+            }
+            @media (max-width: 760px) {
+                .da-next-reference-grid { grid-template-columns: 1fr; }
+                .da-next-reference-number { width: 100%; min-width: 0; }
+            }
+        </style>
+
+        <div class="da-next-reference-grid">
+            <div>
+                <div style="font-size:13px; color:#94a3b8; font-weight:850; margin-bottom:6px;">رقم الكتاب المتوقع</div>
+                <strong class="da-next-reference-number" id="daNextReferenceNumber">
+                    {{ $initialNextReference['reference_number'] ?? '...' }}
+                </strong>
+            </div>
+            <div>
+                <h2 style="margin-bottom:8px;">الترقيم التلقائي</h2>
+                <p style="margin:0; line-height:1.9; color:#cbd5e1; font-weight:750;">
+                    يتغير الرقم حسب سنة تاريخ الكتاب. هذا الرقم مبدئي للعرض فقط، ويتم حجز الرقم النهائي عند الضغط على حفظ.
+                </p>
+                <div class="da-next-reference-meta">
+                    <span>السنة: <b id="daNextReferenceYear">{{ $initialNextReference['reference_year'] ?? date('Y') }}</b></span>
+                    <span>التسلسل: <b id="daNextReferenceSequence">{{ $initialNextReference['reference_sequence'] ?? 0 }}</b></span>
+                    <span>بداية السنة: <b id="daNextReferenceStart">{{ $initialNextReference['start_number'] ?? '251230000' }}</b></span>
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- DA_NEXT_REFERENCE_PREVIEW_END -->
     <div class="card">
         @if(auth()->user()?->hasPermission('documents.create'))
         <form method="POST" action="{{ route('documents.store') }}" enctype="multipart/form-data">
@@ -105,8 +177,9 @@
 
                 <div class="form-group full">
                     <label>نسخة الكتاب الممسوحة ضوئياً / مرفق اختياري</label>
-                    <input type="file" name="attachment" accept=".pdf,.jpg,.jpeg,.png,.gif,.webp,.bmp,.tif,.tiff,.doc,.docx,.xls,.xlsx">\n                    <small>يمكن رفع PDF أو صورة أو ملف Word/Excel، والحد الأقصى 20 MB.</small>
-                    <small>يمكن إنشاء الكتاب أولاً وطباعة رقمه، ثمرفع النسخة الممسوحة لاحقاً بعد رجوع المندوب.</small>
+                    <input type="file" name="attachment" accept=".pdf,.jpg,.jpeg,.png,.gif,.webp,.bmp,.tif,.tiff,.doc,.docx,.xls,.xlsx">
+                    <small>يمكن رفع PDF أو صورة أو ملف Word/Excel، والحد الأقصى 20 MB.</small>
+                    <small>يمكن إنشاء الكتاب أولاً وطباعة رقمه، ثم رفع النسخة الممسوحة لاحقاً بعد رجوع المندوب.</small>
                 </div>
 
                 <div class="form-group full">
@@ -128,6 +201,53 @@
 
 
 
+
+<!-- DA_NEXT_REFERENCE_PREVIEW_SCRIPT_START -->
+<script>
+(function () {
+    const card = document.querySelector('.da-next-reference-card[data-next-reference-url]');
+    const dateInput = document.querySelector('input[name="reference_date"]');
+
+    if (!card || !dateInput) return;
+
+    const url = card.dataset.nextReferenceUrl;
+    const numberEl = document.getElementById('daNextReferenceNumber');
+    const yearEl = document.getElementById('daNextReferenceYear');
+    const sequenceEl = document.getElementById('daNextReferenceSequence');
+    const startEl = document.getElementById('daNextReferenceStart');
+    let timer = null;
+
+    function updatePreview() {
+        const referenceDate = dateInput.value || '';
+        numberEl.textContent = '...';
+
+        fetch(url + '?reference_date=' + encodeURIComponent(referenceDate), {
+            headers: {
+                'Accept': 'application/json',
+                'X-Requested-With': 'XMLHttpRequest'
+            }
+        })
+            .then(response => response.ok ? response.json() : Promise.reject(response))
+            .then(data => {
+                if (!data || !data.ok) return;
+                numberEl.textContent = data.reference_number || '...';
+                yearEl.textContent = data.reference_year || '-';
+                sequenceEl.textContent = data.reference_sequence ?? '-';
+                startEl.textContent = data.start_number || '-';
+            })
+            .catch(() => {
+                numberEl.textContent = 'تعذر الجلب';
+            });
+    }
+
+    dateInput.addEventListener('change', updatePreview);
+    dateInput.addEventListener('input', function () {
+        clearTimeout(timer);
+        timer = setTimeout(updatePreview, 350);
+    });
+})();
+</script>
+<!-- DA_NEXT_REFERENCE_PREVIEW_SCRIPT_END -->
 <!-- DA_POLICY_DUPLICATE_WARNING_V4_START -->
 <style>
     .da-policy-note-v4 { display: block; margin-top: 7px; font-size: 12px; font-weight: 850; line-height: 1.7; }
@@ -204,7 +324,7 @@
         backdrop.className = 'da-policy-modal-backdrop-v4';
         backdrop.innerHTML = `
             <div class="da-policy-modal-v4" role="dialog" aria-modal="true">
-                <div class="da-policy-modal-head-v4"><strong>تنبيه: رقمالبوليصة موجود مسبقاً</strong></div>
+                <div class="da-policy-modal-head-v4"><strong>تنبيه: رقم البوليصة موجود مسبقاً</strong></div>
                 <div class="da-policy-modal-body-v4">
                     <div id="daPolicyMsgV4"></div>
                     <div id="daPolicyInfoV4" class="da-policy-modal-info-v4"></div>
@@ -235,7 +355,7 @@
             msg.innerHTML = `
                 الرقمالمدخل في <strong>${escapeHtml(label)}</strong> موجود مسبقاً:<br>
                 <strong style="direction:ltr;display:inline-block;font-size:18px">${escapeHtml(value)}</strong><br>
-                هل تريد المواصلة وإدراج نفس رقمالبوليصة؟
+                هل تريد المواصلة وإدراج نفس رقم البوليصة؟
             `;
             info.innerHTML = `
                 <div><strong>رقم الكتاب السابق:</strong> ${escapeHtml(doc.reference_number || '-')}</div>
