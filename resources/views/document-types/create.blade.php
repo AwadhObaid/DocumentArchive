@@ -1,39 +1,56 @@
 @extends('layouts.app')
 
-@section('title', 'إضافة نوع مستند')
+@section('title', 'إضافة نوع كتاب')
+@section('page_title', 'إضافة نوع كتاب')
+@section('page_subtitle', 'أضف نوعاً جديداً لاستخدامه في تصنيف الكتب')
 
 @section('content')
-    <div class="page-title">
-        <h1>إضافة نوع مستند</h1>
-        @if(auth()->user()?->hasPermission('document_types.manage'))
-        <a href="{{ route('document-types.index') }}" class="btn btn-secondary">رجوع</a>
-        @endif
-    </div>
+    {{-- DEFINITIONS_POLISH_FORM_START --}}
+    <style>
+        .definition-form-page { display:grid; gap:18px; }
+        .definition-help { border:1px solid rgba(59,130,246,.18); background:rgba(59,130,246,.08); border-radius:16px; padding:14px 16px; color:var(--text, #0f172a); }
+        .definition-form-actions { margin-top:20px; display:flex; gap:10px; flex-wrap:wrap; }
+    </style>
 
-    <div class="card">
-        <form method="POST" action="{{ route('document-types.store') }}">
-            @csrf
-            <div class="form-grid">
-                <div class="form-group">
-                    <label>اسمالنوع</label>
-                    <input type="text" name="name" value="{{ old('name') }}" required>
+    <div class="definition-form-page">
+        <div class="page-title">
+            <h1>إضافة نوع كتاب</h1>
+            <a href="{{ route('document-types.index') }}" class="btn btn-secondary">رجوع</a>
+        </div>
+
+        <div class="definition-help">
+            اكتب اسم نوع الكتاب كما تريد ظهوره في القوائم. الكود اختياري ويفضل أن يكون مختصراً مثل OUTGOING أو INCOMING.
+        </div>
+
+        <div class="card">
+            <form method="POST" action="{{ route('document-types.store') }}">
+                @csrf
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label>اسم النوع</label>
+                        <input type="text" name="name" value="{{ old('name') }}" required autofocus placeholder="مثال: صادر">
+                    </div>
+                    <div class="form-group">
+                        <label>الكود</label>
+                        <input type="text" name="code" value="{{ old('code') }}" placeholder="مثال: OUTGOING">
+                    </div>
+                    <div class="form-group full">
+                        <label>الوصف</label>
+                        <textarea name="description" rows="4" placeholder="وصف مختصر لنوع الكتاب">{{ old('description') }}</textarea>
+                    </div>
+                    <div class="form-group full">
+                        <label style="display:flex; gap:8px; align-items:center;">
+                            <input type="checkbox" name="is_active" value="1" @checked(old('is_active', '1'))>
+                            نوع نشط ويظهر في القوائم
+                        </label>
+                    </div>
                 </div>
-                <div class="form-group">
-                    <label>الكود</label>
-                    <input type="text" name="code" value="{{ old('code') }}" placeholder="مثال: OUTGOING">
+                <div class="definition-form-actions">
+                    <button type="submit" class="btn btn-success">حفظ النوع</button>
+                    <a href="{{ route('document-types.index') }}" class="btn btn-secondary">إلغاء</a>
                 </div>
-                <div class="form-group full">
-                    <label>الوصف</label>
-                    <textarea name="description">{{ old('description') }}</textarea>
-                </div>
-                <div class="form-group full">
-                    <label style="display:flex; gap:8px; align-items:center;">
-                        <input type="checkbox" name="is_active" value="1" checked>
-                        نشط
-                    </label>
-                </div>
-            </div>
-            <div style="margin-top:20px;"><button type="submit" class="btn btn-success">حفظ</button></div>
-        </form>
+            </form>
+        </div>
     </div>
+    {{-- DEFINITIONS_POLISH_FORM_END --}}
 @endsection
