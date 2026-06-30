@@ -76,6 +76,17 @@ class User extends Authenticatable
         return PermissionRegistry::has($this->resolvedPermissions(), $permission);
     }
 
+    public function permissionLabels(): array
+    {
+        $permissions = $this->resolvedPermissions();
+        if (in_array('*', $permissions, true)) {
+            return ['كل الصلاحيات'];
+        }
+
+        $labels = PermissionRegistry::labels();
+        return array_values(array_filter(array_map(fn ($key) => $labels[$key] ?? $key, $permissions)));
+    }
+
     protected function roleName(): Attribute
     {
         return Attribute::make(

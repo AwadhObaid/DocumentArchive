@@ -36,53 +36,58 @@
             </div>
         </div>
 
-        <nav class="side-nav">
+                <nav class="side-nav">
             <a href="{{ route('profile.edit') }}" class="{{ request()->routeIs('profile.*') ? 'active' : '' }}">👤 الملف الشخصي</a>
 
-            <a href="{{ route('dashboard') }}" class="{{ request()->routeIs('dashboard') ? 'active' : '' }}">🏠 لوحة التحكم
-</a>
-            @if(auth()->user()?->hasPermission('documents.view'))
-            <a href="{{ route('documents.index') }}" class="{{ request()->routeIs('documents.index') ? 'active' : '' }}">📄 الكتب</a>
+            @if(auth()->user()?->hasPermission('dashboard.view'))
+                <a href="{{ route('dashboard') }}" class="{{ request()->routeIs('dashboard') ? 'active' : '' }}">🏠 لوحة التحكم</a>
             @endif
-            @if(auth()->user()?->hasPermission('documents.create'))
-            <a href="{{ route('documents.create') }}" class="{{ request()->routeIs('documents.create') ? 'active' : '' }}">➕ إضافة كتاب</a>
-            @endif
-            @if(auth()->user()?->hasPermission('documents.restore'))
-            <a href="{{ route('documents.trash') }}" class="{{ request()->routeIs('documents.trash') ? 'active' : '' }}">🗑️ سلة المحذوفات</a>
-            @endif
-            @if(auth()->user()?->hasPermission('activity_logs.view'))
-            <a href="{{ route('activity-logs.index') }}" class="{{ request()->routeIs('activity-logs.*') || request()->routeIs('documents.activity') ? 'active' : '' }}">🧾 سجل النشاط</a>
-            @endif
-            @if(auth()->user()?->hasPermission('departments.manage'))
-            <a href="{{ route('departments.index') }}" class="{{ request()->routeIs('departments.*') ? 'active' : '' }}">🏢 الإدارات</a>
-            @endif
-            @if(auth()->user()?->hasPermission('document_types.manage'))
-            <a href="{{ route('document-types.index') }}" class="{{ request()->routeIs('document-types.*') ? 'active' : '' }}">📑 أنواع الكتب</a>
-            @endif
-@if(auth()->user()?->hasPermission('settings.manage'))
-<a href="{{ route('settings.edit') }}" class="{{ request()->routeIs('settings.*') ? 'active' : '' }}">⚙️ الإعدادات</a>
-                        @if(auth()->user()?->hasPermission('settings.manage'))
-                            <a href="{{ route('system-health.index') }}">🩺 فحص النظام
-</a>
-                        @if(auth()->user()?->hasPermission('reports.view'))
-                            <a href="{{ route('data-quality.index') }}">🧭 جودة البيانات</a>
-                        @endif
-                        @endif
-@endif
-                {{-- REPORTS-SIDEBAR-LINK --}}
-                @if(auth()->user()?->hasPermission('reports.view'))
-                <a href="{{ route('reports.index') }}" class="sidebar-link nav-link {{ request()->routeIs('reports.*') ? 'active' : '' }}">
-                    <span class="nav-icon">📊</span>
-                    <span>التقارير</span>
-                </a>
-                @endif
 
-            
-            {{-- BACKUP-SIDEBAR-ADMIN-ONLY --}}
-            @if(auth()->user()?->hasPermission('users.manage'))
-                <a href="{{ url('/backups') }}" class="{{ request()->is('backups*') ? 'active' : '' }}">💾 النسخ الاحتياطي</a>
+            @if(auth()->user()?->hasPermission('documents.view'))
+                <a href="{{ route('documents.index') }}" class="{{ request()->routeIs('documents.index') ? 'active' : '' }}">📄 الكتب</a>
             @endif
-@if(auth()->user()?->hasPermission('users.manage'))
+
+            @if(auth()->user()?->hasPermission('documents.create'))
+                <a href="{{ route('documents.create') }}" class="{{ request()->routeIs('documents.create') ? 'active' : '' }}">➕ إضافة كتاب</a>
+            @endif
+
+            @if(auth()->user()?->hasPermission('documents.restore'))
+                <a href="{{ route('documents.trash') }}" class="{{ request()->routeIs('documents.trash') ? 'active' : '' }}">🗑️ سلة المحذوفات</a>
+            @endif
+
+            @if(auth()->user()?->hasPermission('activity_logs.view'))
+                <a href="{{ route('activity-logs.index') }}" class="{{ request()->routeIs('activity-logs.*') || request()->routeIs('documents.activity') ? 'active' : '' }}">🧾 سجل النشاط</a>
+            @endif
+
+            @if(auth()->user()?->hasPermission('departments.manage'))
+                <a href="{{ route('departments.index') }}" class="{{ request()->routeIs('departments.*') ? 'active' : '' }}">🏢 الإدارات</a>
+            @endif
+
+            @if(auth()->user()?->hasPermission('document_types.manage'))
+                <a href="{{ route('document-types.index') }}" class="{{ request()->routeIs('document-types.*') ? 'active' : '' }}">📑 أنواع الكتب</a>
+            @endif
+
+            @if(auth()->user()?->hasPermission('settings.manage'))
+                <a href="{{ route('settings.edit') }}" class="{{ request()->routeIs('settings.*') ? 'active' : '' }}">⚙️ الإعدادات</a>
+            @endif
+
+            @if(auth()->user()?->hasPermission('system_health.view'))
+                <a href="{{ route('system-health.index') }}" class="{{ request()->routeIs('system-health.*') ? 'active' : '' }}">🩺 فحص النظام</a>
+            @endif
+
+            @if(auth()->user()?->hasPermission('data_quality.view'))
+                <a href="{{ route('data-quality.index') }}" class="{{ request()->routeIs('data-quality.*') ? 'active' : '' }}">🧭 جودة البيانات</a>
+            @endif
+
+            @if(auth()->user()?->hasPermission('reports.view'))
+                <a href="{{ route('reports.index') }}" class="{{ request()->routeIs('reports.*') ? 'active' : '' }}">📊 التقارير</a>
+            @endif
+
+            @if(auth()->user()?->hasPermission('backups.view'))
+                <a href="{{ route('backups.index') }}" class="{{ request()->is('backups*') ? 'active' : '' }}">💾 النسخ الاحتياطي</a>
+            @endif
+
+            @if(auth()->user()?->hasPermission('users.manage'))
                 <a href="{{ route('users.index') }}" class="{{ request()->routeIs('users.*') ? 'active' : '' }}">👥 المستخدمون</a>
             @endif
         </nav>

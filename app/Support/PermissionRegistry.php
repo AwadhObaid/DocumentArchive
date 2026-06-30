@@ -4,131 +4,194 @@ namespace App\Support;
 
 class PermissionRegistry
 {
+    /**
+     * Permission groups used in the users form and by the route middleware.
+     */
     public static function groups(): array
     {
         return [
-            'documents' => [
-                'label' => 'الكتب والمستندات',
+            [
+                'key' => 'general',
+                'label' => 'عام',
+                'permissions' => [
+                    'dashboard.view' => 'عرض لوحة التحكم',
+                    'profile.manage' => 'إدارة الملف الشخصي',
+                ],
+            ],
+            [
+                'key' => 'documents',
+                'label' => 'الكتب',
                 'permissions' => [
                     'documents.view' => 'عرض الكتب',
                     'documents.create' => 'إضافة كتاب',
-                    'documents.update' => 'تعديل كتاب',
-                    'documents.delete' => 'حذف كتاب إلى السلة',
-                    'documents.restore' => 'استعادة كتاب',
-                    'documents.force_delete' => 'الحذف النهائي للكتاب',
-                    'documents.print_reference' => 'طباعة رقم الكتاب',
+                    'documents.edit' => 'تعديل كتاب',
+                    'documents.delete' => 'حذف كتاب',
+                    'documents.restore' => 'سلة المحذوفات والاستعادة',
+                    'documents.print' => 'طباعة رقم الكتاب',
+                    'activity_logs.view' => 'عرض سجل الحركة',
                 ],
             ],
-            'attachments' => [
+            [
+                'key' => 'attachments',
                 'label' => 'المرفقات',
                 'permissions' => [
                     'attachments.preview' => 'معاينة المرفقات',
                     'attachments.download' => 'تنزيل المرفقات',
-                    'attachments.print' => 'طباعة المرفقات',
-                    'attachments.upload' => 'رفع مرفقات',
                 ],
             ],
-            'reports' => [
-                'label' => 'التقارير',
+            [
+                'key' => 'reports',
+                'label' => 'التقارير والجودة',
                 'permissions' => [
                     'reports.view' => 'عرض التقارير',
-                    'reports.print' => 'طباعة التقارير',
                     'reports.export' => 'تصدير التقارير',
+                    'data_quality.view' => 'جودة البيانات',
                 ],
             ],
-            'administration' => [
-                'label' => 'الإدارة والإعدادات',
+            [
+                'key' => 'definitions',
+                'label' => 'التعريفات',
                 'permissions' => [
                     'departments.manage' => 'إدارة الإدارات',
                     'document_types.manage' => 'إدارة أنواع الكتب',
-                    'settings.manage' => 'إدارة الإعدادات',
-                    'users.manage' => 'إدارة المستخدمين',
-                    'activity_logs.view' => 'عرض سجل النشاط',
                 ],
             ],
-            'backup' => [
+            [
+                'key' => 'system',
+                'label' => 'إدارة النظام',
+                'permissions' => [
+                    'settings.manage' => 'إدارة الإعدادات',
+                    'system_health.view' => 'فحص النظام',
+                    'users.manage' => 'إدارة المستخدمين',
+                ],
+            ],
+            [
+                'key' => 'backup',
                 'label' => 'النسخ الاحتياطي',
                 'permissions' => [
-                    'backups.view' => 'عرض صفحة النسخ الاحتياطي',
-                    'backups.create' => 'إنشاء نسخ احتياطية',
-                    'backups.download' => 'تنزيل النسخ الاحتياطية',
-                    'backups.delete' => 'حذف النسخ الاحتياطية',
-                    'backups.restore' => 'استعادة النسخ الاحتياطية',
+                    'backups.view' => 'عرض النسخ الاحتياطية',
+                    'backups.create' => 'إنشاء نسخة احتياطية',
+                    'backups.download' => 'تنزيل نسخة احتياطية',
+                    'backups.restore' => 'استعادة نسخة احتياطية',
+                    'backups.delete' => 'حذف نسخة احتياطية',
+                ],
+            ],
+            [
+                'key' => 'notifications',
+                'label' => 'الإشعارات',
+                'permissions' => [
+                    'notifications.view' => 'عرض الإشعارات',
+                    'notifications.manage' => 'إدارة الإشعارات وإعداداتها',
                 ],
             ],
         ];
     }
 
-    public static function all(): array
+    public static function keys(): array
     {
-        $permissions = [];
+        $keys = [];
 
         foreach (self::groups() as $group) {
             foreach ($group['permissions'] as $key => $label) {
-                $permissions[$key] = $label;
+                $keys[] = $key;
             }
         }
 
-        return $permissions;
+        return $keys;
     }
 
-    public static function keys(): array
+    public static function labels(): array
     {
-        return array_keys(self::all());
+        $labels = [];
+
+        foreach (self::groups() as $group) {
+            foreach ($group['permissions'] as $key => $label) {
+                $labels[$key] = $label;
+            }
+        }
+
+        return $labels;
     }
 
-    public static function defaultsForRole(?string $role): array
+    public static function normalize(mixed $permissions): array
     {
-        return match ($role) {
-            'admin', 'administrator', 'super_admin', 'مدير النظام', 'مدير' => ['*'],
-            'viewer' => [
-                'documents.view',
-                'attachments.preview',
-                'attachments.download',
-                'reports.view',
-            ],
-            default => [
-                'documents.view',
-                'documents.create',
-                'documents.update',
-                'documents.print_reference',
-                'attachments.preview',
-                'attachments.download',
-                'attachments.print',
-                'attachments.upload',
-                'reports.view',
-                'reports.print',
-                'reports.export',
-            ],
-        };
-    }
-
-    public static function normalize(array|string|null $permissions): array
-    {
-        if ($permissions === null || $permissions === '') {
-            return [];
+        if ($permissions === '*') {
+            return ['*'];
         }
 
         if (is_string($permissions)) {
             $decoded = json_decode($permissions, true);
-            $permissions = is_array($decoded) ? $decoded : [];
+            $permissions = is_array($decoded) ? $decoded : [$permissions];
         }
 
-        $permissions = array_values(array_unique(array_filter($permissions, fn ($permission) => is_string($permission) && $permission !== '')));
+        if (!is_array($permissions)) {
+            return [];
+        }
 
         if (in_array('*', $permissions, true)) {
             return ['*'];
         }
 
         $allowed = self::keys();
+        $normalized = [];
 
-        return array_values(array_intersect($permissions, $allowed));
+        foreach ($permissions as $permission) {
+            $permission = trim((string) $permission);
+            if ($permission !== '' && in_array($permission, $allowed, true)) {
+                $normalized[] = $permission;
+            }
+        }
+
+        return array_values(array_unique($normalized));
     }
 
-    public static function has(array|string|null $permissions, string $permission): bool
+    public static function has(array $permissions, string $permission): bool
     {
-        $permissions = self::normalize($permissions);
+        if (in_array('*', $permissions, true)) {
+            return true;
+        }
 
-        return in_array('*', $permissions, true) || in_array($permission, $permissions, true);
+        if (in_array($permission, $permissions, true)) {
+            return true;
+        }
+
+        // Allow a parent-style wildcard such as documents.* if it is added later.
+        $segments = explode('.', $permission);
+        if (count($segments) > 1) {
+            return in_array($segments[0] . '.*', $permissions, true);
+        }
+
+        return false;
+    }
+
+    public static function defaultsForRole(?string $role): array
+    {
+        $role = trim((string) $role);
+
+        if (in_array($role, ['admin', 'administrator', 'super_admin', 'مدير النظام', 'مدير'], true)) {
+            return ['*'];
+        }
+
+        if ($role === 'viewer') {
+            return [
+                'dashboard.view',
+                'profile.manage',
+                'documents.view',
+                'attachments.preview',
+                'reports.view',
+            ];
+        }
+
+        return [
+            'dashboard.view',
+            'profile.manage',
+            'documents.view',
+            'documents.create',
+            'documents.edit',
+            'documents.print',
+            'attachments.preview',
+            'attachments.download',
+            'reports.view',
+        ];
     }
 }

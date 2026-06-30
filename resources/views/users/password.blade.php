@@ -2,17 +2,17 @@
 
 @section('title', 'تغيير كلمة المرور')
 @section('page_title', 'تغيير كلمة المرور')
-@section('page_subtitle', 'تحديث كلمة مرور المستخدمالمحدد')
+@section('page_subtitle', 'تغيير كلمة مرور المستخدم المحدد')
 
 @section('content')
     <div class="page-title">
-        <h2>تغيير كلمة مرور: {{ $user->name }}</h2>
-        @if(auth()->user()?->hasPermission('users.manage'))
+        <h2>تغيير كلمة المرور</h2>
         <a href="{{ route('users.index') }}" class="btn btn-secondary">رجوع</a>
-        @endif
     </div>
 
     <div class="card">
+        <p style="margin-top:0;color:#94a3b8;">المستخدم: <strong>{{ $user->name }}</strong></p>
+
         <form method="POST" action="{{ route('users.password.update', $user) }}">
             @csrf
             @method('PUT')

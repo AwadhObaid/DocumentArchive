@@ -9,21 +9,22 @@ use Illuminate\Validation\Rule;
 
 class UserController extends Controller
 {
-    private function ensureAdmin(): void
+    private function ensureCanManageUsers(): void
     {
-        $role = trim((string) (auth()->user()->role ?? ''));
-        $adminRoles = ['admin', 'administrator', 'super_admin', 'مدير النظام', 'مدير'];
-
-        abort_unless(auth()->check() && in_array($role, $adminRoles, true), 403, 'هذه الصفحة متاحة لمدير النظام فقط.');
+        abort_unless(
+            auth()->check() && auth()->user()?->hasPermission('users.manage'),
+            403,
+            'هذه الصفحة متاحة لمن يملك صلاحية إدارة المستخدمين فقط.'
+        );
     }
 
     public function index(Request $request)
     {
-        $this->ensureAdmin();
+        $this->ensureCanManageUsers();
 
         $users = User::query()
             ->when($request->filled('q'), function ($query) use ($request) {
-                $q = trim($request->q);
+                $q = trim((string) $request->q);
 
                 $query->where(function ($subQuery) use ($q) {
                     $subQuery
@@ -34,7 +35,7 @@ class UserController extends Controller
                 });
             })
             ->when($request->filled('role'), fn ($query) => $query->where('role', $request->role))
-            ->when($request->filled('is_active'), fn ($query) => $query->where('is_active', (bool) $request->is_active))
+            ->when($request->filled('is_active'), fn ($query) => $query->where('is_active', $request->is_active === '1'))
             ->orderByDesc('id')
             ->paginate(15)
             ->withQueryString();
@@ -44,7 +45,7 @@ class UserController extends Controller
 
     public function create()
     {
-        $this->ensureAdmin();
+        $this->ensureCanManageUsers();
 
         return view('users.create', [
             'permissionGroups' => PermissionRegistry::groups(),
@@ -54,7 +55,7 @@ class UserController extends Controller
 
     public function store(Request $request)
     {
-        $this->ensureAdmin();
+        $this->ensureCanManageUsers();
 
         $validated = $request->validate([
             'name' => ['required', 'string', 'max:255'],
@@ -91,7 +92,7 @@ class UserController extends Controller
 
     public function edit(User $user)
     {
-        $this->ensureAdmin();
+        $this->ensureCanManageUsers();
 
         return view('users.edit', [
             'user' => $user,
@@ -102,7 +103,7 @@ class UserController extends Controller
 
     public function update(Request $request, User $user)
     {
-        $this->ensureAdmin();
+        $this->ensureCanManageUsers();
 
         $validated = $request->validate([
             'name' => ['required', 'string', 'max:255'],
@@ -147,14 +148,14 @@ class UserController extends Controller
 
     public function editPassword(User $user)
     {
-        $this->ensureAdmin();
+        $this->ensureCanManageUsers();
 
         return view('users.password', compact('user'));
     }
 
     public function updatePassword(Request $request, User $user)
     {
-        $this->ensureAdmin();
+        $this->ensureCanManageUsers();
 
         $validated = $request->validate([
             'password' => ['required', 'string', 'min:8', 'confirmed'],
@@ -171,7 +172,7 @@ class UserController extends Controller
 
     public function activate(User $user)
     {
-        $this->ensureAdmin();
+        $this->ensureCanManageUsers();
 
         $user->update(['is_active' => true]);
 
@@ -180,7 +181,7 @@ class UserController extends Controller
 
     public function deactivate(User $user)
     {
-        $this->ensureAdmin();
+        $this->ensureCanManageUsers();
 
         if (auth()->id() === $user->id) {
             return back()->withErrors(['user' => 'لا يمكنك تعطيل حسابك الحالي.']);
@@ -193,7 +194,7 @@ class UserController extends Controller
 
     public function destroy(User $user)
     {
-        $this->ensureAdmin();
+        $this->ensureCanManageUsers();
 
         if (auth()->id() === $user->id) {
             return back()->withErrors(['user' => 'لا يمكنك حذف حسابك الحالي.']);

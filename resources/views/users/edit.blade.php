@@ -1,18 +1,13 @@
 @extends('layouts.app')
 
-@section('title', 'تعديل مستخدم
-')
-@section('page_title', 'تعديل مستخدم
-')
-@section('page_subtitle', 'تعديل بيانات الحساب والدور والصلاحيات')
+@section('title', 'تعديل مستخدم')
+@section('page_title', 'تعديل مستخدم')
+@section('page_subtitle', 'تحديث بيانات المستخدم وصلاحياته')
 
 @section('content')
     <div class="page-title">
-        <h2>تعديل مستخدم
-</h2>
-        @if(auth()->user()?->hasPermission('users.manage'))
+        <h2>تعديل مستخدم</h2>
         <a href="{{ route('users.index') }}" class="btn btn-secondary">رجوع</a>
-        @endif
     </div>
 
     <div class="card">
@@ -22,14 +17,12 @@
 
             <div class="form-grid">
                 <div class="form-group">
-                    <label>الاسم
-</label>
+                    <label>الاسم</label>
                     <input type="text" name="name" value="{{ old('name', $user->name) }}" required>
                 </div>
 
                 <div class="form-group">
-                    <label>اسمالمستخدم
-</label>
+                    <label>اسم المستخدم</label>
                     <input type="text" name="username" value="{{ old('username', $user->username) }}" required>
                 </div>
 
@@ -45,21 +38,19 @@
 
                 <div class="form-group">
                     <label>الدور</label>
-                    <select name="role" required>
-                        <option value="user" @selected(old('role', $user->role) === 'user')>مستخدم
-</option>
+                    <select name="role" id="roleSelect" required>
+                        <option value="user" @selected(old('role', $user->role) === 'user')>مستخدم</option>
                         <option value="viewer" @selected(old('role', $user->role) === 'viewer')>مشاهد فقط</option>
-                        <option value="admin" @selected(old('role', $user->role) === 'admin')>مدير النظام
-</option>
+                        <option value="admin" @selected(old('role', $user->role) === 'admin')>مدير النظام</option>
                     </select>
-                    <small style="display:block;margin-top:6px;color:#64748b;">مدير النظاميملك كل الصلاحيات تلقائياً.</small>
+                    <small class="hint">مدير النظام يملك كل الصلاحيات تلقائياً.</small>
                 </div>
 
                 <div class="form-group">
                     <label>الحالة</label>
                     <label class="checkbox-line">
                         <input type="checkbox" name="is_active" value="1" @checked(old('is_active', $user->is_active))>
-                        مستخدمنشط
+                        مستخدم نشط
                     </label>
                 </div>
             </div>
@@ -71,15 +62,16 @@
                 }
             @endphp
 
-            <div class="permissions-panel">
+            <div class="permissions-panel" id="permissionsPanel">
                 <div class="permissions-header">
                     <div>
                         <h3>الصلاحيات التفصيلية</h3>
-                        <p>تحديد الصلاحيات الخاصة بهذا المستخدم
-. عند اختيار مدير النظاميتمتجاهل هذه القائمة ويُمنح كل الصلاحيات.</p>
+                        <p>تحديد الصلاحيات الخاصة بهذا المستخدم. عند اختيار مدير النظام يتم تجاهل هذه القائمة ويُمنح كل الصلاحيات.</p>
                     </div>
-                    <button type="button" class="btn btn-secondary" onclick="toggleAllPermissions(true)">تحديد الكل</button>
-                    <button type="button" class="btn btn-secondary" onclick="toggleAllPermissions(false)">إلغاء الكل</button>
+                    <div class="actions">
+                        <button type="button" class="btn btn-secondary" onclick="toggleAllPermissions(true)">تحديد الكل</button>
+                        <button type="button" class="btn btn-secondary" onclick="toggleAllPermissions(false)">إلغاء الكل</button>
+                    </div>
                 </div>
 
                 <div class="permissions-grid">
@@ -103,21 +95,5 @@
         </form>
     </div>
 
-    <style>
-        .permissions-panel { margin-top: 24px; border: 1px solid #e5e7eb; border-radius: 16px; padding: 18px; background: #f8fafc; }
-        .permissions-header { display: flex; align-items: center; gap: 10px; justify-content: space-between; flex-wrap: wrap; margin-bottom: 16px; }
-        .permissions-header h3 { margin: 0 0 4px; font-size: 18px; }
-        .permissions-header p { margin: 0; color: #64748b; }
-        .permissions-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(230px, 1fr)); gap: 14px; }
-        .permission-group { background: #fff; border: 1px solid #e5e7eb; border-radius: 14px; padding: 14px; }
-        .permission-group strong { display: block; margin-bottom: 10px; color: #0f172a; }
-        .permission-item { display: flex; gap: 8px; align-items: center; margin: 8px 0; color: #334155; }
-        .permission-item input { width: auto; }
-    </style>
-
-    <script>
-        function toggleAllPermissions(checked) {
-            document.querySelectorAll('input[name="permissions[]"]').forEach((checkbox) => checkbox.checked = checked);
-        }
-    </script>
+    @include('users.partials.permissions-style')
 @endsection

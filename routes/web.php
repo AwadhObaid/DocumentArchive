@@ -143,25 +143,25 @@ Route::middleware(['auth', ApplyRoutePermissions::class])->group(function () {
 });
 
 // Professional printable data quality report
-Route::get('/data-quality/print', [\App\Http\Controllers\DataQualityPrintController::class, 'index'])->middleware(['auth'])->name('data-quality.print');
+Route::get('/data-quality/print', [\App\Http\Controllers\DataQualityPrintController::class, 'index'])->middleware(['auth', ApplyRoutePermissions::class])->name('data-quality.print');
 
 // Professional printable documents report
-Route::get('/reports/print', [\App\Http\Controllers\ReportPrintController::class, 'index'])->middleware(['auth'])->name('reports.print');
+Route::get('/reports/print', [\App\Http\Controllers\ReportPrintController::class, 'index'])->middleware(['auth', ApplyRoutePermissions::class])->name('reports.print');
 
 // notification-center-routes
-Route::middleware(['auth'])->group(function () {
+Route::middleware(['auth', ApplyRoutePermissions::class])->group(function () {
     Route::get('/notifications', [NotificationCenterController::class, 'index'])->name('notifications.index');
     Route::post('/notifications/{notification}/read', [NotificationCenterController::class, 'markAsRead'])->name('notifications.read');
     Route::post('/notifications/read-all', [NotificationCenterController::class, 'markAllAsRead'])->name('notifications.read_all');
     Route::delete('/notifications/{notification}', [NotificationCenterController::class, 'destroy'])->name('notifications.destroy');
 });
 
-Route::middleware(['auth'])->group(function () {
+Route::middleware(['auth', ApplyRoutePermissions::class])->group(function () {
     Route::get('/notification-settings', [NotificationSettingsController::class, 'edit'])->name('notification-settings.edit');
     Route::post('/notification-settings', [NotificationSettingsController::class, 'update'])->name('notification-settings.update');
 });
 // Notification center management actions
-Route::middleware(['auth'])->group(function () {
+Route::middleware(['auth', ApplyRoutePermissions::class])->group(function () {
     Route::post('/notifications/mark-all-read', [\App\Http\Controllers\NotificationCenterController::class, 'markAllRead'])->name('notifications.mark-all-read');
     Route::post('/notifications/hide-read', [\App\Http\Controllers\NotificationCenterController::class, 'hideRead'])->name('notifications.hide-read');
     Route::delete('/notifications/clear-hidden', [\App\Http\Controllers\NotificationCenterController::class, 'clearHidden'])->name('notifications.clear-hidden');
@@ -173,7 +173,7 @@ Route::middleware(['auth'])->group(function () {
 |--------------------------------------------------------------------------
 | Safe compatibility routes for notification center actions.
 */
-Route::middleware(['auth'])->group(function () {
+Route::middleware(['auth', ApplyRoutePermissions::class])->group(function () {
     Route::get('/notifications', [NotificationCenterController::class, 'index'])->name('notifications.index');
     Route::post('/notifications/read-all', [NotificationCenterController::class, 'readAll'])->name('notifications.read-all');
     Route::post('/notifications/mark-all-read', [NotificationCenterController::class, 'markAllRead'])->name('notifications.mark-all-read');
@@ -192,7 +192,7 @@ Route::middleware(['auth'])->group(function () {
 |--------------------------------------------------------------------------
 | These aliases keep old and new notification buttons working.
 */
-Route::middleware(['auth'])->group(function () {
+Route::middleware(['auth', ApplyRoutePermissions::class])->group(function () {
     Route::post('/notifications/read-all', [NotificationCenterController::class, 'markAllRead'])->name('notifications.read_all');
     Route::post('/notifications/mark-all-read', [NotificationCenterController::class, 'markAllRead'])->name('notifications.mark-all-read');
     Route::post('/notifications/hide-read', [NotificationCenterController::class, 'hideRead'])->name('notifications.hide-read');
@@ -202,7 +202,7 @@ Route::middleware(['auth'])->group(function () {
 });
 
 // Notification Center V5 stable compatibility routes
-Route::middleware(['auth'])->group(function () {
+Route::middleware(['auth', ApplyRoutePermissions::class])->group(function () {
     Route::get('/notifications', [\App\Http\Controllers\NotificationCenterController::class, 'index'])->name('notifications.index');
     Route::post('/notifications/read-all', [\App\Http\Controllers\NotificationCenterController::class, 'readAll'])->name('notifications.read_all');
     Route::post('/notifications/mark-all-read', [\App\Http\Controllers\NotificationCenterController::class, 'markAllAsRead'])->name('notifications.mark-all-read');
