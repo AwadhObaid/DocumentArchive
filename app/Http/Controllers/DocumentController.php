@@ -397,7 +397,7 @@ class DocumentController extends Controller
             ->findOrFail($id);
 
         foreach ($document->attachments as $attachment) {
-            $disk = Storage::disk($attachment->disk);
+            $disk = Storage::disk($attachment->disk ?: 'local');
 
             if ($disk->exists($attachment->file_path)) {
                 $disk->delete($attachment->file_path);
@@ -432,6 +432,7 @@ class DocumentController extends Controller
 
     public function previewAttachment(DocumentAttachment $attachment)
     {
+        $this->authorizeAttachmentPreview($attachment);
         $attachment->load('document');
 
         ActivityLogger::log(
@@ -449,7 +450,9 @@ class DocumentController extends Controller
 
     public function attachmentData(DocumentAttachment $attachment)
     {
-        $disk = Storage::disk($attachment->disk);
+        $this->authorizeAttachmentPreview($attachment);
+
+        $disk = Storage::disk($attachment->disk ?: 'local');
 
         if (!$disk->exists($attachment->file_path)) {
             abort(404, 'الملف غير موجود.');
@@ -482,7 +485,9 @@ class DocumentController extends Controller
 
     public function inlineAttachment(DocumentAttachment $attachment)
     {
-        $disk = Storage::disk($attachment->disk);
+        $this->authorizeAttachmentPreview($attachment);
+
+        $disk = Storage::disk($attachment->disk ?: 'local');
 
         if (!$disk->exists($attachment->file_path)) {
             abort(404, 'الملف غير موجود.');
@@ -525,6 +530,7 @@ class DocumentController extends Controller
 
     public function downloadAttachment(DocumentAttachment $attachment)
     {
+        $this->authorizeAttachmentDownload($attachment);
         $attachment->load('document');
 
         ActivityLogger::log(
@@ -537,7 +543,7 @@ class DocumentController extends Controller
             ]
         );
 
-        $disk = Storage::disk($attachment->disk);
+        $disk = Storage::disk($attachment->disk ?: 'local');
 
         if (!$disk->exists($attachment->file_path)) {
             abort(404, 'الملف غير موجود.');
@@ -670,6 +676,26 @@ class DocumentController extends Controller
         }
     }
 
+    private function authorizeAttachmentPreview(DocumentAttachment $attachment): void
+    {
+        $user = Auth::user();
+
+        $allowed = $user && (
+            (method_exists($user, 'hasPermission') && $user->hasPermission('documents.view')) ||
+            (method_exists($user, 'hasPermission') && $user->hasPermission('attachments.preview'))
+        );
+
+        abort_unless($allowed, 403, 'غير مصرح لك بمعاينة هذا المرفق.');
+    }
+
+    private function authorizeAttachmentDownload(DocumentAttachment $attachment): void
+    {
+        $user = Auth::user();
+
+        $allowed = $user && method_exists($user, 'hasPermission') && $user->hasPermission('attachments.download');
+
+        abort_unless($allowed, 403, 'غير مصرح لك بتنزيل هذا المرفق.');
+    }
     private function storeAttachment(Request $request, Document $document): void
     {
         $file = $request->file('attachment');

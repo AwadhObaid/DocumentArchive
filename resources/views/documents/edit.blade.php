@@ -119,8 +119,8 @@
 
                 <div class="form-group full">
                     <label>رفع نسخة كتاب ممسوحة / مرفق جديد</label>
-                    <input type="file" name="attachment">
-                    <small>عند رفع مرفق جديد سيتمحفظه كنسخة جديدة، ولن يتمحذف النسخ السابقة.</small>
+                    <input type="file" name="attachment" accept=".pdf,.jpg,.jpeg,.png,.gif,.webp,.bmp,.tif,.tiff,.doc,.docx,.xls,.xlsx">
+                    <small>عند رفع مرفق جديد سيتم حفظه كنسخة جديدة، ولن يتم حذف النسخ السابقة. الحد الأقصى 20 MB.</small>
                 </div>
 
                 <div class="form-group full">

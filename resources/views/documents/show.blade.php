@@ -8,8 +8,15 @@
         $v = data_get($row, $key);
         return ($v === null || $v === '') ? $default : $v;
     };
+
     $docId = $value($document ?? null, 'id', null);
     $attachmentsList = collect(data_get($document ?? null, 'attachments', $attachments ?? []));
+
+    $currentUser = auth()->user();
+    $canPreviewAttachment = $currentUser && method_exists($currentUser, 'hasPermission')
+        && ($currentUser->hasPermission('documents.view') || $currentUser->hasPermission('attachments.preview'));
+    $canDownloadAttachment = $currentUser && method_exists($currentUser, 'hasPermission')
+        && $currentUser->hasPermission('attachments.download');
 
     $arabicDocumentValue = function (string $field, $raw) {
         if ($raw === null || $raw === '') {
@@ -44,6 +51,8 @@
                 'internal' => 'داخلي',
                 'confidential' => 'سري',
                 'secret' => 'سري',
+                'very_confidential' => 'سري جداً',
+                'very confidential' => 'سري جداً',
                 'top_secret' => 'سري للغاية',
                 'top secret' => 'سري للغاية',
                 'very_secret' => 'سري جداً',
@@ -60,6 +69,56 @@
         ];
 
         return $maps[$field][$key] ?? $display;
+    };
+
+    $attachmentExists = function ($attachment): bool {
+        try {
+            if (is_object($attachment) && method_exists($attachment, 'existsOnDisk')) {
+                return $attachment->existsOnDisk();
+            }
+
+            $disk = data_get($attachment, 'disk', 'local') ?: 'local';
+            $path = data_get($attachment, 'file_path');
+            return $path ? \Illuminate\Support\Facades\Storage::disk($disk)->exists($path) : false;
+        } catch (\Throwable $exception) {
+            return false;
+        }
+    };
+
+    $attachmentSize = function ($attachment): string {
+        $human = data_get($attachment, 'file_size_for_humans') ?: data_get($attachment, 'size_human');
+        if ($human) {
+            return (string) $human;
+        }
+
+        $bytes = (int) data_get($attachment, 'file_size', 0);
+        if ($bytes >= 1048576) {
+            return round($bytes / 1048576, 2) . ' MB';
+        }
+        if ($bytes >= 1024) {
+            return round($bytes / 1024, 2) . ' KB';
+        }
+        return $bytes . ' Bytes';
+    };
+
+    $attachmentTypeLabel = function ($attachment): string {
+        $extension = strtolower((string) (data_get($attachment, 'extension') ?: pathinfo((string) data_get($attachment, 'original_name', ''), PATHINFO_EXTENSION)));
+        $mime = strtolower((string) data_get($attachment, 'mime_type', ''));
+
+        if ($extension === 'pdf' || str_contains($mime, 'pdf')) {
+            return 'PDF';
+        }
+        if (in_array($extension, ['jpg', 'jpeg', 'png', 'gif', 'webp', 'bmp', 'svg'], true) || str_starts_with($mime, 'image/')) {
+            return 'صورة';
+        }
+        if (in_array($extension, ['doc', 'docx'], true)) {
+            return 'Word';
+        }
+        if (in_array($extension, ['xls', 'xlsx'], true)) {
+            return 'Excel';
+        }
+
+        return strtoupper($extension ?: 'ملف');
     };
 @endphp
 
@@ -93,8 +152,7 @@
                 <tr><th>الإدارة</th><td>{{ $value($document ?? null, 'department.name', $value($document ?? null, 'department_name')) }}</td></tr>
                 <tr><th>نوع الكتاب</th><td>{{ $value($document ?? null, 'documentType.name', $value($document ?? null, 'document_type_name')) }}</td></tr>
                 <tr><th>المرسل</th><td>{{ $value($document ?? null, 'sender') }}</td></tr>
-                <tr><th>المستلم
-</th><td>{{ $value($document ?? null, 'recipient') }}</td></tr>
+                <tr><th>المستلم</th><td>{{ $value($document ?? null, 'recipient') }}</td></tr>
                 <tr><th>الحالة</th><td>{{ $arabicDocumentValue('status', $value($document ?? null, 'status')) }}</td></tr>
                 <tr><th>درجة السرية</th><td>{{ $arabicDocumentValue('confidentiality', $value($document ?? null, 'confidentiality')) }}</td></tr>
                 <tr><th>الأولوية</th><td>{{ $arabicDocumentValue('priority', $value($document ?? null, 'priority')) }}</td></tr>
@@ -105,32 +163,55 @@
     </div>
 </div>
 
-<div class="card mt-4">
-    <div class="card-header"><h2>المرفقات</h2></div>
+<div class="card mt-4 document-attachments-card">
+    <div class="card-header">
+        <h2>المرفقات</h2>
+    </div>
+
     @if($attachmentsList->count())
         <div class="table-responsive">
             <table class="table">
                 <thead>
                     <tr>
-                        <th>اسمالملف</th>
+                        <th>اسم الملف</th>
                         <th>النوع</th>
-                        <th>الحجم
-</th>
+                        <th>الحجم</th>
+                        <th>حالة التخزين</th>
                         <th class="no-print">إجراءات</th>
                     </tr>
                 </thead>
                 <tbody>
                     @foreach($attachmentsList as $attachment)
-                        @php $attId = data_get($attachment, 'id'); @endphp
+                        @php
+                            $attId = data_get($attachment, 'id');
+                            $exists = $attachmentExists($attachment);
+                            $fileName = data_get($attachment, 'original_name', data_get($attachment, 'file_name', 'مرفق'));
+                        @endphp
                         <tr>
-                            <td>{{ data_get($attachment, 'original_name', data_get($attachment, 'file_name', 'مرفق')) }}</td>
-                            <td>{{ data_get($attachment, 'mime_type', '-') }}</td>
-                            <td>{{ data_get($attachment, 'size_human', data_get($attachment, 'file_size', '-')) }}</td>
-                            <td class="no-print">
-                                @if($attId)
-                                    <a class="btn btn-sm btn-light" href="{{ url('/attachments/'.$attId.'/preview') }}">معاينة</a>
-                                    <a class="btn btn-sm btn-primary" href="{{ url('/attachments/'.$attId.'/download') }}">تنزيل</a>
+                            <td style="min-width:240px;white-space:normal;word-break:break-word;">{{ $fileName }}</td>
+                            <td>{{ $attachmentTypeLabel($attachment) }}</td>
+                            <td>{{ $attachmentSize($attachment) }}</td>
+                            <td>
+                                @if($exists)
+                                    <span class="badge" style="background:#dcfce7;color:#166534;border:1px solid #86efac;">موجود</span>
+                                @else
+                                    <span class="badge" style="background:#fee2e2;color:#991b1b;border:1px solid #fecaca;">مفقود</span>
                                 @endif
+                            </td>
+                            <td class="no-print">
+                                <div style="display:flex;gap:6px;flex-wrap:wrap;align-items:center;">
+                                    @if($attId && $exists && $canPreviewAttachment)
+                                        <a class="btn btn-sm btn-light" href="{{ url('/attachments/'.$attId.'/preview') }}">معاينة</a>
+                                    @endif
+
+                                    @if($attId && $exists && $canDownloadAttachment)
+                                        <a class="btn btn-sm btn-primary" href="{{ url('/attachments/'.$attId.'/download') }}">تنزيل</a>
+                                    @endif
+
+                                    @if(!$exists)
+                                        <span class="text-muted" style="font-size:12px;">الملف غير موجود على التخزين</span>
+                                    @endif
+                                </div>
                             </td>
                         </tr>
                     @endforeach

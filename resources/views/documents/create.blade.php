@@ -105,7 +105,7 @@
 
                 <div class="form-group full">
                     <label>نسخة الكتاب الممسوحة ضوئياً / مرفق اختياري</label>
-                    <input type="file" name="attachment">
+                    <input type="file" name="attachment" accept=".pdf,.jpg,.jpeg,.png,.gif,.webp,.bmp,.tif,.tiff,.doc,.docx,.xls,.xlsx">\n                    <small>يمكن رفع PDF أو صورة أو ملف Word/Excel، والحد الأقصى 20 MB.</small>
                     <small>يمكن إنشاء الكتاب أولاً وطباعة رقمه، ثمرفع النسخة الممسوحة لاحقاً بعد رجوع المندوب.</small>
                 </div>
 
