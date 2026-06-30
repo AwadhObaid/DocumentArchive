@@ -15,10 +15,9 @@ use App\Http\Controllers\UserController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Middleware\ApplyRoutePermissions;
 use Illuminate\Support\Facades\Route;
-
 use App\Http\Controllers\NotificationCenterController;
-
 use App\Http\Controllers\NotificationSettingsController;
+
 Route::middleware('guest')->group(function () {
     Route::get('/login', [AuthController::class, 'showLoginForm'])->name('login');
     Route::post('/login', [AuthController::class, 'login'])->name('login.post');
@@ -149,69 +148,26 @@ Route::get('/data-quality/print', [\App\Http\Controllers\DataQualityPrintControl
 // Professional printable documents report
 Route::get('/reports/print', [\App\Http\Controllers\ReportPrintController::class, 'index'])->middleware(['auth', ApplyRoutePermissions::class])->name('reports.print');
 
-// notification-center-routes
+// notifications-polish-routes:start
 Route::middleware(['auth', ApplyRoutePermissions::class])->group(function () {
     Route::get('/notifications', [NotificationCenterController::class, 'index'])->name('notifications.index');
-    Route::post('/notifications/{notification}/read', [NotificationCenterController::class, 'markAsRead'])->name('notifications.read');
-    Route::post('/notifications/read-all', [NotificationCenterController::class, 'markAllAsRead'])->name('notifications.read_all');
-    Route::delete('/notifications/{notification}', [NotificationCenterController::class, 'destroy'])->name('notifications.destroy');
-});
 
-Route::middleware(['auth', ApplyRoutePermissions::class])->group(function () {
-    Route::get('/notification-settings', [NotificationSettingsController::class, 'edit'])->name('notification-settings.edit');
-    Route::post('/notification-settings', [NotificationSettingsController::class, 'update'])->name('notification-settings.update');
-});
-// Notification center management actions
-Route::middleware(['auth', ApplyRoutePermissions::class])->group(function () {
-    Route::post('/notifications/mark-all-read', [\App\Http\Controllers\NotificationCenterController::class, 'markAllRead'])->name('notifications.mark-all-read');
-    Route::post('/notifications/hide-read', [\App\Http\Controllers\NotificationCenterController::class, 'hideRead'])->name('notifications.hide-read');
-    Route::delete('/notifications/clear-hidden', [\App\Http\Controllers\NotificationCenterController::class, 'clearHidden'])->name('notifications.clear-hidden');
-});
+    Route::post('/notifications/read-all', [NotificationCenterController::class, 'readAll'])->name('notifications.read_all');
+    Route::post('/notifications/read-all-legacy', [NotificationCenterController::class, 'readAll'])->name('notifications.read-all');
+    Route::post('/notifications/mark-all-read', [NotificationCenterController::class, 'markAllAsRead'])->name('notifications.mark-all-read');
 
-/*
-|--------------------------------------------------------------------------
-| Notification management fallback routes
-|--------------------------------------------------------------------------
-| Safe compatibility routes for notification center actions.
-*/
-Route::middleware(['auth', ApplyRoutePermissions::class])->group(function () {
-    Route::get('/notifications', [NotificationCenterController::class, 'index'])->name('notifications.index');
-    Route::post('/notifications/read-all', [NotificationCenterController::class, 'readAll'])->name('notifications.read-all');
-    Route::post('/notifications/mark-all-read', [NotificationCenterController::class, 'markAllRead'])->name('notifications.mark-all-read');
     Route::post('/notifications/hide-read', [NotificationCenterController::class, 'hideRead'])->name('notifications.hide-read');
+
     Route::post('/notifications/delete-hidden', [NotificationCenterController::class, 'deleteHidden'])->name('notifications.delete-hidden');
     Route::post('/notifications/purge-hidden', [NotificationCenterController::class, 'purgeHidden'])->name('notifications.purge-hidden');
     Route::post('/notifications/clear-hidden', [NotificationCenterController::class, 'clearHidden'])->name('notifications.clear-hidden');
-    Route::post('/notifications/{notification}/read', [NotificationCenterController::class, 'markAsRead'])->whereNumber('notification')->name('notifications.read');
+
+    Route::post('/notifications/{notification}/read', [NotificationCenterController::class, 'read'])->whereNumber('notification')->name('notifications.read');
+    Route::post('/notifications/{notification}/mark-read', [NotificationCenterController::class, 'markAsRead'])->whereNumber('notification')->name('notifications.mark-read');
     Route::post('/notifications/{notification}/hide', [NotificationCenterController::class, 'hide'])->whereNumber('notification')->name('notifications.hide');
     Route::delete('/notifications/{notification}', [NotificationCenterController::class, 'destroy'])->whereNumber('notification')->name('notifications.destroy');
-});
 
-/*
-|--------------------------------------------------------------------------
-| Notification management compatibility routes - V4
-|--------------------------------------------------------------------------
-| These aliases keep old and new notification buttons working.
-*/
-Route::middleware(['auth', ApplyRoutePermissions::class])->group(function () {
-    Route::post('/notifications/read-all', [NotificationCenterController::class, 'markAllRead'])->name('notifications.read_all');
-    Route::post('/notifications/mark-all-read', [NotificationCenterController::class, 'markAllRead'])->name('notifications.mark-all-read');
-    Route::post('/notifications/hide-read', [NotificationCenterController::class, 'hideRead'])->name('notifications.hide-read');
-    Route::post('/notifications/delete-hidden', [NotificationCenterController::class, 'deleteHidden'])->name('notifications.delete-hidden');
-    Route::post('/notifications/purge-hidden', [NotificationCenterController::class, 'deleteHidden'])->name('notifications.purge-hidden');
-    Route::post('/notifications/clear-hidden', [NotificationCenterController::class, 'deleteHidden'])->name('notifications.clear-hidden');
+    Route::get('/notification-settings', [NotificationSettingsController::class, 'edit'])->name('notification-settings.edit');
+    Route::post('/notification-settings', [NotificationSettingsController::class, 'update'])->name('notification-settings.update');
 });
-
-// Notification Center V5 stable compatibility routes
-Route::middleware(['auth', ApplyRoutePermissions::class])->group(function () {
-    Route::get('/notifications', [\App\Http\Controllers\NotificationCenterController::class, 'index'])->name('notifications.index');
-    Route::post('/notifications/read-all', [\App\Http\Controllers\NotificationCenterController::class, 'readAll'])->name('notifications.read_all');
-    Route::post('/notifications/mark-all-read', [\App\Http\Controllers\NotificationCenterController::class, 'markAllAsRead'])->name('notifications.mark-all-read');
-    Route::post('/notifications/hide-read', [\App\Http\Controllers\NotificationCenterController::class, 'hideRead'])->name('notifications.hide-read');
-    Route::post('/notifications/delete-hidden', [\App\Http\Controllers\NotificationCenterController::class, 'deleteHidden'])->name('notifications.delete-hidden');
-    Route::post('/notifications/purge-hidden', [\App\Http\Controllers\NotificationCenterController::class, 'purgeHidden'])->name('notifications.purge-hidden');
-    Route::post('/notifications/clear-hidden', [\App\Http\Controllers\NotificationCenterController::class, 'clearHidden'])->name('notifications.clear-hidden');
-    Route::post('/notifications/{notification}/read', [\App\Http\Controllers\NotificationCenterController::class, 'read'])->name('notifications.read');
-    Route::post('/notifications/{notification}/hide', [\App\Http\Controllers\NotificationCenterController::class, 'hide'])->name('notifications.hide');
-    Route::delete('/notifications/{notification}', [\App\Http\Controllers\NotificationCenterController::class, 'destroy'])->name('notifications.destroy');
-});
+// notifications-polish-routes:end

@@ -287,6 +287,22 @@
         margin-top: 18px;
     }
 
+
+    /* notifications-pagination-svg-fix */
+    .notifications-pagination-v9 svg,
+    .notifications-pagination-v9 nav svg,
+    .notifications-pagination-v10 svg,
+    .notifications-pagination-v10 nav svg {
+        width: 18px !important;
+        height: 18px !important;
+        max-width: 18px !important;
+        max-height: 18px !important;
+    }
+
+    .notifications-pagination-v9 nav,
+    .notifications-pagination-v10 nav {
+        direction: rtl;
+    }
     @media (max-width: 900px) {
         .notifications-hero-v9 { align-items: stretch; }
         .notifications-actions-v9 { flex-basis: 100%; }
@@ -319,7 +335,7 @@
             <div>
                 <h1 class="notifications-title-v9">مركز الإشعارات</h1>
                 <p class="notifications-subtitle-v9">
-                    متابعة تنبيهات النظاموالعمليات المهمة بشكل واضح ومنظممع إمكانية القراءة والإخفاء والتنظيف.
+                    متابعة تنبيهات النظام والعمليات المهمة بشكل واضح ومنظم مع إمكانية القراءة والإخفاء والتنظيف.
                 </p>
             </div>
         </div>
@@ -329,7 +345,7 @@
 
             <form method="POST" action="{{ $bulkReadUrl }}">
                 @csrf
-                <button class="notif-btn-v9 notif-btn-blue-v9" type="submit">متعليمالكل كمقروءة</button>
+                <button class="notif-btn-v9 notif-btn-blue-v9" type="submit">✅ تعليم الكل كمقروءة</button>
             </form>
 
             <form method="POST" action="{{ $hideReadUrl }}">
@@ -363,8 +379,7 @@
                 $title = data_get($notification, 'title')
                     ?: data_get($notification, 'subject')
                     ?: data_get($notification, 'heading')
-                    ?: 'إشعار النظام
-';
+                    ?: 'إشعار النظام';
 
                 $message = data_get($notification, 'message')
                     ?: data_get($notification, 'body')

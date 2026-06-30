@@ -141,3 +141,63 @@
 @media print {
     .app-toast-container { display: none !important; }
 }
+
+/* notifications-center-arabic-spacing-fix */
+.notification-center,
+#notification-center,
+#notificationCenter,
+.notification-center-panel,
+.notification-dropdown,
+.notification-widget {
+    word-spacing: .12rem;
+}
+.notification-center button,
+#notification-center button,
+#notificationCenter button,
+.notification-center-panel button,
+.notification-dropdown button,
+.notification-widget button,
+.notification-center a,
+#notification-center a,
+#notificationCenter a,
+.notification-center-panel a,
+.notification-dropdown a,
+.notification-widget a {
+    word-spacing: .16rem;
+}
+.notification-center button > * + *,
+#notification-center button > * + *,
+#notificationCenter button > * + *,
+.notification-center-panel button > * + *,
+.notification-dropdown button > * + *,
+.notification-widget button > * + * {
+    margin-inline-start: .25rem;
+}
+
+
+/* notifications-center-arabic-spacing-v2-fix */
+.notification-center,
+#notification-center,
+#notificationCenter,
+.notification-center-panel,
+.notification-dropdown,
+.notification-widget,
+[data-notification-center] {
+    word-spacing: .14rem;
+}
+.notification-center button,
+#notification-center button,
+#notificationCenter button,
+.notification-center-panel button,
+.notification-dropdown button,
+.notification-widget button,
+[data-notification-center] button,
+.notification-center a,
+#notification-center a,
+#notificationCenter a,
+.notification-center-panel a,
+.notification-dropdown a,
+.notification-widget a,
+[data-notification-center] a {
+    word-spacing: .18rem;
+}

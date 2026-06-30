@@ -83,6 +83,8 @@ class SystemNotificationService
                     if (self::hasColumn('read_at') && $existing->isDirty(['title', 'body', 'message', 'type', 'link', 'url', 'payload', 'data'])) {
                         $existing->read_at = null;
                     }
+                    if (self::hasColumn('is_read')) { $existing->is_read = false; }
+                    if (self::hasColumn('is_hidden')) { $existing->is_hidden = false; }
                     if (self::hasColumn('dismissed_at')) {
                         $existing->dismissed_at = null;
                     }
@@ -133,8 +135,10 @@ class SystemNotificationService
         self::createForUser((int) $userId, $title, $body, $type, $url, null, 'flash', $data);
     }
 
-    public static function syncForCurrentUser(?User $user): void
+    public static function syncForCurrentUser(?User $user = null): void
     {
+        $user = $user ?: Auth::user();
+
         if (! $user || ! self::tableReady() || ! self::isAdmin($user)) {
             return;
         }
@@ -388,6 +392,8 @@ class SystemNotificationService
         if (self::hasColumn('source')) { $data['source'] = $source; }
         if (self::hasColumn('payload')) { $data['payload'] = $payload; }
         if (self::hasColumn('data')) { $data['data'] = $payload; }
+        if (self::hasColumn('is_read')) { $data['is_read'] = false; }
+        if (self::hasColumn('is_hidden')) { $data['is_hidden'] = false; }
         if (self::hasColumn('dismissed_at')) { $data['dismissed_at'] = null; }
         if (self::hasColumn('hidden_at')) { $data['hidden_at'] = null; }
         return $data;

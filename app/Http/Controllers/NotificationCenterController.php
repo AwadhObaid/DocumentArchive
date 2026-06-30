@@ -18,7 +18,7 @@ class NotificationCenterController extends Controller
     {
         if (class_exists(SystemNotificationService::class) && method_exists(SystemNotificationService::class, 'syncForCurrentUser')) {
             try {
-                app(SystemNotificationService::class)->syncForCurrentUser();
+                SystemNotificationService::syncForCurrentUser($request->user());
             } catch (\Throwable $e) {
                 // لا نكسر صفحة الإشعارات إذا فشل توليد التنبيهات التلقائية.
             }
@@ -66,6 +66,11 @@ class NotificationCenterController extends Controller
     }
 
     public function markAllAsRead(Request $request): RedirectResponse
+    {
+        return $this->readAll($request);
+    }
+
+    public function markAllRead(Request $request): RedirectResponse
     {
         return $this->readAll($request);
     }

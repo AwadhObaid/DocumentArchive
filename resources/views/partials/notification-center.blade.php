@@ -152,7 +152,7 @@
             <div class="notification-center-footer">
                 <form method="POST" action="{{ route('notifications.read_all') }}">
                     @csrf
-                    <button class="notification-center-small-btn" type="submit">تعليمالكل كمقروء</button>
+                    <button class="notification-center-small-btn" type="submit">تعليم الكل كمقروء</button>
                 </form>
             </div>
         </div>

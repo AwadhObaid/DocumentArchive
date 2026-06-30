@@ -68,7 +68,6 @@ class NotificationSettingsController extends Controller
             || (method_exists($user, 'hasPermission') && (
                 $user->hasPermission('settings.manage')
                 || $user->hasPermission('notifications.manage')
-                || $user->hasPermission('backups.view')
             ));
 
         abort_unless($allowed, 403, 'ليست لديك صلاحية إدارة إعدادات الإشعارات.');

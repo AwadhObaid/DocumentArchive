@@ -89,3 +89,80 @@
             .replace(/'/g, '&#039;');
     }
 })();
+/* notifications-center-arabic-spacing-v2-fix */
+(function () {
+    const pairs = [
+        [['تعليم', 'الكل', ' كمقروء'].join(''), 'تعليم الكل كمقروء'],
+        [['تعليم', 'الكل', 'كمقروء'].join(''), 'تعليم الكل كمقروء'],
+        [['تعليم الكل', 'كمقروء'].join(''), 'تعليم الكل كمقروء'],
+        [['تعليم', 'الكل'].join(''), 'تعليم الكل'],
+        [['عرض', 'الكل'].join(''), 'عرض الكل'],
+        [['إخفاء', 'المقروء'].join(''), 'إخفاء المقروء'],
+        [['اخفاء', 'المقروء'].join(''), 'إخفاء المقروء'],
+        [['حذف', 'المخفية'].join(''), 'حذف المخفية'],
+        [['مركز', 'الإشعارات'].join(''), 'مركز الإشعارات'],
+        [['نجاح', 'العملية'].join(''), 'نجاح العملية'],
+        [['تم', 'حفظ'].join(''), 'تم حفظ'],
+        [['تم', 'إنشاء'].join(''), 'تم إنشاء'],
+        [['تم', 'توليد'].join(''), 'تم توليد'],
+        [['رقم', 'الكتاب'].join(''), 'رقم الكتاب']
+    ];
+
+    function fixValue(value) {
+        let next = value;
+        pairs.forEach(([bad, good]) => {
+            next = next.split(bad).join(good);
+        });
+        return next;
+    }
+
+    function fixTextNode(node) {
+        const next = fixValue(node.nodeValue || '');
+        if (next !== node.nodeValue) {
+            node.nodeValue = next;
+        }
+    }
+
+    function fixElement(element) {
+        if (!element) return;
+        const walker = document.createTreeWalker(element, NodeFilter.SHOW_TEXT, null);
+        const nodes = [];
+        while (walker.nextNode()) nodes.push(walker.currentNode);
+        nodes.forEach(fixTextNode);
+    }
+
+    function fixNotificationsArabicSpacing(root) {
+        const scope = root || document;
+        if (scope.nodeType === Node.TEXT_NODE) {
+            fixTextNode(scope);
+            return;
+        }
+        if (scope.nodeType === Node.ELEMENT_NODE) {
+            fixElement(scope);
+        }
+        const targets = scope.querySelectorAll
+            ? scope.querySelectorAll('.notification-center, #notification-center, #notificationCenter, .notification-center-panel, .notification-dropdown, .notification-widget, [data-notification-center]')
+            : [];
+        targets.forEach(fixElement);
+    }
+
+    function run() {
+        fixNotificationsArabicSpacing(document);
+        const observer = new MutationObserver((mutations) => {
+            mutations.forEach((mutation) => {
+                mutation.addedNodes.forEach(fixNotificationsArabicSpacing);
+                if (mutation.type === 'characterData') {
+                    fixNotificationsArabicSpacing(mutation.target);
+                }
+            });
+            fixNotificationsArabicSpacing(document);
+        });
+        observer.observe(document.body, { childList: true, subtree: true, characterData: true });
+    }
+
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', run);
+    } else {
+        run();
+    }
+})();

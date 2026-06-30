@@ -25,6 +25,8 @@ class SystemNotification extends Model
         'payload',
         'data',
         'read_at',
+        'is_read',
+        'is_hidden',
         'dismissed_at',
         'hidden_at',
     ];
@@ -33,6 +35,8 @@ class SystemNotification extends Model
         'payload' => 'array',
         'data' => 'array',
         'read_at' => 'datetime',
+        'is_read' => 'boolean',
+        'is_hidden' => 'boolean',
         'dismissed_at' => 'datetime',
         'hidden_at' => 'datetime',
     ];
@@ -45,6 +49,11 @@ class SystemNotification extends Model
     public function scopeVisible($query)
     {
         try {
+            if (Schema::hasColumn($this->getTable(), 'is_hidden')) {
+                $query->where(function ($q) {
+                    $q->whereNull('is_hidden')->orWhere('is_hidden', 0);
+                });
+            }
             if (Schema::hasColumn($this->getTable(), 'dismissed_at')) {
                 $query->whereNull('dismissed_at');
             }

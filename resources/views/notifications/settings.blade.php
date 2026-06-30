@@ -31,7 +31,7 @@
     <div class="notification-settings-header">
         <div class="notification-settings-title">
             <h1>⚙️ إعدادات الإشعارات</h1>
-            <p>حدد أنواع الإشعارات التي تريد أن ينشئها النظامويحفظها داخل مركز الإشعارات.</p>
+            <p>حدد أنواع الإشعارات التي تريد أن ينشئها النظام ويحفظها داخل مركز الإشعارات.</p>
         </div>
         <a href="{{ route('notifications.index') }}" class="btn btn-secondary">🔔 مركز الإشعارات</a>
     </div>
