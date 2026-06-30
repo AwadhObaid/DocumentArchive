@@ -64,3 +64,56 @@ html[dir="rtl"] aside button {
     height: auto !important;
     line-height: 1.65 !important;
 }
+
+/* sidebar-vertical-scroll-fix:start */
+/* Keep the sidebar usable when permission-based menus become long. */
+html[dir="rtl"] body:not(.da-print-reference-page) .sidebar {
+    height: 100vh !important;
+    height: 100dvh !important;
+    max-height: 100vh !important;
+    max-height: 100dvh !important;
+    display: flex !important;
+    flex-direction: column !important;
+    overflow: hidden !important;
+}
+
+html[dir="rtl"] body:not(.da-print-reference-page) .sidebar .brand,
+html[dir="rtl"] body:not(.da-print-reference-page) .sidebar .sidebar-footer {
+    flex: 0 0 auto !important;
+}
+
+html[dir="rtl"] body:not(.da-print-reference-page) .sidebar .side-nav {
+    flex: 1 1 auto !important;
+    min-height: 0 !important;
+    overflow-y: auto !important;
+    overflow-x: hidden !important;
+    overscroll-behavior: contain !important;
+    scrollbar-gutter: stable both-edges;
+    padding-bottom: 14px !important;
+}
+
+html[dir="rtl"] body:not(.da-print-reference-page) .sidebar .side-nav a {
+    flex: 0 0 auto !important;
+}
+
+html[dir="rtl"] body:not(.da-print-reference-page) .sidebar .side-nav::-webkit-scrollbar {
+    width: 8px;
+}
+
+html[dir="rtl"] body:not(.da-print-reference-page) .sidebar .side-nav::-webkit-scrollbar-thumb {
+    background: rgba(148, 163, 184, .45);
+    border-radius: 999px;
+}
+
+html[dir="rtl"] body:not(.da-print-reference-page) .sidebar .side-nav::-webkit-scrollbar-track {
+    background: rgba(15, 23, 42, .25);
+}
+
+@media (max-width: 980px) {
+    html[dir="rtl"] body:not(.da-print-reference-page) .sidebar.open {
+        height: 100vh !important;
+        height: 100dvh !important;
+        overflow: hidden !important;
+    }
+}
+/* sidebar-vertical-scroll-fix:end */
