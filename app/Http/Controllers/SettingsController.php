@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Document;
 use App\Models\Setting;
+use App\Services\ActivityLogger;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
 
@@ -18,37 +19,49 @@ class SettingsController extends Controller
         'Amiri' => 'Amiri',
     ];
 
+    private const DEFAULTS = [
+        'system_name' => 'الأرشيف الإلكتروني',
+        'system_department_name' => 'الشحن والتأمين',
+        'system_full_title' => 'نظام الأرشيف الإلكتروني الخاص بقسم الشحن والتأمين',
+        'system_tagline' => 'إدارة الكتب، المرفقات، البوالص، والطباعة الرسمية',
+        'system_brand_icon' => '📁',
+        'reference_start_number' => '251230000',
+        'print_department_title' => 'الشحن والتأمين',
+        'print_font_family' => 'Cairo',
+        'print_top_mm' => '32',
+        'print_left_mm' => '32',
+        'print_font_size_pt' => '10.2',
+        'print_department_font_size_pt' => '10.8',
+        'print_label_width_mm' => '18',
+        'print_colon_width_mm' => '1',
+        'print_value_width_mm' => '24',
+        'print_column_gap_mm' => '0',
+        'print_title_gap_mm' => '0.6',
+        'print_row_gap_mm' => '0.25',
+    ];
+
     public function edit()
     {
-        $settings = [
-            'reference_start_number' => Setting::getValue('reference_start_number', '251230000'),
-            'print_department_title' => Setting::getValue('print_department_title', 'الشحن والتأمين'),
-            'print_font_family' => Setting::getValue('print_font_family', 'Cairo'),
-            'print_top_mm' => Setting::getValue('print_top_mm', '32'),
-            'print_left_mm' => Setting::getValue('print_left_mm', '32'),
-            'print_font_size_pt' => Setting::getValue('print_font_size_pt', '10.2'),
-            'print_department_font_size_pt' => Setting::getValue('print_department_font_size_pt', '10.8'),
-            'print_label_width_mm' => Setting::getValue('print_label_width_mm', '18'),
-            'print_colon_width_mm' => Setting::getValue('print_colon_width_mm', '1'),
-            'print_value_width_mm' => Setting::getValue('print_value_width_mm', '24'),
-            'print_column_gap_mm' => Setting::getValue('print_column_gap_mm', '0'),
-            'print_title_gap_mm' => Setting::getValue('print_title_gap_mm', '0.6'),
-            'print_row_gap_mm' => Setting::getValue('print_row_gap_mm', '0.25'),
+        $settings = $this->settingsForView();
+        $printFontOptions = self::PRINT_FONT_OPTIONS;
+        $printSummary = [
+            'position' => $settings['print_top_mm'] . ' مم من الأعلى / ' . $settings['print_left_mm'] . ' مم من اليسار',
+            'font' => $settings['print_font_family'] . ' - ' . $settings['print_font_size_pt'] . ' pt',
+            'reference_start' => $settings['reference_start_number'],
         ];
 
-        if (! array_key_exists($settings['print_font_family'], self::PRINT_FONT_OPTIONS)) {
-            $settings['print_font_family'] = 'Cairo';
-        }
-
-        $printFontOptions = self::PRINT_FONT_OPTIONS;
-
-        return view('settings.edit', compact('settings', 'printFontOptions'));
+        return view('settings.edit', compact('settings', 'printFontOptions', 'printSummary'));
     }
 
     public function update(Request $request)
     {
         $validated = $request->validate([
-            'reference_start_number' => ['required', 'integer', 'min:1'],
+            'system_name' => ['required', 'string', 'max:80'],
+            'system_department_name' => ['required', 'string', 'max:120'],
+            'system_full_title' => ['required', 'string', 'max:180'],
+            'system_tagline' => ['nullable', 'string', 'max:255'],
+            'system_brand_icon' => ['required', 'string', 'max:16'],
+            'reference_start_number' => ['required', 'integer', 'min:1', 'max:999999999999'],
             'print_department_title' => ['required', 'string', 'max:255'],
             'print_font_family' => ['required', 'string', Rule::in(array_keys(self::PRINT_FONT_OPTIONS))],
             'print_top_mm' => ['required', 'numeric', 'min:0', 'max:297'],
@@ -62,21 +75,43 @@ class SettingsController extends Controller
             'print_title_gap_mm' => ['required', 'numeric', 'min:0', 'max:15'],
             'print_row_gap_mm' => ['required', 'numeric', 'min:0', 'max:10'],
             'apply_to_existing_documents' => ['nullable', 'boolean'],
+        ], [
+            'system_name.required' => 'اسم النظام مطلوب.',
+            'system_department_name.required' => 'اسم القسم مطلوب.',
+            'system_full_title.required' => 'العنوان الرئيسي مطلوب.',
+            'system_brand_icon.required' => 'أيقونة النظام مطلوبة.',
+            'reference_start_number.required' => 'رقم بداية الكتاب مطلوب.',
+            'reference_start_number.integer' => 'رقم بداية الكتاب يجب أن يكون رقماً صحيحاً.',
+            'print_department_title.required' => 'عنوان الطباعة مطلوب.',
+            'print_font_family.in' => 'نوع الخط المختار غير مدعوم.',
         ]);
 
-        Setting::setValue('reference_start_number', $validated['reference_start_number'], 'references', 'number', 'رقم بداية الإشارة في بداية كل سنة');
-        Setting::setValue('print_department_title', $validated['print_department_title'], 'printing', 'text', 'العنوان الثابت الذي يظهر أعلى رقم الكتاب');
-        Setting::setValue('print_font_family', $validated['print_font_family'], 'printing', 'text', 'نوع خط صفحة طباعة رقم الكتاب');
-        Setting::setValue('print_top_mm', $validated['print_top_mm'], 'printing', 'decimal', 'موضع كتلة الطباعة من أعلى ورقة A4 بالملليمتر');
-        Setting::setValue('print_left_mm', $validated['print_left_mm'], 'printing', 'decimal', 'موضع كتلة الطباعة من يسار ورقة A4 بالملليمتر');
-        Setting::setValue('print_font_size_pt', $validated['print_font_size_pt'], 'printing', 'decimal', 'حجم خط رقم الكتاب والتاريخ عند الطباعة');
-        Setting::setValue('print_department_font_size_pt', $validated['print_department_font_size_pt'], 'printing', 'decimal', 'حجم خط عنوان الجهة في صفحة طباعة رقم الكتاب');
-        Setting::setValue('print_label_width_mm', $validated['print_label_width_mm'], 'printing', 'decimal', 'عرض خانة العنوان مثل رقم الكتاب وتاريخ الكتاب');
-        Setting::setValue('print_colon_width_mm', $validated['print_colon_width_mm'], 'printing', 'decimal', 'عرض خانة النقطتين بين العنوان والقيمة');
-        Setting::setValue('print_value_width_mm', $validated['print_value_width_mm'], 'printing', 'decimal', 'عرض خانة القيمة مثل الرقم والتاريخ');
-        Setting::setValue('print_column_gap_mm', $validated['print_column_gap_mm'], 'printing', 'decimal', 'المسافة الأفقية بين خانات الطباعة');
-        Setting::setValue('print_title_gap_mm', $validated['print_title_gap_mm'], 'printing', 'decimal', 'المسافة بين عنوان الجهة وصفوف رقم الكتاب');
-        Setting::setValue('print_row_gap_mm', $validated['print_row_gap_mm'], 'printing', 'decimal', 'المسافة بين صف رقم الكتاب وصف تاريخ الكتاب');
+        $before = $this->settingsForView();
+
+        $definitions = [
+            'system_name' => ['general', 'text', 'اسم النظام المختصر الظاهر في القائمة الجانبية وعنوان الصفحة'],
+            'system_department_name' => ['general', 'text', 'اسم القسم أو الإدارة الظاهر أسفل اسم النظام'],
+            'system_full_title' => ['general', 'text', 'العنوان الرئيسي أعلى صفحات النظام'],
+            'system_tagline' => ['general', 'text', 'الوصف المختصر أعلى صفحات النظام'],
+            'system_brand_icon' => ['general', 'text', 'أيقونة النظام في القائمة الجانبية'],
+            'reference_start_number' => ['references', 'number', 'رقم بداية الكتاب في بداية كل سنة'],
+            'print_department_title' => ['printing', 'text', 'العنوان الثابت الذي يظهر أعلى رقم الكتاب'],
+            'print_font_family' => ['printing', 'text', 'نوع خط صفحة طباعة رقم الكتاب'],
+            'print_top_mm' => ['printing', 'decimal', 'موضع كتلة الطباعة من أعلى ورقة A4 بالملليمتر'],
+            'print_left_mm' => ['printing', 'decimal', 'موضع كتلة الطباعة من يسار ورقة A4 بالملليمتر'],
+            'print_font_size_pt' => ['printing', 'decimal', 'حجم خط رقم الكتاب والتاريخ عند الطباعة'],
+            'print_department_font_size_pt' => ['printing', 'decimal', 'حجم خط عنوان الجهة في صفحة طباعة رقم الكتاب'],
+            'print_label_width_mm' => ['printing', 'decimal', 'عرض خانة العنوان مثل رقم الكتاب وتاريخ الكتاب'],
+            'print_colon_width_mm' => ['printing', 'decimal', 'عرض خانة النقطتين بين العنوان والقيمة'],
+            'print_value_width_mm' => ['printing', 'decimal', 'عرض خانة القيمة مثل الرقم والتاريخ'],
+            'print_column_gap_mm' => ['printing', 'decimal', 'المسافة الأفقية بين خانات الطباعة'],
+            'print_title_gap_mm' => ['printing', 'decimal', 'المسافة بين عنوان الجهة وصفوف رقم الكتاب'],
+            'print_row_gap_mm' => ['printing', 'decimal', 'المسافة بين صف رقم الكتاب وصف تاريخ الكتاب'],
+        ];
+
+        foreach ($definitions as $key => [$group, $type, $description]) {
+            Setting::setValue($key, $validated[$key] ?? '', $group, $type, $description);
+        }
 
         if ($request->boolean('apply_to_existing_documents')) {
             Document::query()->update([
@@ -86,8 +121,53 @@ class SettingsController extends Controller
             ]);
         }
 
+        ActivityLogger::log(
+            'settings.updated',
+            'تم تعديل إعدادات النظام العامة والطباعة.',
+            null,
+            [
+                'changed_keys' => $this->changedKeys($before, $validated),
+                'apply_to_existing_documents' => $request->boolean('apply_to_existing_documents'),
+            ]
+        );
+
         return redirect()
             ->route('settings.edit')
-            ->with('success', 'تم حفظ الإعدادات بنجاح.');
+            ->with('success', 'تم حفظ إعدادات النظام بنجاح.');
+    }
+
+    private function settingsForView(): array
+    {
+        $settings = [];
+
+        foreach (self::DEFAULTS as $key => $default) {
+            $settings[$key] = Setting::getValue($key, $default);
+        }
+
+        if (! array_key_exists($settings['print_font_family'], self::PRINT_FONT_OPTIONS)) {
+            $settings['print_font_family'] = 'Cairo';
+        }
+
+        return $settings;
+    }
+
+    private function changedKeys(array $before, array $after): array
+    {
+        $changed = [];
+
+        foreach ($before as $key => $oldValue) {
+            if (! array_key_exists($key, $after)) {
+                continue;
+            }
+
+            if ((string) $oldValue !== (string) $after[$key]) {
+                $changed[$key] = [
+                    'old' => (string) $oldValue,
+                    'new' => (string) $after[$key],
+                ];
+            }
+        }
+
+        return $changed;
     }
 }

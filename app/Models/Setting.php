@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Throwable;
 
 class Setting extends Model
 {
@@ -16,11 +17,37 @@ class Setting extends Model
 
     public static function getValue(string $key, mixed $default = null): mixed
     {
-        $value = static::query()
-            ->where('key', $key)
-            ->value('value');
+        try {
+            $value = static::query()
+                ->where('key', $key)
+                ->value('value');
 
-        return $value ?? $default;
+            return $value ?? $default;
+        } catch (Throwable $exception) {
+            return $default;
+        }
+    }
+
+    public static function getString(string $key, string $default = ''): string
+    {
+        $value = static::getValue($key, $default);
+        $value = is_scalar($value) ? trim((string) $value) : '';
+
+        return $value !== '' ? $value : $default;
+    }
+
+    public static function getInt(string $key, int $default = 0): int
+    {
+        $value = static::getValue($key, $default);
+
+        return is_numeric($value) ? (int) $value : $default;
+    }
+
+    public static function getFloat(string $key, float $default = 0.0): float
+    {
+        $value = static::getValue($key, $default);
+
+        return is_numeric($value) ? (float) $value : $default;
     }
 
     public static function setValue(
@@ -33,7 +60,7 @@ class Setting extends Model
         return static::query()->updateOrCreate(
             ['key' => $key],
             [
-                'value' => (string) $value,
+                'value' => is_null($value) ? null : (string) $value,
                 'group' => $group,
                 'type' => $type,
                 'description' => $description,

@@ -2,7 +2,16 @@
 <html lang="ar" dir="rtl" data-theme="light">
 <head>
     <meta charset="UTF-8">
-    <title>@yield('title', 'نظام الأرشيف الإلكتروني')</title>
+    {{-- document-archive-system-settings:start --}}
+    @php
+        $daSystemName = \App\Models\Setting::getValue('system_name', 'الأرشيف الإلكتروني');
+        $daSystemDepartmentName = \App\Models\Setting::getValue('system_department_name', 'الشحن والتأمين');
+        $daSystemFullTitle = \App\Models\Setting::getValue('system_full_title', 'نظام الأرشيف الإلكتروني الخاص بقسم الشحن والتأمين');
+        $daSystemTagline = \App\Models\Setting::getValue('system_tagline', 'إدارة الكتب، المرفقات، البوالص، والطباعة الرسمية');
+        $daSystemBrandIcon = \App\Models\Setting::getValue('system_brand_icon', '📁');
+    @endphp
+    {{-- document-archive-system-settings:end --}}
+    <title>@yield('title', $daSystemName)</title>
     <meta name="viewport" content="width=device-width, initial-scale=1">
 
     <link rel="stylesheet" href="{{ asset('css/app.css') }}">
@@ -29,10 +38,10 @@
 <div class="app-shell">
     <aside class="sidebar" id="sidebar">
         <div class="brand">
-            <div class="brand-icon">📁</div>
+            <div class="brand-icon">{{ $daSystemBrandIcon }}</div>
             <div>
-                <div class="brand-title">الأرشيف الإلكتروني</div>
-                <div class="brand-subtitle">الشحن والتأمين</div>
+                <div class="brand-title">{{ $daSystemName }}</div>
+                <div class="brand-subtitle">{{ $daSystemDepartmentName }}</div>
             </div>
         </div>
 
@@ -114,8 +123,8 @@
             <button class="menu-toggle" type="button" data-toggle-sidebar>☰</button>
 
             <div>
-                <h1>@yield('page_title', 'نظام الأرشيف الإلكتروني الخاص بقسم الشحن والتأمين')</h1>
-                <p>@yield('page_subtitle', 'إدارة الكتب، المرفقات، البوالص، والطباعة الرسمية')</p>
+                <h1>@yield('page_title', $daSystemFullTitle)</h1>
+                <p>@yield('page_subtitle', $daSystemTagline)</p>
             </div>
 
             <button class="theme-toggle" type="button" data-toggle-theme>🌙</button>
