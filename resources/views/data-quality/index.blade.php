@@ -25,8 +25,11 @@
     .dq-panel small { color:#94a3b8; }
     .dq-warning { border:1px solid rgba(245,158,11,.55); background:rgba(120,53,15,.34); color:#fde68a; border-radius:.9rem; padding:.85rem 1rem; margin:1rem 0; font-weight:700; }
     .dq-empty { color:#94a3b8; padding:.9rem 0; }
-    .dq-table-wrap { overflow-x:auto; }
-    .dq-table { width:100%; border-collapse:collapse; min-width:720px; }
+    .dq-table-wrap { width:100%; max-width:100%; overflow-x:auto; overflow-y:hidden; -webkit-overflow-scrolling:touch; direction:rtl; scrollbar-width:thin; }
+    .dq-table-wrap::-webkit-scrollbar { height:10px; }
+    .dq-table-wrap::-webkit-scrollbar-track { background:rgba(15,23,42,.65); border-radius:999px; }
+    .dq-table-wrap::-webkit-scrollbar-thumb { background:rgba(59,130,246,.65); border-radius:999px; }
+    .dq-table { width:100%; border-collapse:collapse; min-width:760px; margin:0; }
     .dq-table th { background:rgba(30,41,59,.94); color:#cbd5e1; font-size:.85rem; text-align:right; padding:.8rem; white-space:nowrap; }
     .dq-table td { border-top:1px solid rgba(148,163,184,.18); padding:.75rem .8rem; color:#e5e7eb; vertical-align:middle; }
     .dq-pill { display:inline-flex; align-items:center; justify-content:center; border-radius:999px; padding:.25rem .55rem; background:rgba(37,99,235,.18); border:1px solid rgba(59,130,246,.38); color:#dbeafe; font-weight:700; margin:.15rem; text-decoration:none; }
@@ -46,7 +49,7 @@
     }
 </style>
 
-<div class="dq-page">
+<div class="dq-page" data-quality-polish-marker="v1">
     <div class="page-header">
         <h1>جودة البيانات 🧭</h1>
         <p>مراجعة الكتب التي تحتاج انتباه: مرفقات ناقصة، بوالص مكررة، أو بيانات غير مكتملة.</p>
@@ -78,7 +81,7 @@
     <div class="dq-two">
         @include('data-quality.partials.documents-panel', [
             'title' => 'كتب بلا مرفقات',
-            'subtitle' => 'كتب تمإنشاؤها ولميتمرفع مرفق لها بعد.',
+            'subtitle' => 'كتب تم إنشاؤها ولم يتم رفع مرفق لها بعد.',
             'documents' => $withoutAttachments,
             'empty' => 'لا توجد كتب بلا مرفقات.'
         ])
@@ -94,14 +97,14 @@
 
     @include('data-quality.partials.duplicate-policy-panel', [
         'title' => 'البوالص الرئيسية المكررة',
-        'subtitle' => 'أرقامبوالص رئيسية مرتبطة بأكثر من كتاب.',
+        'subtitle' => 'أرقام بوالص رئيسية مرتبطة بأكثر من كتاب.',
         'items' => $duplicateMainPolicies,
         'empty' => 'لا توجد بوالص رئيسية مكررة.'
     ])
 
     @include('data-quality.partials.duplicate-policy-panel', [
         'title' => 'البوالص الفرعية المكررة',
-        'subtitle' => 'أرقامبوالص فرعية مرتبطة بأكثر من كتاب.',
+        'subtitle' => 'أرقام بوالص فرعية مرتبطة بأكثر من كتاب.',
         'items' => $duplicateSubPolicies,
         'empty' => 'لا توجد بوالص فرعية مكررة.'
     ])
@@ -109,14 +112,14 @@
     <div class="dq-two">
         @include('data-quality.partials.documents-panel', [
             'title' => 'كتب بدون بوليصة رئيسية',
-            'subtitle' => 'كتب لميتمإدخال رقمالبوليصة الرئيسية لها.',
+            'subtitle' => 'كتب لم يتم إدخال رقم البوليصة الرئيسية لها.',
             'documents' => $withoutMainPolicy,
             'empty' => 'لا توجد نتائج.'
         ])
 
         @include('data-quality.partials.documents-panel', [
             'title' => 'كتب بدون بوليصة فرعية',
-            'subtitle' => 'كتب لميتمإدخال رقمالبوليصة الفرعية لها.',
+            'subtitle' => 'كتب لم يتم إدخال رقم البوليصة الفرعية لها.',
             'documents' => $withoutSubPolicy,
             'empty' => 'لا توجد نتائج.'
         ])
@@ -128,8 +131,7 @@ function copyDQValue(value) {
     if (!value) return;
     navigator.clipboard?.writeText(value).then(function () {
         const toast = document.createElement('div');
-        toast.textContent = 'تمنسخ الرقم
-: ' + value;
+        toast.textContent = 'تم نسخ الرقم: ' + value;
         toast.style.position = 'fixed';
         toast.style.bottom = '20px';
         toast.style.left = '20px';

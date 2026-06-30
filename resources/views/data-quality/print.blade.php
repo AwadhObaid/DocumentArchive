@@ -330,7 +330,7 @@
         }
     </style>
 </head>
-<body>
+<body data-quality-print-polish-marker="v1">
     <div class="screen-toolbar">
         <button class="btn-primary" onclick="window.print()">🖨️ طباعة التقرير / حفظ PDF</button>
         <a class="btn-light" href="{{ route('data-quality.index') }}">رجوع لجودة البيانات</a>
@@ -421,7 +421,7 @@
                 <div class="section-header">
                     <div>
                         <h3 class="section-title">كتب بلا مرفقات</h3>
-                        <p class="section-desc">كتب تمإنشاؤها ولميتمرفع مرفق لها بعد.</p>
+                        <p class="section-desc">كتب تم إنشاؤها ولم يتم رفع مرفق لها بعد.</p>
                     </div>
                     <span class="badge">{{ $withoutAttachments->count() }}</span>
                 </div>
@@ -436,7 +436,7 @@
                 <div class="section-header">
                     <div>
                         <h3 class="section-title">البوالص الرئيسية المكررة</h3>
-                        <p class="section-desc">أرقامبوالص رئيسية مرتبطة بأكثر من كتاب.</p>
+                        <p class="section-desc">أرقام بوالص رئيسية مرتبطة بأكثر من كتاب.</p>
                     </div>
                     <span class="badge">{{ $duplicateMainPolicies->count() }}</span>
                 </div>
@@ -447,7 +447,7 @@
                 <div class="section-header">
                     <div>
                         <h3 class="section-title">البوالص الفرعية المكررة</h3>
-                        <p class="section-desc">أرقامبوالص فرعية مرتبطة بأكثر من كتاب.</p>
+                        <p class="section-desc">أرقام بوالص فرعية مرتبطة بأكثر من كتاب.</p>
                     </div>
                     <span class="badge">{{ $duplicateSubPolicies->count() }}</span>
                 </div>
@@ -458,7 +458,7 @@
                 <div class="section-header">
                     <div>
                         <h3 class="section-title">كتب بدون بوليصة رئيسية</h3>
-                        <p class="section-desc">كتب لميتمإدخال رقمالبوليصة الرئيسية لها.</p>
+                        <p class="section-desc">كتب لم يتم إدخال رقم البوليصة الرئيسية لها.</p>
                     </div>
                     <span class="badge">{{ $missingMainPolicy->count() }}</span>
                 </div>
@@ -473,7 +473,7 @@
                 <div class="section-header">
                     <div>
                         <h3 class="section-title">كتب بدون بوليصة فرعية</h3>
-                        <p class="section-desc">كتب لميتمإدخال رقمالبوليصة الفرعية لها.</p>
+                        <p class="section-desc">كتب لم يتم إدخال رقم البوليصة الفرعية لها.</p>
                     </div>
                     <span class="badge">{{ $missingSubPolicy->count() }}</span>
                 </div>
@@ -501,7 +501,7 @@
 
             <footer class="report-footer">
                 <span>{{ $systemTitle }}</span>
-                <span>تمإنشاء التقرير آلياً من النظامبتاريخ {{ $generatedAt->format('Y-m-d H:i') }}</span>
+                <span>تم إنشاء التقرير آلياً من النظامبتاريخ {{ $generatedAt->format('Y-m-d H:i') }}</span>
             </footer>
         </article>
     </main>
