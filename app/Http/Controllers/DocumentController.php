@@ -19,6 +19,7 @@ class DocumentController extends Controller
 {
     public function index(Request $request)
     {
+        /* DOCUMENTS_SEARCH_POLISH_CONTROLLER_START */
         $departments = Department::query()
             ->where('is_active', true)
             ->orderBy('name')
@@ -29,16 +30,38 @@ class DocumentController extends Controller
             ->orderBy('name')
             ->get();
 
-        $hasColumn = function (string $column): bool {
+        $hasColumnCache = [];
+        $hasColumn = function (string $column) use (&$hasColumnCache): bool {
+            if (array_key_exists($column, $hasColumnCache)) {
+                return $hasColumnCache[$column];
+            }
+
             try {
-                return \Illuminate\Support\Facades\Schema::hasColumn('documents', $column);
+                return $hasColumnCache[$column] = \Illuminate\Support\Facades\Schema::hasColumn('documents', $column);
             } catch (\Throwable $e) {
-                return false;
+                return $hasColumnCache[$column] = false;
             }
         };
 
-        $baseQuery = Document::query()
-            ->with(['department', 'documentType', 'mainAttachment']);
+        $user = Auth::user();
+        $canViewTrashed = $user && method_exists($user, 'hasPermission') && $user->hasPermission('documents.restore');
+
+        $recordState = (string) $request->input('record_state', 'active');
+        if (!in_array($recordState, ['active', 'trashed', 'all'], true)) {
+            $recordState = 'active';
+        }
+
+        if (!$canViewTrashed && in_array($recordState, ['trashed', 'all'], true)) {
+            $recordState = 'active';
+        }
+
+        $baseQuery = match ($recordState) {
+            'trashed' => Document::onlyTrashed(),
+            'all' => Document::withTrashed(),
+            default => Document::query(),
+        };
+
+        $baseQuery->with(['department', 'documentType', 'mainAttachment']);
 
         try {
             $baseQuery->withCount('attachments');
@@ -46,10 +69,41 @@ class DocumentController extends Controller
             // في حال كان المشروع يحتوي نسخة قديمة من العلاقات، لا نعطل صفحة الكتب.
         }
 
-        $applyFilters = function ($query) use ($request, $hasColumn) {
+        $normalizeToken = function (?string $value): ?string {
+            if ($value === null) {
+                return null;
+            }
+
+            $value = trim((string) $value);
+            if ($value === '') {
+                return null;
+            }
+
+            $value = preg_replace('/\s+/u', '', $value) ?: $value;
+
+            return $value === '' ? null : $value;
+        };
+
+        $applyNormalizedLike = function ($query, string $column, ?string $value, string $boolean = 'and') use ($normalizeToken): void {
+            $value = $normalizeToken($value);
+            if ($value === null) {
+                return;
+            }
+
+            $method = $boolean === 'or' ? 'orWhereRaw' : 'whereRaw';
+            $columnExpression = 'documents.' . $column;
+
+            $query->{$method}(
+                "REPLACE(REPLACE(REPLACE(REPLACE(TRIM(COALESCE({$columnExpression}, '')), ' ', ''), CHAR(9), ''), CHAR(10), ''), CHAR(13), '') LIKE ?",
+                ['%' . $value . '%']
+            );
+        };
+
+        $applyFilters = function ($query) use ($request, $hasColumn, $applyNormalizedLike) {
             if ($request->filled('q')) {
                 $q = trim((string) $request->q);
-                $query->where(function ($subQuery) use ($q, $hasColumn) {
+
+                $query->where(function ($subQuery) use ($q, $hasColumn, $applyNormalizedLike) {
                     foreach ([
                         'reference_number',
                         'title',
@@ -63,38 +117,88 @@ class DocumentController extends Controller
                         'search_text',
                     ] as $column) {
                         if ($hasColumn($column)) {
-                            $subQuery->orWhere($column, 'like', "%{$q}%");
+                            $subQuery->orWhere('documents.' . $column, 'like', "%{$q}%");
                         }
                     }
+
+                    foreach (['reference_number', 'main_policy_number', 'sub_policy_number'] as $numberColumn) {
+                        if ($hasColumn($numberColumn)) {
+                            $applyNormalizedLike($subQuery, $numberColumn, $q, 'or');
+                        }
+                    }
+
+                    $subQuery->orWhereHas('department', function ($departmentQuery) use ($q) {
+                        $departmentQuery->where('name', 'like', "%{$q}%");
+                    });
+
+                    $subQuery->orWhereHas('documentType', function ($typeQuery) use ($q) {
+                        $typeQuery->where('name', 'like', "%{$q}%");
+                    });
                 });
             }
 
+            if ($request->filled('reference_number') && $hasColumn('reference_number')) {
+                $applyNormalizedLike($query, 'reference_number', (string) $request->reference_number);
+            }
+
+            if ($request->filled('main_policy_number') && $hasColumn('main_policy_number')) {
+                $applyNormalizedLike($query, 'main_policy_number', (string) $request->main_policy_number);
+            }
+
+            if ($request->filled('sub_policy_number') && $hasColumn('sub_policy_number')) {
+                $applyNormalizedLike($query, 'sub_policy_number', (string) $request->sub_policy_number);
+            }
+
+            if ($request->filled('title') && $hasColumn('title')) {
+                $query->where('documents.title', 'like', '%' . trim((string) $request->title) . '%');
+            }
+
+            if ($request->filled('subject') && $hasColumn('subject')) {
+                $query->where('documents.subject', 'like', '%' . trim((string) $request->subject) . '%');
+            }
+
+            if ($request->filled('sender') && $hasColumn('sender')) {
+                $query->where('documents.sender', 'like', '%' . trim((string) $request->sender) . '%');
+            }
+
+            if ($request->filled('receiver') && $hasColumn('receiver')) {
+                $query->where('documents.receiver', 'like', '%' . trim((string) $request->receiver) . '%');
+            }
+
             if ($request->filled('department_id') && $hasColumn('department_id')) {
-                $query->where('department_id', $request->department_id);
+                $query->where('documents.department_id', $request->department_id);
             }
 
             if ($request->filled('document_type_id') && $hasColumn('document_type_id')) {
-                $query->where('document_type_id', $request->document_type_id);
+                $query->where('documents.document_type_id', $request->document_type_id);
             }
 
             if ($request->filled('status') && $hasColumn('status')) {
-                $query->where('status', $request->status);
+                $query->where('documents.status', $request->status);
             }
 
             if ($request->filled('priority') && $hasColumn('priority')) {
-                $query->where('priority', $request->priority);
+                $query->where('documents.priority', $request->priority);
             }
 
             if ($request->filled('confidentiality') && $hasColumn('confidentiality')) {
-                $query->where('confidentiality', $request->confidentiality);
+                $query->where('documents.confidentiality', $request->confidentiality);
             }
 
             if ($request->filled('date_from') && $hasColumn('reference_date')) {
-                $query->whereDate('reference_date', '>=', $request->date_from);
+                $query->whereDate('documents.reference_date', '>=', $request->date_from);
             }
 
             if ($request->filled('date_to') && $hasColumn('reference_date')) {
-                $query->whereDate('reference_date', '<=', $request->date_to);
+                $query->whereDate('documents.reference_date', '<=', $request->date_to);
+            }
+
+            if ($request->filled('created_from') && $hasColumn('created_at')) {
+                $query->whereDate('documents.created_at', '>=', $request->created_from);
+            }
+
+            if ($request->filled('created_to') && $hasColumn('created_at')) {
+                $query->whereDate('documents.created_at', '<=', $request->created_to);
             }
 
             if ($request->filled('has_attachment')) {
@@ -109,42 +213,54 @@ class DocumentController extends Controller
         };
 
         $documentsQuery = $applyFilters(clone $baseQuery);
+        $filteredCountQuery = clone $documentsQuery;
 
+        $defaultSort = $recordState === 'trashed' && $hasColumn('deleted_at') ? 'deleted_at' : 'created_at';
         $allowedSorts = [
             'created_at' => 'created_at',
+            'updated_at' => 'updated_at',
             'reference_date' => 'reference_date',
             'reference_number' => 'reference_number',
             'title' => 'title',
+            'main_policy_number' => 'main_policy_number',
+            'sub_policy_number' => 'sub_policy_number',
+            'deleted_at' => 'deleted_at',
         ];
 
-        $sort = $allowedSorts[$request->get('sort', 'created_at')] ?? 'created_at';
+        $sortKey = (string) $request->get('sort', $defaultSort);
+        $sort = $allowedSorts[$sortKey] ?? $defaultSort;
         if (!$hasColumn($sort)) {
             $sort = $hasColumn('created_at') ? 'created_at' : 'id';
         }
 
         $direction = $request->get('direction') === 'asc' ? 'asc' : 'desc';
+        $perPage = (int) $request->get('per_page', 15);
+        if (!in_array($perPage, [15, 25, 50, 100], true)) {
+            $perPage = 15;
+        }
 
         $documents = $documentsQuery
-            ->orderBy($sort, $direction)
-            ->paginate((int) $request->get('per_page', 15) ?: 15)
+            ->orderBy('documents.' . $sort, $direction)
+            ->orderByDesc('documents.id')
+            ->paginate($perPage)
             ->withQueryString();
 
-        $filteredForSummary = $applyFilters(Document::query());
+        $filteredTotal = (int) (clone $filteredCountQuery)->count();
+
+        try {
+            $filteredWithAttachments = (int) (clone $filteredCountQuery)->whereHas('attachments')->count();
+        } catch (\Throwable $e) {
+            $filteredWithAttachments = 0;
+        }
 
         $summary = [
             'total' => (int) Document::query()->count(),
-            'filtered' => (int) (clone $filteredForSummary)->count(),
-            'with_attachments' => 0,
-            'without_attachments' => 0,
+            'trashed_total' => (int) Document::onlyTrashed()->count(),
+            'all_total' => (int) Document::withTrashed()->count(),
+            'filtered' => $filteredTotal,
+            'with_attachments' => $filteredWithAttachments,
+            'without_attachments' => max(0, $filteredTotal - $filteredWithAttachments),
         ];
-
-        try {
-            $summary['with_attachments'] = (int) Document::query()->whereHas('attachments')->count();
-            $summary['without_attachments'] = max(0, $summary['total'] - $summary['with_attachments']);
-        } catch (\Throwable $e) {
-            $summary['with_attachments'] = 0;
-            $summary['without_attachments'] = 0;
-        }
 
         $statusOptions = [
             'active' => 'نشط',
@@ -164,6 +280,74 @@ class DocumentController extends Controller
             'very_confidential' => 'سري جداً',
         ];
 
+        $recordStateOptions = [
+            'active' => 'الكتب النشطة فقط',
+            'trashed' => 'سلة المحذوفات فقط',
+            'all' => 'النشطة والمحذوفة',
+        ];
+
+        if (!$canViewTrashed) {
+            $recordStateOptions = ['active' => 'الكتب النشطة فقط'];
+        }
+
+        $sortOptions = [
+            'created_at' => 'تاريخ الإضافة',
+            'updated_at' => 'آخر تعديل',
+            'reference_date' => 'تاريخ الكتاب',
+            'reference_number' => 'رقم الكتاب',
+            'main_policy_number' => 'البوليصة الرئيسية',
+            'sub_policy_number' => 'البوليصة الفرعية',
+            'title' => 'العنوان',
+        ];
+
+        if ($hasColumn('deleted_at')) {
+            $sortOptions['deleted_at'] = 'تاريخ الحذف';
+        }
+
+        $filterKeys = [
+            'q',
+            'reference_number',
+            'main_policy_number',
+            'sub_policy_number',
+            'title',
+            'subject',
+            'sender',
+            'receiver',
+            'department_id',
+            'document_type_id',
+            'status',
+            'priority',
+            'confidentiality',
+            'date_from',
+            'date_to',
+            'created_from',
+            'created_to',
+            'has_attachment',
+        ];
+
+        $activeFiltersCount = 0;
+        foreach ($filterKeys as $key) {
+            if ($request->filled($key)) {
+                $activeFiltersCount++;
+            }
+        }
+
+        if ($recordState !== 'active') {
+            $activeFiltersCount++;
+        }
+
+        if ((string) $request->get('sort', $defaultSort) !== $defaultSort) {
+            $activeFiltersCount++;
+        }
+
+        if ((string) $request->get('direction', 'desc') !== 'desc') {
+            $activeFiltersCount++;
+        }
+
+        if ((int) $request->get('per_page', 15) !== 15) {
+            $activeFiltersCount++;
+        }
+
         return view('documents.index', compact(
             'documents',
             'departments',
@@ -171,8 +355,17 @@ class DocumentController extends Controller
             'summary',
             'statusOptions',
             'priorityOptions',
-            'confidentialityOptions'
+            'confidentialityOptions',
+            'recordStateOptions',
+            'sortOptions',
+            'recordState',
+            'defaultSort',
+            'perPage',
+            'direction',
+            'activeFiltersCount',
+            'canViewTrashed'
         ));
+        /* DOCUMENTS_SEARCH_POLISH_CONTROLLER_END */
     }
 
     public function create()
