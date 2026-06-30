@@ -8,6 +8,7 @@ use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\DepartmentController;
 use App\Http\Controllers\DocumentController;
 use App\Http\Controllers\DocumentTypeController;
+use App\Http\Controllers\FormLinkController;
 use App\Http\Controllers\SettingsController;
 use App\Http\Controllers\SystemHealthController;
 use App\Http\Controllers\DataQualityController;
@@ -121,6 +122,13 @@ Route::middleware(['auth', ApplyRoutePermissions::class])->group(function () {
 
     Route::patch('/users/{user}/deactivate', [UserController::class, 'deactivate'])
         ->name('users.deactivate');
+
+
+    Route::resource('form-links', FormLinkController::class)
+        ->except(['show'])
+        ->parameters([
+            'form-links' => 'formLink',
+        ]);
 
     Route::resource('users', UserController::class)->except(['show']);
 

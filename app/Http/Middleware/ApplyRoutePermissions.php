@@ -47,6 +47,13 @@ class ApplyRoutePermissions
         'departments.*' => 'departments.manage',
         'document-types.*' => 'document_types.manage',
 
+        'form-links.index' => 'form_links.view',
+        'form-links.create' => 'form_links.manage',
+        'form-links.store' => 'form_links.manage',
+        'form-links.edit' => 'form_links.manage',
+        'form-links.update' => 'form_links.manage',
+        'form-links.destroy' => 'form_links.manage',
+
         'settings.*' => 'settings.manage',
         'system-health.*' => 'system_health.view',
 

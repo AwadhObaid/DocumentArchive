@@ -76,6 +76,10 @@
                 <a href="{{ route('document-types.index') }}" class="{{ request()->routeIs('document-types.*') ? 'active' : '' }}">📑 أنواع الكتب</a>
             @endif
 
+            @if(auth()->user()?->hasPermission('form_links.view'))
+                <a href="{{ route('form-links.index') }}" class="{{ request()->routeIs('form-links.*') ? 'active' : '' }}">📝 إدارة النماذج</a>
+            @endif
+
             @if(auth()->user()?->hasPermission('settings.manage'))
                 <a href="{{ route('settings.edit') }}" class="{{ request()->routeIs('settings.*') ? 'active' : '' }}">⚙️ الإعدادات</a>
             @endif

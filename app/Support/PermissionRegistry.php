@@ -57,6 +57,14 @@ class PermissionRegistry
                 ],
             ],
             [
+                'key' => 'forms',
+                'label' => 'النماذج',
+                'permissions' => [
+                    'form_links.view' => 'عرض إدارة النماذج',
+                    'form_links.manage' => 'إضافة وتعديل وحذف النماذج',
+                ],
+            ],
+            [
                 'key' => 'system',
                 'label' => 'إدارة النظام',
                 'permissions' => [
@@ -179,6 +187,7 @@ class PermissionRegistry
                 'documents.view',
                 'attachments.preview',
                 'reports.view',
+                'form_links.view',
             ];
         }
 
@@ -192,6 +201,7 @@ class PermissionRegistry
             'attachments.preview',
             'attachments.download',
             'reports.view',
+            'form_links.view',
         ];
     }
 }
