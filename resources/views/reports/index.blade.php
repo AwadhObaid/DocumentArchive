@@ -1,4 +1,3 @@
-<div class="da-document-print-page da-document-print-page-marker">
 @extends('layouts.app')
 
 @section('title', 'التقارير')
@@ -101,6 +100,134 @@
         transform: translateY(-1px);
         filter: brightness(1.04);
     }
+
+
+    /* REPORTS_FONT_LAYOUT_CLEAN_FIX_START */
+    @media screen {
+        .reports-print-root {
+            font-size: 13px;
+            line-height: 1.45;
+        }
+
+        .reports-page-header {
+            margin-bottom: 14px;
+        }
+
+        .reports-page-header h1 {
+            font-size: 24px;
+            line-height: 1.25;
+        }
+
+        .reports-page-header p {
+            font-size: 13px;
+        }
+
+        .reports-print-root .btn,
+        .reports-print-root button,
+        .reports-print-root input,
+        .reports-print-root select,
+        .reports-print-root label {
+            font-size: 13px;
+        }
+
+        .report-card {
+            padding: 14px;
+        }
+
+        .report-card .label {
+            font-size: 12px;
+        }
+
+        .report-card .value {
+            font-size: 24px;
+            line-height: 1.1;
+        }
+
+        .report-filter-box {
+            padding: 14px;
+        }
+
+        .report-filter-grid input,
+        .report-filter-grid select {
+            min-height: 38px;
+            padding: 7px 9px;
+        }
+
+        .report-section-title {
+            font-size: 17px;
+            line-height: 1.35;
+            margin: 18px 0 10px;
+        }
+
+        .details-section,
+        .report-block {
+            width: 100%;
+            max-width: 100%;
+            overflow: hidden;
+        }
+
+        .details-section .table-responsive {
+            width: 100%;
+            max-width: 100%;
+            overflow-x: auto;
+            overflow-y: hidden;
+            direction: rtl;
+            border-radius: 14px;
+        }
+
+        .details-section .report-table {
+            width: 100%;
+            min-width: 920px;
+            margin-right: 0;
+            margin-left: auto;
+            table-layout: auto;
+        }
+
+        .mini-table th,
+        .mini-table td,
+        .report-table th,
+        .report-table td {
+            font-size: 13px;
+            padding: 9px 10px;
+            line-height: 1.45;
+        }
+
+        .details-section .report-table th,
+        .details-section .report-table td {
+            white-space: normal;
+            overflow-wrap: break-word;
+        }
+
+        .details-section .report-table .btn,
+        .details-section .report-table .btn-secondary {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            min-width: 52px;
+            min-height: 34px;
+            padding: 7px 12px;
+            border-radius: 9px;
+            background: #1d4ed8 !important;
+            border: 1px solid rgba(96, 165, 250, .45) !important;
+            color: #ffffff !important;
+            font-weight: 800;
+            text-decoration: none !important;
+            box-shadow: none !important;
+        }
+
+        .details-section .report-table .btn:hover,
+        .details-section .report-table .btn-secondary:hover {
+            background: #2563eb !important;
+            color: #ffffff !important;
+        }
+    }
+
+    @media screen and (min-width: 1200px) {
+        .details-section .report-table {
+            min-width: 0;
+        }
+    }
+    /* REPORTS_FONT_LAYOUT_CLEAN_FIX_END */
 
     @media print {
         .reports-print-button-panel {
@@ -420,6 +547,134 @@
         }
     }
 
+
+    /* REPORTS_FONT_LAYOUT_CLEAN_FIX_START */
+    @media screen {
+        .reports-print-root {
+            font-size: 13px;
+            line-height: 1.45;
+        }
+
+        .reports-page-header {
+            margin-bottom: 14px;
+        }
+
+        .reports-page-header h1 {
+            font-size: 24px;
+            line-height: 1.25;
+        }
+
+        .reports-page-header p {
+            font-size: 13px;
+        }
+
+        .reports-print-root .btn,
+        .reports-print-root button,
+        .reports-print-root input,
+        .reports-print-root select,
+        .reports-print-root label {
+            font-size: 13px;
+        }
+
+        .report-card {
+            padding: 14px;
+        }
+
+        .report-card .label {
+            font-size: 12px;
+        }
+
+        .report-card .value {
+            font-size: 24px;
+            line-height: 1.1;
+        }
+
+        .report-filter-box {
+            padding: 14px;
+        }
+
+        .report-filter-grid input,
+        .report-filter-grid select {
+            min-height: 38px;
+            padding: 7px 9px;
+        }
+
+        .report-section-title {
+            font-size: 17px;
+            line-height: 1.35;
+            margin: 18px 0 10px;
+        }
+
+        .details-section,
+        .report-block {
+            width: 100%;
+            max-width: 100%;
+            overflow: hidden;
+        }
+
+        .details-section .table-responsive {
+            width: 100%;
+            max-width: 100%;
+            overflow-x: auto;
+            overflow-y: hidden;
+            direction: rtl;
+            border-radius: 14px;
+        }
+
+        .details-section .report-table {
+            width: 100%;
+            min-width: 920px;
+            margin-right: 0;
+            margin-left: auto;
+            table-layout: auto;
+        }
+
+        .mini-table th,
+        .mini-table td,
+        .report-table th,
+        .report-table td {
+            font-size: 13px;
+            padding: 9px 10px;
+            line-height: 1.45;
+        }
+
+        .details-section .report-table th,
+        .details-section .report-table td {
+            white-space: normal;
+            overflow-wrap: break-word;
+        }
+
+        .details-section .report-table .btn,
+        .details-section .report-table .btn-secondary {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            min-width: 52px;
+            min-height: 34px;
+            padding: 7px 12px;
+            border-radius: 9px;
+            background: #1d4ed8 !important;
+            border: 1px solid rgba(96, 165, 250, .45) !important;
+            color: #ffffff !important;
+            font-weight: 800;
+            text-decoration: none !important;
+            box-shadow: none !important;
+        }
+
+        .details-section .report-table .btn:hover,
+        .details-section .report-table .btn-secondary:hover {
+            background: #2563eb !important;
+            color: #ffffff !important;
+        }
+    }
+
+    @media screen and (min-width: 1200px) {
+        .details-section .report-table {
+            min-width: 0;
+        }
+    }
+    /* REPORTS_FONT_LAYOUT_CLEAN_FIX_END */
+
     @media print {
         @page {
             size: A4 portrait;
@@ -646,7 +901,3 @@
     }
 </style>
 @endsection
-
-
-
-</div>
