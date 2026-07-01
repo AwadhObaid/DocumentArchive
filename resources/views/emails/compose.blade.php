@@ -29,7 +29,12 @@
     </div>
 
     <div class="email-compose-layout">
-        <form class="email-panel email-form" method="POST" action="{{ route('emails.send') }}" data-confirm="هل أنت متأكد من إرسال البريد الإلكتروني الآن؟">
+        <form class="email-panel email-form" method="POST" action="{{ route('emails.send') }}"
+              data-confirm-title="تأكيد إرسال البريد الإلكتروني"
+              data-confirm="سيتم إرسال الرسالة إلى العناوين المحددة مع بيانات الكتاب والمرفقات المختارة. هل تريد المتابعة؟"
+              data-confirm-extra="راجع البريد الإلكتروني والمرفقات قبل الإرسال، لأن العملية سيتم تسجيلها في سجل البريد."
+              data-confirm-yes="نعم، إرسال الآن"
+              data-confirm-no="مراجعة قبل الإرسال">
             @csrf
             <input type="hidden" name="document_id" value="{{ $selectedDocumentId }}">
 

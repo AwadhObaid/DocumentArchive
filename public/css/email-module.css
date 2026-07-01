@@ -11,24 +11,79 @@
 }
 
 .email-summary-card {
-    background: var(--card-bg, #ffffff);
-    border: 1px solid var(--border-color, #e5e7eb);
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 14px;
+    min-height: 92px;
+    background: var(--card, #ffffff);
+    border: 1px solid var(--border, #e5e7eb);
     border-radius: 18px;
     padding: 16px;
     box-shadow: 0 8px 24px rgba(15, 23, 42, 0.06);
+    overflow: hidden;
 }
 
-.email-summary-card span {
+.email-summary-card::after {
+    content: "";
+    position: absolute;
+    inset-inline-start: -20px;
+    inset-block-start: -24px;
+    width: 92px;
+    height: 92px;
+    border-radius: 999px;
+    background: rgba(59, 130, 246, 0.10);
+    pointer-events: none;
+}
+
+.email-summary-card small {
     display: block;
-    color: var(--muted-text, #64748b);
-    font-size: 0.84rem;
-    margin-bottom: 8px;
+    color: var(--muted, #64748b);
+    font-size: 0.78rem;
+    margin-bottom: 7px;
+    line-height: 1.4;
 }
 
 .email-summary-card strong {
-    display: block;
-    font-size: 1.35rem;
-    color: var(--text-color, #0f172a);
+    display: block !important;
+    visibility: visible !important;
+    opacity: 1 !important;
+    font-size: 1.45rem;
+    line-height: 1.1;
+    color: var(--text, #0f172a) !important;
+    font-weight: 900;
+}
+
+.email-summary-icon {
+    position: relative;
+    z-index: 1;
+    width: 42px;
+    height: 42px;
+    display: inline-grid !important;
+    place-items: center;
+    flex: 0 0 auto;
+    border-radius: 14px;
+    margin: 0 !important;
+    font-size: 1.2rem !important;
+    color: var(--text, #0f172a) !important;
+    background: rgba(59, 130, 246, 0.13);
+    border: 1px solid rgba(59, 130, 246, 0.20);
+}
+
+.email-summary-sent .email-summary-icon,
+.email-summary-sent::after {
+    background: rgba(22, 163, 74, 0.13);
+}
+
+.email-summary-failed .email-summary-icon,
+.email-summary-failed::after {
+    background: rgba(220, 38, 38, 0.12);
+}
+
+.email-summary-documents .email-summary-icon,
+.email-summary-documents::after {
+    background: rgba(245, 158, 11, 0.13);
 }
 
 .email-compose-layout {
@@ -39,8 +94,8 @@
 .email-panel,
 .email-document-panel,
 .email-log-card {
-    background: var(--card-bg, #ffffff);
-    border: 1px solid var(--border-color, #e5e7eb);
+    background: var(--card, #ffffff);
+    border: 1px solid var(--border, #e5e7eb);
     border-radius: 18px;
     padding: 18px;
     box-shadow: 0 8px 24px rgba(15, 23, 42, 0.06);
@@ -71,7 +126,7 @@
 }
 
 .email-help {
-    color: var(--muted-text, #64748b);
+    color: var(--muted, #64748b);
     font-size: 0.82rem;
     margin-top: 6px;
 }
@@ -92,7 +147,7 @@
 }
 
 .email-document-meta span {
-    color: var(--muted-text, #64748b);
+    color: var(--muted, #64748b);
 }
 
 .email-attachments-list {
@@ -105,7 +160,7 @@
     display: flex;
     align-items: flex-start;
     gap: 10px;
-    border: 1px solid var(--border-color, #e5e7eb);
+    border: 1px solid var(--border, #e5e7eb);
     border-radius: 12px;
     padding: 10px;
     background: rgba(255, 255, 255, 0.55);
@@ -122,7 +177,7 @@
 
 .email-attachment-item small {
     display: block;
-    color: var(--muted-text, #64748b);
+    color: var(--muted, #64748b);
     margin-top: 4px;
 }
 
@@ -199,4 +254,111 @@
     .email-grid {
         grid-template-columns: 1fr;
     }
+}
+
+
+/* Polished confirmation dialog used by data-confirm forms */
+.app-confirm-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 10000;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+    background: rgba(2, 6, 23, 0.62);
+    backdrop-filter: blur(7px);
+}
+
+.app-confirm-overlay.is-open {
+    display: flex;
+}
+
+.app-confirm-card {
+    width: min(520px, 100%);
+    display: grid;
+    grid-template-columns: 58px minmax(0, 1fr);
+    gap: 14px;
+    direction: rtl;
+    background: var(--card, #ffffff);
+    color: var(--text, #0f172a);
+    border: 1px solid var(--border, #e5e7eb);
+    border-radius: 24px;
+    padding: 20px;
+    box-shadow: 0 26px 70px rgba(2, 6, 23, 0.34);
+    transform: translateY(8px) scale(0.98);
+    animation: appConfirmIn 0.18s ease-out forwards;
+}
+
+@keyframes appConfirmIn {
+    to {
+        transform: translateY(0) scale(1);
+    }
+}
+
+.app-confirm-icon {
+    width: 54px;
+    height: 54px;
+    display: grid;
+    place-items: center;
+    border-radius: 18px;
+    font-size: 1.45rem;
+    background: linear-gradient(135deg, rgba(37, 99, 235, 0.18), rgba(59, 130, 246, 0.08));
+    border: 1px solid rgba(59, 130, 246, 0.22);
+}
+
+.app-confirm-content h3 {
+    margin: 0 0 7px;
+    font-size: 1.08rem;
+    line-height: 1.4;
+}
+
+.app-confirm-content p {
+    margin: 0;
+    color: var(--muted, #64748b);
+    line-height: 1.8;
+    font-size: 0.9rem;
+}
+
+.app-confirm-extra {
+    margin-top: 10px;
+    padding: 10px 12px;
+    border-radius: 14px;
+    color: #92400e;
+    background: rgba(245, 158, 11, 0.12);
+    border: 1px solid rgba(245, 158, 11, 0.24);
+    line-height: 1.65;
+    font-size: 0.84rem;
+}
+
+.app-confirm-actions {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: flex-start;
+    gap: 9px;
+    margin-top: 18px;
+}
+
+.app-confirm-actions .btn {
+    min-width: 120px;
+    justify-content: center;
+}
+
+body.has-open-confirm {
+    overflow: hidden;
+}
+
+[data-theme="dark"] .app-confirm-overlay {
+    background: rgba(2, 6, 23, 0.76);
+}
+
+[data-theme="dark"] .app-confirm-card {
+    background: #0f172a;
+    border-color: rgba(148, 163, 184, 0.25);
+}
+
+[data-theme="dark"] .app-confirm-extra {
+    color: #fde68a;
+    background: rgba(245, 158, 11, 0.14);
+    border-color: rgba(245, 158, 11, 0.28);
 }

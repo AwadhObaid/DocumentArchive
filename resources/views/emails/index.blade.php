@@ -19,11 +19,35 @@
         </div>
     </div>
 
-    <div class="email-summary-grid">
-        <div class="email-summary-card"><span>إجمالي عمليات الإرسال</span><strong>{{ number_format($summary['total'] ?? 0) }}</strong></div>
-        <div class="email-summary-card"><span>تم الإرسال</span><strong>{{ number_format($summary['sent'] ?? 0) }}</strong></div>
-        <div class="email-summary-card"><span>فشل الإرسال</span><strong>{{ number_format($summary['failed'] ?? 0) }}</strong></div>
-        <div class="email-summary-card"><span>مرتبطة بكتب</span><strong>{{ number_format($summary['with_documents'] ?? 0) }}</strong></div>
+    <div class="email-summary-grid" aria-label="إحصائيات البريد الإلكتروني">
+        <div class="email-summary-card email-summary-total">
+            <span class="email-summary-icon">📨</span>
+            <div>
+                <small>إجمالي عمليات الإرسال</small>
+                <strong>{{ number_format($summary['total'] ?? 0) }}</strong>
+            </div>
+        </div>
+        <div class="email-summary-card email-summary-sent">
+            <span class="email-summary-icon">✅</span>
+            <div>
+                <small>تم الإرسال</small>
+                <strong>{{ number_format($summary['sent'] ?? 0) }}</strong>
+            </div>
+        </div>
+        <div class="email-summary-card email-summary-failed">
+            <span class="email-summary-icon">⚠️</span>
+            <div>
+                <small>فشل الإرسال</small>
+                <strong>{{ number_format($summary['failed'] ?? 0) }}</strong>
+            </div>
+        </div>
+        <div class="email-summary-card email-summary-documents">
+            <span class="email-summary-icon">📎</span>
+            <div>
+                <small>مرتبطة بكتب</small>
+                <strong>{{ number_format($summary['with_documents'] ?? 0) }}</strong>
+            </div>
+        </div>
     </div>
 
     <div class="email-log-card">
