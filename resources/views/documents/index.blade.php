@@ -573,6 +573,9 @@
                                     @if($can('documents.print'))
                                         <a class="btn btn-warning" target="_blank" href="{{ route('documents.print-reference', $document) }}">طباعة الرقم</a>
                                     @endif
+                                    @if($can('emails.send'))
+                                        <a class="btn btn-info" href="{{ route('documents.email.compose', $document) }}">إرسال بالبريد</a>
+                                    @endif
                                     @if($can('documents.delete') || $can('documents.destroy'))
                                         <form method="POST" action="{{ route('documents.destroy', $document) }}" data-confirm="هل أنت متأكد من حذف هذا الكتاب؟">
                                             @csrf
@@ -632,6 +635,9 @@
                                 @endif
                                 @if($can('documents.print'))
                                     <a class="btn btn-warning" target="_blank" href="{{ route('documents.print-reference', $document) }}">طباعة الرقم</a>
+                                @endif
+                                @if($can('emails.send'))
+                                    <a class="btn btn-info" href="{{ route('documents.email.compose', $document) }}">إرسال بالبريد</a>
                                 @endif
                             @else
                                 @if($can('documents.restore'))

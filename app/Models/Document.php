@@ -78,6 +78,11 @@ class Document extends Model
         return $this->hasOne(DocumentAttachment::class)->where('is_main', true);
     }
 
+    public function emailMessages()
+    {
+        return $this->hasMany(EmailMessage::class);
+    }
+
     public function getFormattedDateAttribute(): string
     {
         return $this->reference_date

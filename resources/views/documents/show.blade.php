@@ -17,6 +17,8 @@
         && ($currentUser->hasPermission('documents.view') || $currentUser->hasPermission('attachments.preview'));
     $canDownloadAttachment = $currentUser && method_exists($currentUser, 'hasPermission')
         && $currentUser->hasPermission('attachments.download');
+    $canSendEmail = $currentUser && method_exists($currentUser, 'hasPermission')
+        && $currentUser->hasPermission('emails.send');
 
     $arabicDocumentValue = function (string $field, $raw) {
         if ($raw === null || $raw === '') {
@@ -133,6 +135,9 @@
             <a href="{{ url('/documents/'.$docId.'/edit') }}" class="btn btn-primary">تعديل</a>
             <a href="{{ url('/documents/'.$docId.'/activity') }}" class="btn btn-info">سجل الحركة</a>
             <a href="{{ url('/documents/'.$docId.'/print-reference') }}" class="btn btn-warning">طباعة رقم الكتاب</a>
+            @if($canSendEmail)
+                <a href="{{ route('documents.email.compose', $document) }}" class="btn btn-info">إرسال بالبريد</a>
+            @endif
         @endif
     </div>
 </div>

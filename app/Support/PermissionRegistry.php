@@ -65,6 +65,14 @@ class PermissionRegistry
                 ],
             ],
             [
+                'key' => 'emails',
+                'label' => 'البريد الإلكتروني',
+                'permissions' => [
+                    'emails.view' => 'عرض البريد الإلكتروني وسجل الإرسال',
+                    'emails.send' => 'إرسال الكتب بالبريد الإلكتروني',
+                ],
+            ],
+            [
                 'key' => 'system',
                 'label' => 'إدارة النظام',
                 'permissions' => [
@@ -188,6 +196,7 @@ class PermissionRegistry
                 'attachments.preview',
                 'reports.view',
                 'form_links.view',
+                'emails.view',
             ];
         }
 
@@ -202,6 +211,8 @@ class PermissionRegistry
             'attachments.download',
             'reports.view',
             'form_links.view',
+            'emails.view',
+            'emails.send',
         ];
     }
 }

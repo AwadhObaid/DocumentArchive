@@ -8,6 +8,7 @@ use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\DepartmentController;
 use App\Http\Controllers\DocumentController;
 use App\Http\Controllers\DocumentTypeController;
+use App\Http\Controllers\EmailController;
 use App\Http\Controllers\FormLinkController;
 use App\Http\Controllers\SettingsController;
 use App\Http\Controllers\SystemHealthController;
@@ -132,6 +133,12 @@ Route::middleware(['auth', ApplyRoutePermissions::class])->group(function () {
         ->parameters([
             'form-links' => 'formLink',
         ]);
+
+    Route::get('/emails', [EmailController::class, 'index'])->name('emails.index');
+    Route::get('/emails/compose', [EmailController::class, 'compose'])->name('emails.compose');
+    Route::post('/emails/send', [EmailController::class, 'send'])->name('emails.send');
+    Route::get('/emails/{emailMessage}', [EmailController::class, 'show'])->name('emails.show');
+    Route::get('/documents/{document}/send-email', [EmailController::class, 'composeDocument'])->name('documents.email.compose');
 
     Route::resource('users', UserController::class)->except(['show']);
 

@@ -34,6 +34,8 @@
     <link rel="stylesheet" href="{{ asset('css/arabic-no-truncate-v4.css') }}?v={{ filemtime(public_path('css/arabic-no-truncate-v4.css')) }}">
     {{-- DocumentArchive compact font scale fix --}}
     <link rel="stylesheet" href="{{ asset('css/global-font-scale-fix.css') }}?v={{ filemtime(public_path('css/global-font-scale-fix.css')) }}">
+    {{-- DocumentArchive email module --}}
+    <link rel="stylesheet" href="{{ asset('css/email-module.css') }}?v={{ filemtime(public_path('css/email-module.css')) }}">
 </head>
 <body>
 
@@ -80,6 +82,10 @@
 
             @if(auth()->user()?->hasPermission('form_links.view'))
                 <a href="{{ route('form-links.index') }}" class="{{ request()->routeIs('form-links.*') ? 'active' : '' }}">📝 إدارة النماذج</a>
+            @endif
+
+            @if(auth()->user()?->hasPermission('emails.view'))
+                <a href="{{ route('emails.index') }}" class="{{ request()->routeIs('emails.*') || request()->routeIs('documents.email.compose') ? 'active' : '' }}">📧 البريد الإلكتروني</a>
             @endif
 
             @if(auth()->user()?->hasPermission('settings.manage'))

@@ -55,6 +55,12 @@ class ApplyRoutePermissions
         'form-links.update' => 'form_links.manage',
         'form-links.destroy' => 'form_links.manage',
 
+        'emails.index' => 'emails.view',
+        'emails.compose' => 'emails.send',
+        'emails.send' => 'emails.send',
+        'emails.show' => 'emails.view',
+        'documents.email.compose' => 'emails.send',
+
         'settings.*' => 'settings.manage',
         'system-health.*' => 'system_health.view',
 
