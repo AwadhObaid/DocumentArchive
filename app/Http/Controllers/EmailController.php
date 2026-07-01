@@ -8,6 +8,7 @@ use App\Models\DocumentAttachment;
 use App\Models\EmailMessage;
 use App\Models\MessageTemplate;
 use App\Services\ActivityLogger;
+use App\Services\SecureAttachmentLinkService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -88,6 +89,9 @@ class EmailController extends Controller
             'body' => ['required', 'string'],
             'attachment_ids' => ['nullable', 'array'],
             'attachment_ids.*' => ['integer', 'exists:document_attachments,id'],
+            'include_secure_attachment_link' => ['nullable', 'boolean'],
+            'secure_link_expires_in' => ['nullable', 'in:1h,3h,12h,24h,3d,7d'],
+            'secure_link_password' => ['nullable', 'string', 'max:100'],
         ]);
 
         $to = $this->parseRecipients((string) $validated['to']);
@@ -148,6 +152,29 @@ class EmailController extends Controller
                 ->withInput();
         }
 
+        $secureAttachmentLink = null;
+        $body = (string) $validated['body'];
+
+        if ($document && $request->boolean('include_secure_attachment_link')) {
+            try {
+                $secureAttachmentLink = app(SecureAttachmentLinkService::class)->createForDocument(
+                    $document,
+                    $selectedAttachmentIds !== [] ? $selectedAttachmentIds : $document->attachments->pluck('id')->all(),
+                    Auth::id(),
+                    (string) ($validated['secure_link_expires_in'] ?? '24h'),
+                    null,
+                    $validated['secure_link_password'] ?? null,
+                    'تم إنشاء الرابط من صفحة البريد الإلكتروني.'
+                );
+
+                $body = app(SecureAttachmentLinkService::class)->appendLinkToBody($body, $secureAttachmentLink);
+            } catch (\Throwable $exception) {
+                return back()
+                    ->withErrors(['include_secure_attachment_link' => 'تعذر إنشاء رابط المرفقات الآمن: ' . $exception->getMessage()])
+                    ->withInput();
+            }
+        }
+
         $emailMessage = EmailMessage::create([
             'document_id' => $document?->id,
             'created_by' => Auth::id(),
@@ -157,7 +184,7 @@ class EmailController extends Controller
             'cc_recipients' => $cc,
             'bcc_recipients' => $bcc,
             'subject' => $validated['subject'],
-            'body' => $validated['body'],
+            'body' => $body,
             'attachment_ids' => $attachments->pluck('id')->values()->all(),
             'attachment_names' => $attachments->map(fn ($attachment) => $attachment->original_name ?: $attachment->file_name)->values()->all(),
             'attachments_count' => $attachments->count(),
@@ -168,7 +195,7 @@ class EmailController extends Controller
         try {
             Mail::send('emails.mail.document', [
                 'document' => $document,
-                'bodyText' => $validated['body'],
+                'bodyText' => $body,
                 'emailMessage' => $emailMessage,
             ], function ($message) use ($to, $cc, $bcc, $validated, $attachments) {
                 $message->to($to)->subject($validated['subject']);
@@ -216,6 +243,7 @@ class EmailController extends Controller
                     'message_template_id' => $template?->id,
                     'to' => $to,
                     'attachments_count' => $attachments->count(),
+                    'secure_attachment_link_id' => $secureAttachmentLink?->id,
                 ]
             );
 

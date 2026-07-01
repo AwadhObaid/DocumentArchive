@@ -35,6 +35,14 @@ class ApplyRoutePermissions
         'attachments.inline' => 'attachments.preview',
         'attachments.download' => 'attachments.download',
 
+        'shared-attachment-links.index' => 'attachment_shares.view',
+        'shared-attachment-links.create' => 'attachment_shares.create',
+        'shared-attachment-links.store' => 'attachment_shares.create',
+        'shared-attachment-links.show' => 'attachment_shares.view',
+        'shared-attachment-links.revoke' => 'attachment_shares.revoke',
+        'shared-attachment-links.destroy' => 'attachment_shares.revoke',
+        'documents.shared-attachments.create' => 'attachment_shares.create',
+
         'activity-logs.*' => 'activity_logs.view',
 
         'reports.index' => 'reports.view',

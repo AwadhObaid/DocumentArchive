@@ -88,6 +88,12 @@ class Document extends Model
         return $this->hasMany(WhatsappMessage::class);
     }
 
+
+    public function sharedAttachmentLinks()
+    {
+        return $this->hasMany(SharedAttachmentLink::class);
+    }
+
     public function getFormattedDateAttribute(): string
     {
         return $this->reference_date

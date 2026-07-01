@@ -76,6 +76,12 @@ class User extends Authenticatable
         return $this->hasMany(MessageTemplate::class, 'created_by');
     }
 
+
+    public function createdSharedAttachmentLinks()
+    {
+        return $this->hasMany(SharedAttachmentLink::class, 'created_by');
+    }
+
     public function isAdmin(): bool
     {
         return in_array($this->role, ['admin', 'administrator', 'super_admin', 'مدير النظام', 'مدير'], true);

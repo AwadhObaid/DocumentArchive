@@ -12,6 +12,7 @@ use App\Http\Controllers\EmailController;
 use App\Http\Controllers\ContactController;
 use App\Http\Controllers\MessageTemplateController;
 use App\Http\Controllers\WhatsappController;
+use App\Http\Controllers\SharedAttachmentLinkController;
 use App\Http\Controllers\FormLinkController;
 use App\Http\Controllers\SettingsController;
 use App\Http\Controllers\SystemHealthController;
@@ -22,6 +23,16 @@ use App\Http\Middleware\ApplyRoutePermissions;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\NotificationCenterController;
 use App\Http\Controllers\NotificationSettingsController;
+
+
+Route::get('/shared/attachments/{token}', [SharedAttachmentLinkController::class, 'publicShow'])
+    ->name('shared-attachments.public.show');
+
+Route::post('/shared/attachments/{token}/unlock', [SharedAttachmentLinkController::class, 'publicUnlock'])
+    ->name('shared-attachments.public.unlock');
+
+Route::get('/shared/attachments/{token}/files/{item}/download', [SharedAttachmentLinkController::class, 'publicDownload'])
+    ->name('shared-attachments.public.download');
 
 Route::middleware('guest')->group(function () {
     Route::get('/login', [AuthController::class, 'showLoginForm'])->name('login');
@@ -85,6 +96,27 @@ Route::middleware(['auth', ApplyRoutePermissions::class])->group(function () {
 
     Route::get('/attachments/{attachment}/download', [DocumentController::class, 'downloadAttachment'])
         ->name('attachments.download');
+
+    Route::get('/shared-attachment-links', [SharedAttachmentLinkController::class, 'index'])
+        ->name('shared-attachment-links.index');
+
+    Route::get('/shared-attachment-links/create', [SharedAttachmentLinkController::class, 'create'])
+        ->name('shared-attachment-links.create');
+
+    Route::post('/shared-attachment-links', [SharedAttachmentLinkController::class, 'store'])
+        ->name('shared-attachment-links.store');
+
+    Route::get('/shared-attachment-links/{sharedAttachmentLink}', [SharedAttachmentLinkController::class, 'show'])
+        ->name('shared-attachment-links.show');
+
+    Route::patch('/shared-attachment-links/{sharedAttachmentLink}/revoke', [SharedAttachmentLinkController::class, 'revoke'])
+        ->name('shared-attachment-links.revoke');
+
+    Route::delete('/shared-attachment-links/{sharedAttachmentLink}', [SharedAttachmentLinkController::class, 'destroy'])
+        ->name('shared-attachment-links.destroy');
+
+    Route::get('/documents/{document}/shared-attachments/create', [SharedAttachmentLinkController::class, 'create'])
+        ->name('documents.shared-attachments.create');
 
     Route::get('/attachments/{attachment}/inline', [DocumentController::class, 'inlineAttachment'])
         ->name('attachments.inline');

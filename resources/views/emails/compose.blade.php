@@ -141,6 +141,36 @@
                 <div class="email-note-box" style="margin-top:16px;">هذا الكتاب لا يحتوي على مرفقات، سيتم إرسال بياناته فقط.</div>
             @endif
 
+
+            @if($document && $document->attachments->count())
+                <div class="secure-link-compose-box">
+                    <div class="secure-title">🔗 رابط مرفقات آمن</div>
+                    <label class="inline-check">
+                        <input type="checkbox" name="include_secure_attachment_link" value="1" @checked(old('include_secure_attachment_link'))>
+                        <span>إضافة رابط آمن مؤقت للمرفقات داخل نص البريد</span>
+                    </label>
+                    <div class="secure-link-options">
+                        <div>
+                            <label>مدة صلاحية الرابط</label>
+                            <select name="secure_link_expires_in">
+                                <option value="1h" @selected(old('secure_link_expires_in') === '1h')>ساعة واحدة</option>
+                                <option value="3h" @selected(old('secure_link_expires_in') === '3h')>3 ساعات</option>
+                                <option value="12h" @selected(old('secure_link_expires_in') === '12h')>12 ساعة</option>
+                                <option value="24h" @selected(old('secure_link_expires_in', '24h') === '24h')>24 ساعة</option>
+                                <option value="3d" @selected(old('secure_link_expires_in') === '3d')>3 أيام</option>
+                                <option value="7d" @selected(old('secure_link_expires_in') === '7d')>7 أيام</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label>كلمة مرور للرابط</label>
+                            <input type="text" name="secure_link_password" value="{{ old('secure_link_password') }}" placeholder="اختياري">
+                            <small>عند تعبئة كلمة المرور، أرسلها للمستلم بطريقة منفصلة.</small>
+                        </div>
+                    </div>
+                    @error('include_secure_attachment_link')<small class="field-error">{{ $message }}</small>@enderror
+                </div>
+            @endif
+
             <div class="email-actions-row">
                 <button type="submit" class="btn btn-primary">إرسال البريد الآن</button>
                 <a href="{{ route('emails.index') }}" class="btn btn-light">إلغاء</a>

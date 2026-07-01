@@ -44,6 +44,11 @@ class DocumentAttachment extends Model
         return $this->belongsTo(User::class, 'uploaded_by');
     }
 
+    public function sharedLinkItems()
+    {
+        return $this->hasMany(SharedAttachmentLinkItem::class);
+    }
+
     public function getFileSizeForHumansAttribute(): string
     {
         $bytes = (int) $this->file_size;

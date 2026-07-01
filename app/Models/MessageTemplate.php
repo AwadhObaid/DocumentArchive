@@ -115,6 +115,7 @@ class MessageTemplate extends Model
             'today' => now()->format('d/m/Y'),
             'system_name' => Setting::getValue('system_name', 'الأرشيف الإلكتروني'),
             'department_name' => Setting::getValue('system_department_name', 'الشحن والتأمين'),
+            'share_link' => '-',
         ];
     }
 
@@ -140,6 +141,7 @@ class MessageTemplate extends Model
             'today' => 'تاريخ اليوم',
             'system_name' => 'اسم النظام',
             'department_name' => 'اسم القسم',
+            'share_link' => 'رابط المرفقات الآمن',
         ];
     }
 }

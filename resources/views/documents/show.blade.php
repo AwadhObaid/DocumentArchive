@@ -21,6 +21,8 @@
         && $currentUser->hasPermission('emails.send');
     $canSendWhatsapp = $currentUser && method_exists($currentUser, 'hasPermission')
         && $currentUser->hasPermission('whatsapp.send');
+    $canShareAttachments = $currentUser && method_exists($currentUser, 'hasPermission')
+        && $currentUser->hasPermission('attachment_shares.create');
 
     $arabicDocumentValue = function (string $field, $raw) {
         if ($raw === null || $raw === '') {
@@ -142,6 +144,9 @@
             @endif
             @if($canSendWhatsapp)
                 <a href="{{ route('documents.whatsapp.compose', $document) }}" class="btn btn-success">إرسال واتساب</a>
+            @endif
+            @if($canShareAttachments && $attachmentsList->count())
+                <a href="{{ route('documents.shared-attachments.create', $document) }}" class="btn btn-secondary">رابط مرفقات آمن</a>
             @endif
         @endif
     </div>

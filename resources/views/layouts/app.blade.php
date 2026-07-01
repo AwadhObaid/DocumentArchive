@@ -40,6 +40,8 @@
     <link rel="stylesheet" href="{{ asset('css/email-module.css') }}?v={{ filemtime(public_path('css/email-module.css')) }}">
     {{-- DocumentArchive whatsapp module --}}
     <link rel="stylesheet" href="{{ asset('css/whatsapp-module.css') }}?v={{ filemtime(public_path('css/whatsapp-module.css')) }}">
+    {{-- DocumentArchive secure attachment share links --}}
+    <link rel="stylesheet" href="{{ asset('css/shared-attachments.css') }}?v={{ filemtime(public_path('css/shared-attachments.css')) }}">
 </head>
 <body>
 
@@ -102,6 +104,10 @@
 
             @if(auth()->user()?->hasPermission('whatsapp.view'))
                 <a href="{{ route('whatsapp.index') }}" class="{{ request()->routeIs('whatsapp.*') || request()->routeIs('documents.whatsapp.compose') ? 'active' : '' }}">🟢 واتساب</a>
+            @endif
+
+            @if(auth()->user()?->hasPermission('attachment_shares.view'))
+                <a href="{{ route('shared-attachment-links.index') }}" class="{{ request()->routeIs('shared-attachment-links.*') || request()->routeIs('documents.shared-attachments.create') ? 'active' : '' }}">🔗 مشاركة المرفقات</a>
             @endif
 
             @if(auth()->user()?->hasPermission('settings.manage'))
@@ -194,6 +200,8 @@
     @include('partials.notification-center')
     <script src="{{ asset('js/arabic-ellipsis-display-fix.js') }}?v={{ time() }}"></script>
     <script src="{{ asset('js/arabic-ui-final-fix.js') }}?v=2026062802"></script>
+    {{-- DocumentArchive secure attachment share links --}}
+    <script src="{{ asset('js/shared-attachments.js') }}?v={{ filemtime(public_path('js/shared-attachments.js')) }}" defer></script>
     {{-- Arabic UI V4 final guard --}}
     <script src="{{ asset('js/arabic-text-mojibake-v4.js') }}?v={{ filemtime(public_path('js/arabic-text-mojibake-v4.js')) }}" defer></script>
 </body>

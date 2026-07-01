@@ -579,6 +579,9 @@
                                     @if($can('whatsapp.send'))
                                         <a class="btn btn-success" href="{{ route('documents.whatsapp.compose', $document) }}">إرسال واتساب</a>
                                     @endif
+                                    @if($can('attachment_shares.create') && $attachmentsCount > 0)
+                                        <a class="btn btn-secondary" href="{{ route('documents.shared-attachments.create', $document) }}">رابط مرفقات</a>
+                                    @endif
                                     @if($can('documents.delete') || $can('documents.destroy'))
                                         <form method="POST" action="{{ route('documents.destroy', $document) }}" data-confirm="هل أنت متأكد من حذف هذا الكتاب؟">
                                             @csrf
@@ -644,6 +647,9 @@
                                 @endif
                                 @if($can('whatsapp.send'))
                                     <a class="btn btn-success" href="{{ route('documents.whatsapp.compose', $document) }}">إرسال واتساب</a>
+                                @endif
+                                @if($can('attachment_shares.create') && $attachmentsCount > 0)
+                                    <a class="btn btn-secondary" href="{{ route('documents.shared-attachments.create', $document) }}">رابط مرفقات</a>
                                 @endif
                             @else
                                 @if($can('documents.restore'))

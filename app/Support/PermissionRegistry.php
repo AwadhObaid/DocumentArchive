@@ -40,6 +40,15 @@ class PermissionRegistry
                 ],
             ],
             [
+                'key' => 'attachment_shares',
+                'label' => 'مشاركة المرفقات',
+                'permissions' => [
+                    'attachment_shares.view' => 'عرض روابط مشاركة المرفقات',
+                    'attachment_shares.create' => 'إنشاء روابط مشاركة للمرفقات',
+                    'attachment_shares.revoke' => 'تعطيل وحذف روابط المشاركة',
+                ],
+            ],
+            [
                 'key' => 'reports',
                 'label' => 'التقارير والجودة',
                 'permissions' => [
@@ -218,6 +227,7 @@ class PermissionRegistry
                 'profile.manage',
                 'documents.view',
                 'attachments.preview',
+                'attachment_shares.view',
                 'reports.view',
                 'form_links.view',
                 'emails.view',
@@ -236,6 +246,9 @@ class PermissionRegistry
             'documents.print',
             'attachments.preview',
             'attachments.download',
+            'attachment_shares.view',
+            'attachment_shares.create',
+            'attachment_shares.revoke',
             'reports.view',
             'form_links.view',
             'emails.view',

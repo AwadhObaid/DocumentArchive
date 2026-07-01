@@ -7,6 +7,7 @@ use App\Models\Document;
 use App\Models\MessageTemplate;
 use App\Models\WhatsappMessage;
 use App\Services\ActivityLogger;
+use App\Services\SecureAttachmentLinkService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -78,6 +79,9 @@ class WhatsappController extends Controller
             'recipient_name' => ['nullable', 'string', 'max:120'],
             'phone_number' => ['required', 'string', 'max:40'],
             'message_body' => ['required', 'string', 'max:4000'],
+            'include_secure_attachment_link' => ['nullable', 'boolean'],
+            'secure_link_expires_in' => ['nullable', 'in:1h,3h,12h,24h,3d,7d'],
+            'secure_link_password' => ['nullable', 'string', 'max:100'],
         ]);
 
         $normalizedPhone = $this->normalizePhone((string) $validated['phone_number']);
@@ -105,7 +109,30 @@ class WhatsappController extends Controller
             $template = MessageTemplate::query()->find((int) $validated['message_template_id']);
         }
 
-        $whatsappUrl = 'https://wa.me/' . $normalizedPhone . '?text=' . rawurlencode((string) $validated['message_body']);
+        $secureAttachmentLink = null;
+        $messageBody = (string) $validated['message_body'];
+
+        if ($document && $request->boolean('include_secure_attachment_link')) {
+            try {
+                $secureAttachmentLink = app(SecureAttachmentLinkService::class)->createForDocument(
+                    $document,
+                    $document->attachments->pluck('id')->all(),
+                    Auth::id(),
+                    (string) ($validated['secure_link_expires_in'] ?? '24h'),
+                    null,
+                    $validated['secure_link_password'] ?? null,
+                    'تم إنشاء الرابط من صفحة واتساب.'
+                );
+
+                $messageBody = app(SecureAttachmentLinkService::class)->appendLinkToBody($messageBody, $secureAttachmentLink);
+            } catch (\Throwable $exception) {
+                return back()
+                    ->withErrors(['include_secure_attachment_link' => 'تعذر إنشاء رابط المرفقات الآمن: ' . $exception->getMessage()])
+                    ->withInput();
+            }
+        }
+
+        $whatsappUrl = 'https://wa.me/' . $normalizedPhone . '?text=' . rawurlencode($messageBody);
 
         $message = WhatsappMessage::create([
             'document_id' => $document?->id,
@@ -115,7 +142,7 @@ class WhatsappController extends Controller
             'recipient_name' => $validated['recipient_name'] ?? null,
             'phone_number' => $validated['phone_number'],
             'normalized_phone' => $normalizedPhone,
-            'message_body' => $validated['message_body'],
+            'message_body' => $messageBody,
             'whatsapp_url' => $whatsappUrl,
             'status' => 'opened',
             'opened_at' => now(),
@@ -130,6 +157,7 @@ class WhatsappController extends Controller
                 'reference_number' => $document?->reference_number,
                 'contact_id' => $contact?->id,
                 'message_template_id' => $template?->id,
+                'secure_attachment_link_id' => $secureAttachmentLink?->id,
                 'phone' => $normalizedPhone,
             ]
         );

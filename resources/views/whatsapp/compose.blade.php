@@ -100,6 +100,36 @@
                 </div>
             </div>
 
+
+            @if($document && $document->attachments->count())
+                <div class="secure-link-compose-box">
+                    <div class="secure-title">🔗 رابط مرفقات آمن</div>
+                    <label class="inline-check">
+                        <input type="checkbox" name="include_secure_attachment_link" value="1" @checked(old('include_secure_attachment_link'))>
+                        <span>إضافة رابط آمن مؤقت للمرفقات داخل رسالة واتساب</span>
+                    </label>
+                    <div class="secure-link-options">
+                        <div>
+                            <label>مدة صلاحية الرابط</label>
+                            <select name="secure_link_expires_in">
+                                <option value="1h" @selected(old('secure_link_expires_in') === '1h')>ساعة واحدة</option>
+                                <option value="3h" @selected(old('secure_link_expires_in') === '3h')>3 ساعات</option>
+                                <option value="12h" @selected(old('secure_link_expires_in') === '12h')>12 ساعة</option>
+                                <option value="24h" @selected(old('secure_link_expires_in', '24h') === '24h')>24 ساعة</option>
+                                <option value="3d" @selected(old('secure_link_expires_in') === '3d')>3 أيام</option>
+                                <option value="7d" @selected(old('secure_link_expires_in') === '7d')>7 أيام</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label>كلمة مرور للرابط</label>
+                            <input type="text" name="secure_link_password" value="{{ old('secure_link_password') }}" placeholder="اختياري">
+                            <small>اكتبها فقط للروابط الحساسة، وأرسل كلمة المرور للمستلم بشكل منفصل.</small>
+                        </div>
+                    </div>
+                    @error('include_secure_attachment_link')<small class="field-error">{{ $message }}</small>@enderror
+                </div>
+            @endif
+
             <div class="whatsapp-actions-row" style="margin-top:16px;">
                 <button type="submit" class="btn btn-primary">فتح واتساب الآن</button>
                 <a href="{{ route('whatsapp.index') }}" class="btn btn-light">إلغاء</a>
@@ -124,7 +154,7 @@
             @endif
 
             <div class="whatsapp-warning-box" style="margin-top:14px;">
-                <strong>ملاحظة:</strong> لا يمكن إرفاق الملفات تلقائيًا عبر رابط واتساب العادي. هذه المرحلة مخصصة لتجهيز النص وفتح المحادثة بسرعة، ويمكن إرسال المرفقات يدويًا من جهاز المستخدم.
+                <strong>ملاحظة:</strong> يمكنك إضافة رابط مرفقات آمن داخل الرسالة بدل إرسال الملفات يدويًا، أو إرسال المرفقات يدويًا من واتساب عند الحاجة.
             </div>
         </aside>
     </div>
