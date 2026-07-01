@@ -30,6 +30,9 @@
         .form-status.active { background:rgba(34,197,94,.12); color:#15803d; }
         .form-status.inactive { background:rgba(100,116,139,.14); color:#475569; }
         .forms-actions { display:flex; gap:8px; flex-wrap:wrap; align-items:center; }
+        .forms-actions .btn-legacy-preview { background:#111827; border-color:#111827; color:#fff; }
+        .legacy-print-note { padding:12px 14px; border:1px solid rgba(245, 158, 11, .35); border-radius:14px; background:rgba(255,251,235,.92); color:#92400e; line-height:1.8; }
+        html[data-theme="dark"] .legacy-print-note { background:rgba(120, 53, 15, .22); color:#fde68a; }
         .forms-actions form { margin:0; }
         .forms-page .pagination svg { width:18px !important; height:18px !important; max-width:18px !important; max-height:18px !important; }
         .forms-page .pagination { margin-top:14px; overflow:auto; }
@@ -42,6 +45,9 @@
             <div>
                 <h1>إدارة النماذج</h1>
                 <p>ضع هنا روابط النماذج المهمة ليتم فتحها مباشرة من داخل النظام.</p>
+                <p class="legacy-print-note">
+                    زر <strong>معاينة الطباعة القديمة</strong> يحتاج تثبيت برنامج DocArchivePrintPreview على جهاز المستخدم مرة واحدة، ثم يفتح النموذج داخل متصفح IE الداخلي حتى يستطيع الموظف تعبئة النموذج ثم فتح معاينة الطباعة القديمة.
+                </p>
             </div>
 
             @if($canManage)
@@ -129,8 +135,14 @@
 
                     <div class="form-link-url">{{ $formLink->url }}</div>
 
+                    @php
+                        $legacyPreviewUrl = 'docarchive-print://preview?url=' . rawurlencode($formLink->url) . '&title=' . rawurlencode($formLink->title);
+                    @endphp
+
                     <div class="forms-actions">
                         <a href="{{ $formLink->url }}" class="btn btn-success" @if($formLink->opens_new_tab) target="_blank" rel="noopener noreferrer" @endif>فتح النموذج</a>
+                        <a href="{{ route('form-links.print', $formLink) }}" class="btn btn-secondary" target="_blank" rel="noopener noreferrer">فتح للطباعة</a>
+                        <a href="{{ $legacyPreviewUrl }}" class="btn btn-legacy-preview">معاينة الطباعة القديمة</a>
 
                         @if($canManage)
                             <a href="{{ route('form-links.edit', $formLink) }}" class="btn btn-primary">تعديل</a>

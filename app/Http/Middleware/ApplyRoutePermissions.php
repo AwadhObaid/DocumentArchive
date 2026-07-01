@@ -48,6 +48,7 @@ class ApplyRoutePermissions
         'document-types.*' => 'document_types.manage',
 
         'form-links.index' => 'form_links.view',
+        'form-links.print' => 'form_links.view',
         'form-links.create' => 'form_links.manage',
         'form-links.store' => 'form_links.manage',
         'form-links.edit' => 'form_links.manage',

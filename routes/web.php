@@ -124,6 +124,9 @@ Route::middleware(['auth', ApplyRoutePermissions::class])->group(function () {
         ->name('users.deactivate');
 
 
+    Route::get('/form-links/{formLink}/print', [FormLinkController::class, 'print'])
+        ->name('form-links.print');
+
     Route::resource('form-links', FormLinkController::class)
         ->except(['show'])
         ->parameters([
