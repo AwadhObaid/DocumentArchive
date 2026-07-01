@@ -32,6 +32,8 @@
     <link rel="stylesheet" href="{{ asset('css/arabic-ui-final-fix.css') }}?v=2026062802">
     {{-- Arabic UI V4 final guard --}}
     <link rel="stylesheet" href="{{ asset('css/arabic-no-truncate-v4.css') }}?v={{ filemtime(public_path('css/arabic-no-truncate-v4.css')) }}">
+    {{-- DocumentArchive compact font scale fix --}}
+    <link rel="stylesheet" href="{{ asset('css/global-font-scale-fix.css') }}?v={{ filemtime(public_path('css/global-font-scale-fix.css')) }}">
 </head>
 <body>
 

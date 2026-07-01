@@ -1,0 +1,409 @@
+/*
+|--------------------------------------------------------------------------
+| DocumentArchive Global Font Scale Fix
+|--------------------------------------------------------------------------
+| Purpose: reduce the oversized visual scale across the authenticated UI
+| without touching print templates or rebuilding page-specific layouts.
+| Loaded after the Arabic UI guard styles so these values remain effective.
+*/
+
+:root {
+    --da-font-base: 14px;
+    --da-font-small: 12px;
+    --da-font-ui: 13px;
+    --da-line-height: 1.48;
+    --da-heading-line-height: 1.32;
+}
+
+html {
+    font-size: var(--da-font-base);
+}
+
+body {
+    font-size: var(--da-font-base) !important;
+    line-height: var(--da-line-height) !important;
+}
+
+body,
+button,
+input,
+select,
+textarea,
+table,
+th,
+td,
+a,
+label,
+.btn,
+.card,
+.alert,
+.badge,
+.sidebar,
+.side-nav,
+.topbar,
+.form-control,
+.form-select {
+    line-height: var(--da-line-height);
+}
+
+/* Sidebar */
+.brand {
+    padding: 18px 20px;
+    gap: 10px;
+}
+
+.brand-icon {
+    width: 42px;
+    height: 42px;
+    border-radius: 13px;
+    font-size: 20px;
+}
+
+.brand-title {
+    font-size: 16px !important;
+    line-height: 1.35;
+}
+
+.brand-subtitle {
+    font-size: 11.5px !important;
+    line-height: 1.45;
+}
+
+.side-nav {
+    padding: 13px 14px;
+    gap: 6px;
+}
+
+.side-nav a {
+    padding: 10px 12px !important;
+    border-radius: 10px;
+    font-size: 13.5px !important;
+    font-weight: 700;
+    line-height: 1.45;
+}
+
+.sidebar-footer {
+    padding: 14px;
+}
+
+.user-mini {
+    gap: 9px;
+    margin-bottom: 10px;
+}
+
+.avatar {
+    width: 34px;
+    height: 34px;
+    font-size: 13px;
+}
+
+.user-mini strong {
+    font-size: 13px;
+}
+
+.user-mini span {
+    font-size: 11px !important;
+}
+
+.logout-btn {
+    padding: 9px 10px;
+    font-size: 13px;
+}
+
+/* Topbar and page spacing */
+.topbar {
+    min-height: 76px;
+    padding: 14px 24px;
+    gap: 14px;
+}
+
+.topbar h1 {
+    font-size: 20px !important;
+    line-height: var(--da-heading-line-height);
+}
+
+.topbar p {
+    font-size: 12px !important;
+    line-height: 1.5;
+    margin-top: 4px;
+}
+
+.menu-toggle,
+.theme-toggle {
+    padding: 8px 11px;
+    border-radius: 9px;
+    font-size: 13px;
+}
+
+.content-area {
+    padding: 22px;
+}
+
+.card {
+    padding: 16px;
+    border-radius: 16px;
+    margin-bottom: 16px;
+}
+
+.page-title {
+    gap: 12px;
+    margin-bottom: 15px;
+}
+
+h1,
+.page-title h1,
+.documents-head h1,
+.forms-header h1,
+.profile-page h1,
+.reports-page h1 {
+    font-size: clamp(22px, 2vw, 30px) !important;
+    line-height: var(--da-heading-line-height) !important;
+}
+
+h2,
+.page-title h2,
+.card h2,
+.filter-header h2,
+.forms-page h2 {
+    font-size: 18px !important;
+    line-height: 1.38 !important;
+}
+
+h3,
+.card h3,
+.forms-page h3,
+.document-mobile-card h3 {
+    font-size: 15.5px !important;
+    line-height: 1.5 !important;
+}
+
+p,
+small,
+.muted,
+.muted-note {
+    line-height: 1.55;
+}
+
+/* Buttons and form controls */
+.btn {
+    padding: 8px 12px !important;
+    border-radius: 9px;
+    font-size: 13px !important;
+    line-height: 1.35;
+}
+
+label {
+    font-size: 13px !important;
+}
+
+input,
+select,
+textarea {
+    padding: 9px 10px !important;
+    border-radius: 9px;
+    font-size: 13.5px !important;
+}
+
+textarea {
+    min-height: 82px;
+}
+
+.form-grid {
+    gap: 14px;
+}
+
+.form-group {
+    gap: 6px;
+}
+
+/* Tables and badges */
+th,
+td {
+    padding: 10px !important;
+    font-size: 13px !important;
+}
+
+.badge,
+.pill,
+.form-status {
+    font-size: 11.5px !important;
+    line-height: 1.35;
+}
+
+/* Dashboard/stat cards */
+.stats-grid {
+    gap: 14px;
+    margin-bottom: 18px;
+}
+
+.stat-card {
+    padding: 14px;
+    gap: 11px;
+    border-radius: 16px;
+}
+
+.stat-card span {
+    width: 42px;
+    height: 42px;
+    border-radius: 13px;
+    font-size: 20px !important;
+}
+
+.stat-card strong {
+    font-size: 23px !important;
+    line-height: 1.15;
+}
+
+.stat-card p {
+    font-size: 12px;
+    line-height: 1.5;
+}
+
+/* Documents page */
+.documents-head h1 {
+    font-size: clamp(22px, 2vw, 30px) !important;
+}
+
+.doc-summary-card strong {
+    font-size: 22px !important;
+}
+
+.doc-summary-card span,
+.documents-table th,
+.filter-count,
+.quick-chip,
+.document-number-cell strong,
+.policy-cell strong {
+    font-size: 12px !important;
+}
+
+.document-mobile-card h3 {
+    font-size: 15.5px !important;
+}
+
+/* Form links page */
+.forms-page {
+    gap: 15px !important;
+}
+
+.forms-stats {
+    gap: 10px !important;
+}
+
+.forms-stat {
+    padding: 13px !important;
+    border-radius: 14px !important;
+}
+
+.forms-stat span {
+    font-size: 12px !important;
+    margin-bottom: 6px !important;
+}
+
+.forms-stat strong {
+    font-size: 20px !important;
+    line-height: 1.2;
+}
+
+.legacy-print-note {
+    padding: 10px 12px !important;
+    font-size: 12.5px !important;
+    line-height: 1.6 !important;
+}
+
+.forms-filter-grid {
+    gap: 8px !important;
+}
+
+.forms-grid {
+    gap: 12px !important;
+}
+
+.form-link-card {
+    gap: 10px !important;
+    padding: 14px !important;
+    border-radius: 16px !important;
+}
+
+.form-link-title {
+    gap: 8px !important;
+}
+
+.form-link-title .icon {
+    width: 34px !important;
+    height: 34px !important;
+    border-radius: 12px !important;
+    font-size: 18px !important;
+}
+
+.form-link-title h3 {
+    font-size: 15.5px !important;
+    line-height: 1.5 !important;
+}
+
+.form-link-meta {
+    font-size: 12px !important;
+    gap: 6px !important;
+}
+
+.form-link-url {
+    font-size: 11px !important;
+    line-height: 1.5 !important;
+}
+
+.forms-actions {
+    gap: 7px !important;
+}
+
+.forms-actions .btn {
+    font-size: 12px !important;
+    padding: 7px 10px !important;
+}
+
+/* Notifications */
+.notification-center-title {
+    font-size: 14.5px !important;
+}
+
+.notification-center-item-title {
+    font-size: 13px !important;
+}
+
+.notification-center-item-body,
+.notification-center-link {
+    font-size: 11.5px !important;
+}
+
+/* Responsive refinements */
+@media (max-width: 980px) {
+    .topbar {
+        min-height: 68px;
+        padding: 12px 16px;
+    }
+
+    .content-area {
+        padding: 18px;
+    }
+}
+
+@media (max-width: 700px) {
+    body {
+        font-size: 13.5px !important;
+    }
+
+    .content-area {
+        padding: 14px;
+    }
+
+    .topbar h1,
+    h1,
+    .page-title h1,
+    .forms-header h1,
+    .documents-head h1 {
+        font-size: 20px !important;
+    }
+
+    .btn {
+        font-size: 12.5px !important;
+    }
+}
