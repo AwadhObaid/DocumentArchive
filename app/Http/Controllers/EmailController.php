@@ -2,9 +2,11 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Contact;
 use App\Models\Document;
 use App\Models\DocumentAttachment;
 use App\Models\EmailMessage;
+use App\Models\MessageTemplate;
 use App\Services\ActivityLogger;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -21,7 +23,7 @@ class EmailController extends Controller
     public function index(): View
     {
         $messages = EmailMessage::query()
-            ->with(['document', 'creator'])
+            ->with(['document', 'creator', 'contact', 'messageTemplate'])
             ->latest()
             ->paginate(15);
 
@@ -52,8 +54,9 @@ class EmailController extends Controller
             ->get();
 
         $defaults = $this->defaultsForDocument($document);
+        $composeSupport = $this->composeSupport($document, 'email');
 
-        return view('emails.compose', compact('document', 'documents', 'defaults'));
+        return view('emails.compose', array_merge(compact('document', 'documents', 'defaults'), $composeSupport));
     }
 
     public function composeDocument(Document $document): View
@@ -67,14 +70,17 @@ class EmailController extends Controller
             ->get();
 
         $defaults = $this->defaultsForDocument($document);
+        $composeSupport = $this->composeSupport($document, 'email');
 
-        return view('emails.compose', compact('document', 'documents', 'defaults'));
+        return view('emails.compose', array_merge(compact('document', 'documents', 'defaults'), $composeSupport));
     }
 
     public function send(Request $request): RedirectResponse
     {
         $validated = $request->validate([
             'document_id' => ['nullable', 'integer', 'exists:documents,id'],
+            'contact_id' => ['nullable', 'integer', 'exists:contacts,id'],
+            'message_template_id' => ['nullable', 'integer', 'exists:message_templates,id'],
             'to' => ['required', 'string', 'max:2000'],
             'cc' => ['nullable', 'string', 'max:2000'],
             'bcc' => ['nullable', 'string', 'max:2000'],
@@ -107,6 +113,16 @@ class EmailController extends Controller
                 ->findOrFail((int) $validated['document_id']);
         }
 
+        $contact = null;
+        if (!empty($validated['contact_id'])) {
+            $contact = Contact::query()->find((int) $validated['contact_id']);
+        }
+
+        $template = null;
+        if (!empty($validated['message_template_id'])) {
+            $template = MessageTemplate::query()->find((int) $validated['message_template_id']);
+        }
+
         $selectedAttachmentIds = array_values(array_unique(array_map('intval', (array) ($validated['attachment_ids'] ?? []))));
         $attachments = $this->resolveAttachments($selectedAttachmentIds, $document);
 
@@ -135,6 +151,8 @@ class EmailController extends Controller
         $emailMessage = EmailMessage::create([
             'document_id' => $document?->id,
             'created_by' => Auth::id(),
+            'contact_id' => $contact?->id,
+            'message_template_id' => $template?->id,
             'to_recipients' => $to,
             'cc_recipients' => $cc,
             'bcc_recipients' => $bcc,
@@ -194,6 +212,8 @@ class EmailController extends Controller
                 [
                     'document_id' => $document?->id,
                     'reference_number' => $document?->reference_number,
+                    'contact_id' => $contact?->id,
+                    'message_template_id' => $template?->id,
                     'to' => $to,
                     'attachments_count' => $attachments->count(),
                 ]
@@ -217,6 +237,8 @@ class EmailController extends Controller
                 [
                     'document_id' => $document?->id,
                     'reference_number' => $document?->reference_number,
+                    'contact_id' => $contact?->id,
+                    'message_template_id' => $template?->id,
                     'error' => $exception->getMessage(),
                 ]
             );
@@ -229,7 +251,7 @@ class EmailController extends Controller
 
     public function show(EmailMessage $emailMessage): View
     {
-        $emailMessage->load(['document.department', 'document.documentType', 'creator']);
+        $emailMessage->load(['document.department', 'document.documentType', 'creator', 'contact', 'messageTemplate']);
 
         return view('emails.show', compact('emailMessage'));
     }
@@ -249,8 +271,7 @@ class EmailController extends Controller
 
         $subject = 'إرسال كتاب رقم ' . ($document->reference_number ?: '-') . ' - ' . ($document->subject ?: $document->title ?: '');
 
-        $body = implode("
-", array_filter([
+        $body = implode("\n", array_filter([
             'السلام عليكم ورحمة الله وبركاته،',
             '',
             'مرفق لكم بيانات ومرفقات الكتاب التالي:',
@@ -272,6 +293,48 @@ class EmailController extends Controller
             'subject' => $subject,
             'body' => $body,
         ];
+    }
+
+    private function composeSupport(?Document $document, string $channel): array
+    {
+        $contacts = Contact::query()
+            ->active()
+            ->orderBy('sort_order')
+            ->orderBy('name')
+            ->get();
+
+        $templates = MessageTemplate::query()
+            ->active()
+            ->forChannel($channel)
+            ->orderByDesc('is_default')
+            ->orderBy('sort_order')
+            ->orderBy('name')
+            ->get();
+
+        $contactPayload = $contacts->mapWithKeys(fn (Contact $contact) => [
+            $contact->id => [
+                'name' => $contact->name,
+                'display_name' => $contact->display_name,
+                'organization' => $contact->organization,
+                'contact_person' => $contact->contact_person,
+                'email' => $contact->email,
+                'whatsapp_number' => $contact->whatsapp_number,
+                'phone' => $contact->phone,
+            ],
+        ])->all();
+
+        $templatePayload = $templates->mapWithKeys(fn (MessageTemplate $template) => [
+            $template->id => [
+                'name' => $template->name,
+                'subject' => $template->subject_template ?: '',
+                'body' => $template->body_template,
+                'is_default' => $template->is_default,
+            ],
+        ])->all();
+
+        $documentVariables = MessageTemplate::variableValues($document);
+
+        return compact('contacts', 'templates', 'contactPayload', 'templatePayload', 'documentVariables');
     }
 
     private function parseRecipients(string $value): array

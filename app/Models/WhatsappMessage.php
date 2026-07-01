@@ -9,6 +9,8 @@ class WhatsappMessage extends Model
     protected $fillable = [
         'document_id',
         'created_by',
+        'contact_id',
+        'message_template_id',
         'recipient_name',
         'phone_number',
         'normalized_phone',
@@ -34,6 +36,16 @@ class WhatsappMessage extends Model
     public function creator()
     {
         return $this->belongsTo(User::class, 'created_by');
+    }
+
+    public function contact()
+    {
+        return $this->belongsTo(Contact::class);
+    }
+
+    public function messageTemplate()
+    {
+        return $this->belongsTo(MessageTemplate::class);
     }
 
     public function getStatusNameAttribute(): string

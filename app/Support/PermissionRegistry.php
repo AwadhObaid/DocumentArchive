@@ -65,6 +65,22 @@ class PermissionRegistry
                 ],
             ],
             [
+                'key' => 'contacts',
+                'label' => 'جهات الاتصال',
+                'permissions' => [
+                    'contacts.view' => 'عرض جهات الاتصال',
+                    'contacts.manage' => 'إضافة وتعديل وحذف جهات الاتصال',
+                ],
+            ],
+            [
+                'key' => 'message_templates',
+                'label' => 'قوالب الرسائل',
+                'permissions' => [
+                    'message_templates.view' => 'عرض قوالب الرسائل',
+                    'message_templates.manage' => 'إضافة وتعديل وحذف قوالب الرسائل',
+                ],
+            ],
+            [
                 'key' => 'emails',
                 'label' => 'البريد الإلكتروني',
                 'permissions' => [
@@ -206,6 +222,8 @@ class PermissionRegistry
                 'form_links.view',
                 'emails.view',
                 'whatsapp.view',
+                'contacts.view',
+                'message_templates.view',
             ];
         }
 

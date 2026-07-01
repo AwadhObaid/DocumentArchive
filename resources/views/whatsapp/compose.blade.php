@@ -2,14 +2,16 @@
 
 @section('title', 'إرسال واتساب')
 @section('page_title', 'إرسال واتساب')
-@section('page_subtitle', 'اختر كتابًا وجهّز رسالة واتساب من بياناته.')
+@section('page_subtitle', 'اختر جهة اتصال وقالبًا وجهّز رسالة واتساب من بيانات الكتاب.')
 
 @section('content')
 @php
     $selectedDocumentId = old('document_id', $document?->id);
+    $selectedContactId = old('contact_id');
+    $selectedTemplateId = old('message_template_id');
 @endphp
 
-<div class="whatsapp-page">
+<div class="whatsapp-page ct-enhanced-compose" data-compose-channel="whatsapp">
     <div class="page-header">
         <div>
             <h1>إرسال واتساب</h1>
@@ -17,6 +19,12 @@
         </div>
         <div class="page-actions">
             <a href="{{ route('whatsapp.index') }}" class="btn btn-light">سجل واتساب</a>
+            @if(auth()->user()?->hasPermission('contacts.view'))
+                <a href="{{ route('contacts.index') }}" class="btn btn-light">جهات الاتصال</a>
+            @endif
+            @if(auth()->user()?->hasPermission('message_templates.view'))
+                <a href="{{ route('message-templates.index') }}" class="btn btn-light">قوالب الرسائل</a>
+            @endif
             @if($document)
                 <a href="{{ route('documents.show', $document) }}" class="btn btn-secondary">عرض الكتاب</a>
             @endif
@@ -48,20 +56,46 @@
                     <div class="whatsapp-help">عند اختيار كتاب، سيتم تجهيز نص الرسالة تلقائيًا من بياناته.</div>
                 </div>
 
+                <div class="form-group full">
+                    <label>جهة الاتصال</label>
+                    <select name="contact_id" data-contact-select>
+                        <option value="">بدون جهة محفوظة</option>
+                        @foreach($contacts as $contact)
+                            <option value="{{ $contact->id }}" @selected((string)$selectedContactId === (string)$contact->id)>
+                                {{ $contact->display_name }}{{ $contact->whatsapp_number ? ' — ' . $contact->whatsapp_number : '' }}
+                            </option>
+                        @endforeach
+                    </select>
+                    <div class="whatsapp-help">عند اختيار جهة محفوظة سيتم تعبئة الاسم ورقم واتساب إن وجد.</div>
+                </div>
+
+                <div class="form-group full">
+                    <label>قالب الرسالة</label>
+                    <select name="message_template_id" data-template-select>
+                        <option value="">بدون قالب</option>
+                        @foreach($templates as $template)
+                            <option value="{{ $template->id }}" @selected((string)$selectedTemplateId === (string)$template->id)>
+                                {{ $template->name }}{{ $template->is_default ? ' — افتراضي' : '' }}
+                            </option>
+                        @endforeach
+                    </select>
+                    <div class="whatsapp-help">القالب يستبدل متغيرات الكتاب والجهة تلقائيًا.</div>
+                </div>
+
                 <div class="form-group">
                     <label>اسم المستلم</label>
-                    <input type="text" name="recipient_name" value="{{ old('recipient_name') }}" placeholder="اختياري">
+                    <input type="text" name="recipient_name" data-whatsapp-recipient value="{{ old('recipient_name') }}" placeholder="اختياري">
                 </div>
 
                 <div class="form-group">
                     <label>رقم واتساب <span style="color:#dc2626;">*</span></label>
-                    <input type="text" name="phone_number" value="{{ old('phone_number') }}" required placeholder="+965XXXXXXXX أو الرقم الدولي">
+                    <input type="text" name="phone_number" data-whatsapp-phone value="{{ old('phone_number') }}" required placeholder="+965XXXXXXXX أو الرقم الدولي">
                     <div class="whatsapp-help">اكتب الرقم بصيغة دولية. إذا كتبت رقمًا محليًا من 8 أرقام سيتم إضافة 965 تلقائيًا.</div>
                 </div>
 
                 <div class="form-group full">
                     <label>نص رسالة واتساب <span style="color:#dc2626;">*</span></label>
-                    <textarea name="message_body" required>{{ old('message_body', $defaults['message_body'] ?? '') }}</textarea>
+                    <textarea name="message_body" data-whatsapp-body required>{{ old('message_body', $defaults['message_body'] ?? '') }}</textarea>
                     <div class="whatsapp-help">يمكنك تعديل النص قبل فتح واتساب. سيتم ترميز الرسالة تلقائيًا داخل رابط واتساب.</div>
                 </div>
             </div>
@@ -95,4 +129,53 @@
         </aside>
     </div>
 </div>
+
+<script type="application/json" id="whatsapp-contact-payload">@json($contactPayload)</script>
+<script type="application/json" id="whatsapp-template-payload">@json($templatePayload)</script>
+<script type="application/json" id="whatsapp-document-variables">@json($documentVariables)</script>
+<script>
+(function() {
+    const contacts = JSON.parse(document.getElementById('whatsapp-contact-payload').textContent || '{}');
+    const templates = JSON.parse(document.getElementById('whatsapp-template-payload').textContent || '{}');
+    const documentVars = JSON.parse(document.getElementById('whatsapp-document-variables').textContent || '{}');
+    const contactSelect = document.querySelector('[data-contact-select]');
+    const templateSelect = document.querySelector('[data-template-select]');
+    const recipientInput = document.querySelector('[data-whatsapp-recipient]');
+    const phoneInput = document.querySelector('[data-whatsapp-phone]');
+    const bodyInput = document.querySelector('[data-whatsapp-body]');
+
+    function vars() {
+        const contact = contacts[contactSelect?.value || ''] || {};
+        return Object.assign({}, documentVars, {
+            contact_name: contact.name || '-',
+            contact_person: contact.contact_person || '-',
+            contact_organization: contact.organization || '-',
+            contact_email: contact.email || '-',
+            contact_whatsapp: contact.whatsapp_number || '-'
+        });
+    }
+
+    function render(text) {
+        const values = vars();
+        return (text || '').replace(/\{([a-zA-Z0-9_]+)\}/g, function(match, key) {
+            return Object.prototype.hasOwnProperty.call(values, key) ? values[key] : match;
+        });
+    }
+
+    contactSelect?.addEventListener('change', function() {
+        const contact = contacts[this.value] || {};
+        if (contact.name) recipientInput.value = contact.contact_person || contact.name;
+        if (contact.whatsapp_number) phoneInput.value = contact.whatsapp_number;
+        applyTemplate(false);
+    });
+
+    function applyTemplate(force = true) {
+        const template = templates[templateSelect?.value || ''];
+        if (!template) return;
+        if (force || !bodyInput.value.trim()) bodyInput.value = render(template.body || '');
+    }
+
+    templateSelect?.addEventListener('change', function() { applyTemplate(true); });
+})();
+</script>
 @endsection

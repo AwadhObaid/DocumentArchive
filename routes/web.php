@@ -9,6 +9,8 @@ use App\Http\Controllers\DepartmentController;
 use App\Http\Controllers\DocumentController;
 use App\Http\Controllers\DocumentTypeController;
 use App\Http\Controllers\EmailController;
+use App\Http\Controllers\ContactController;
+use App\Http\Controllers\MessageTemplateController;
 use App\Http\Controllers\WhatsappController;
 use App\Http\Controllers\FormLinkController;
 use App\Http\Controllers\SettingsController;
@@ -133,6 +135,14 @@ Route::middleware(['auth', ApplyRoutePermissions::class])->group(function () {
         ->except(['show'])
         ->parameters([
             'form-links' => 'formLink',
+        ]);
+
+    Route::resource('contacts', ContactController::class)->except(['show']);
+
+    Route::resource('message-templates', MessageTemplateController::class)
+        ->except(['show'])
+        ->parameters([
+            'message-templates' => 'messageTemplate',
         ]);
 
     Route::get('/emails', [EmailController::class, 'index'])->name('emails.index');

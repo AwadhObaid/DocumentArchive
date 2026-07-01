@@ -2,11 +2,13 @@
 
 @section('title', 'إرسال بريد إلكتروني')
 @section('page_title', 'إرسال بريد إلكتروني')
-@section('page_subtitle', 'اختر كتابًا وأرسل بياناته مع المرفقات المحددة.')
+@section('page_subtitle', 'اختر جهة اتصال وقالبًا وكتابًا لإرسال بياناته مع المرفقات.')
 
 @section('content')
 @php
     $selectedDocumentId = old('document_id', $document?->id);
+    $selectedContactId = old('contact_id');
+    $selectedTemplateId = old('message_template_id');
     $selectedAttachments = old('attachment_ids');
     if ($selectedAttachments === null && $document) {
         $selectedAttachments = $document->attachments->pluck('id')->map(fn ($id) => (string) $id)->all();
@@ -14,14 +16,20 @@
     $selectedAttachments = array_map('strval', (array) $selectedAttachments);
 @endphp
 
-<div class="email-page">
+<div class="email-page ct-enhanced-compose" data-compose-channel="email">
     <div class="page-header">
         <div>
             <h1>إرسال بريد إلكتروني</h1>
-            <p>يمكنك إرسال كتاب محدد مع بياناته ومرفقاته، أو إرسال رسالة عامة من النظام.</p>
+            <p>يمكنك اختيار جهة اتصال وقالب رسالة لتجهيز البريد تلقائيًا من بيانات الكتاب.</p>
         </div>
         <div class="page-actions" style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;">
             <a href="{{ route('emails.index') }}" class="btn btn-light">سجل البريد</a>
+            @if(auth()->user()?->hasPermission('contacts.view'))
+                <a href="{{ route('contacts.index') }}" class="btn btn-light">جهات الاتصال</a>
+            @endif
+            @if(auth()->user()?->hasPermission('message_templates.view'))
+                <a href="{{ route('message-templates.index') }}" class="btn btn-light">قوالب الرسائل</a>
+            @endif
             @if($document)
                 <a href="{{ route('documents.show', $document) }}" class="btn btn-secondary">عرض الكتاب</a>
             @endif
@@ -54,8 +62,34 @@
                 </div>
 
                 <div class="form-group full">
+                    <label>جهة الاتصال</label>
+                    <select name="contact_id" id="emailContactSelect" data-contact-select>
+                        <option value="">بدون جهة محفوظة</option>
+                        @foreach($contacts as $contact)
+                            <option value="{{ $contact->id }}" @selected((string)$selectedContactId === (string)$contact->id)>
+                                {{ $contact->display_name }}{{ $contact->email ? ' — ' . $contact->email : '' }}
+                            </option>
+                        @endforeach
+                    </select>
+                    <div class="email-help">عند اختيار جهة محفوظة سيتم تعبئة البريد تلقائيًا إن وجد.</div>
+                </div>
+
+                <div class="form-group full">
+                    <label>قالب الرسالة</label>
+                    <select name="message_template_id" id="emailTemplateSelect" data-template-select>
+                        <option value="">بدون قالب</option>
+                        @foreach($templates as $template)
+                            <option value="{{ $template->id }}" @selected((string)$selectedTemplateId === (string)$template->id)>
+                                {{ $template->name }}{{ $template->is_default ? ' — افتراضي' : '' }}
+                            </option>
+                        @endforeach
+                    </select>
+                    <div class="email-help">القالب يستبدل المتغيرات مثل <code>{document_number}</code> و <code>{subject}</code> تلقائيًا.</div>
+                </div>
+
+                <div class="form-group full">
                     <label>إلى <span style="color:#dc2626;">*</span></label>
-                    <input type="text" name="to" value="{{ old('to') }}" required placeholder="example@domain.com ويمكن فصل أكثر من بريد بفاصلة">
+                    <input type="text" name="to" data-email-to value="{{ old('to') }}" required placeholder="example@domain.com ويمكن فصل أكثر من بريد بفاصلة">
                     <div class="email-help">يمكن كتابة أكثر من بريد بفاصلة أو فاصلة منقوطة أو سطر جديد.</div>
                 </div>
 
@@ -71,12 +105,12 @@
 
                 <div class="form-group full">
                     <label>الموضوع <span style="color:#dc2626;">*</span></label>
-                    <input type="text" name="subject" value="{{ old('subject', $defaults['subject'] ?? '') }}" required>
+                    <input type="text" name="subject" data-email-subject value="{{ old('subject', $defaults['subject'] ?? '') }}" required>
                 </div>
 
                 <div class="form-group full">
                     <label>نص الرسالة <span style="color:#dc2626;">*</span></label>
-                    <textarea name="body" required>{{ old('body', $defaults['body'] ?? '') }}</textarea>
+                    <textarea name="body" data-email-body required>{{ old('body', $defaults['body'] ?? '') }}</textarea>
                 </div>
             </div>
 
@@ -136,4 +170,53 @@
         </aside>
     </div>
 </div>
+
+<script type="application/json" id="email-contact-payload">@json($contactPayload)</script>
+<script type="application/json" id="email-template-payload">@json($templatePayload)</script>
+<script type="application/json" id="email-document-variables">@json($documentVariables)</script>
+<script>
+(function() {
+    const contacts = JSON.parse(document.getElementById('email-contact-payload').textContent || '{}');
+    const templates = JSON.parse(document.getElementById('email-template-payload').textContent || '{}');
+    const documentVars = JSON.parse(document.getElementById('email-document-variables').textContent || '{}');
+    const contactSelect = document.querySelector('[data-contact-select]');
+    const templateSelect = document.querySelector('[data-template-select]');
+    const toInput = document.querySelector('[data-email-to]');
+    const subjectInput = document.querySelector('[data-email-subject]');
+    const bodyInput = document.querySelector('[data-email-body]');
+
+    function vars() {
+        const contact = contacts[contactSelect?.value || ''] || {};
+        return Object.assign({}, documentVars, {
+            contact_name: contact.name || '-',
+            contact_person: contact.contact_person || '-',
+            contact_organization: contact.organization || '-',
+            contact_email: contact.email || '-',
+            contact_whatsapp: contact.whatsapp_number || '-'
+        });
+    }
+
+    function render(text) {
+        const values = vars();
+        return (text || '').replace(/\{([a-zA-Z0-9_]+)\}/g, function(match, key) {
+            return Object.prototype.hasOwnProperty.call(values, key) ? values[key] : match;
+        });
+    }
+
+    contactSelect?.addEventListener('change', function() {
+        const contact = contacts[this.value] || {};
+        if (contact.email) toInput.value = contact.email;
+        applyTemplate(false);
+    });
+
+    function applyTemplate(force = true) {
+        const template = templates[templateSelect?.value || ''];
+        if (!template) return;
+        if (force || !subjectInput.value.trim()) subjectInput.value = render(template.subject || '');
+        if (force || !bodyInput.value.trim()) bodyInput.value = render(template.body || '');
+    }
+
+    templateSelect?.addEventListener('change', function() { applyTemplate(true); });
+})();
+</script>
 @endsection

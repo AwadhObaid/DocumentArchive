@@ -55,6 +55,20 @@ class ApplyRoutePermissions
         'form-links.update' => 'form_links.manage',
         'form-links.destroy' => 'form_links.manage',
 
+        'contacts.index' => 'contacts.view',
+        'contacts.create' => 'contacts.manage',
+        'contacts.store' => 'contacts.manage',
+        'contacts.edit' => 'contacts.manage',
+        'contacts.update' => 'contacts.manage',
+        'contacts.destroy' => 'contacts.manage',
+
+        'message-templates.index' => 'message_templates.view',
+        'message-templates.create' => 'message_templates.manage',
+        'message-templates.store' => 'message_templates.manage',
+        'message-templates.edit' => 'message_templates.manage',
+        'message-templates.update' => 'message_templates.manage',
+        'message-templates.destroy' => 'message_templates.manage',
+
         'emails.index' => 'emails.view',
         'emails.compose' => 'emails.send',
         'emails.send' => 'emails.send',

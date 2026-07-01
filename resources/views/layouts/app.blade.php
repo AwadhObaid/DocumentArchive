@@ -34,6 +34,8 @@
     <link rel="stylesheet" href="{{ asset('css/arabic-no-truncate-v4.css') }}?v={{ filemtime(public_path('css/arabic-no-truncate-v4.css')) }}">
     {{-- DocumentArchive compact font scale fix --}}
     <link rel="stylesheet" href="{{ asset('css/global-font-scale-fix.css') }}?v={{ filemtime(public_path('css/global-font-scale-fix.css')) }}">
+    {{-- DocumentArchive contacts and message templates module --}}
+    <link rel="stylesheet" href="{{ asset('css/contacts-templates.css') }}?v={{ filemtime(public_path('css/contacts-templates.css')) }}">
     {{-- DocumentArchive email module --}}
     <link rel="stylesheet" href="{{ asset('css/email-module.css') }}?v={{ filemtime(public_path('css/email-module.css')) }}">
     {{-- DocumentArchive whatsapp module --}}
@@ -84,6 +86,14 @@
 
             @if(auth()->user()?->hasPermission('form_links.view'))
                 <a href="{{ route('form-links.index') }}" class="{{ request()->routeIs('form-links.*') ? 'active' : '' }}">📝 إدارة النماذج</a>
+            @endif
+
+            @if(auth()->user()?->hasPermission('contacts.view'))
+                <a href="{{ route('contacts.index') }}" class="{{ request()->routeIs('contacts.*') ? 'active' : '' }}">📇 جهات الاتصال</a>
+            @endif
+
+            @if(auth()->user()?->hasPermission('message_templates.view'))
+                <a href="{{ route('message-templates.index') }}" class="{{ request()->routeIs('message-templates.*') ? 'active' : '' }}">💬 قوالب الرسائل</a>
             @endif
 
             @if(auth()->user()?->hasPermission('emails.view'))
