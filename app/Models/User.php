@@ -60,6 +60,11 @@ class User extends Authenticatable
         return $this->hasMany(EmailMessage::class, 'created_by');
     }
 
+    public function sentWhatsappMessages()
+    {
+        return $this->hasMany(WhatsappMessage::class, 'created_by');
+    }
+
     public function isAdmin(): bool
     {
         return in_array($this->role, ['admin', 'administrator', 'super_admin', 'مدير النظام', 'مدير'], true);

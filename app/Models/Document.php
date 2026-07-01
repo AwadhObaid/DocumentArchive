@@ -83,6 +83,11 @@ class Document extends Model
         return $this->hasMany(EmailMessage::class);
     }
 
+    public function whatsappMessages()
+    {
+        return $this->hasMany(WhatsappMessage::class);
+    }
+
     public function getFormattedDateAttribute(): string
     {
         return $this->reference_date

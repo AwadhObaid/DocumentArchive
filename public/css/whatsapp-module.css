@@ -1,0 +1,329 @@
+/* DocumentArchive WhatsApp module */
+.whatsapp-page {
+    display: flex;
+    flex-direction: column;
+    gap: 18px;
+}
+
+.whatsapp-page .page-header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 16px;
+    flex-wrap: wrap;
+}
+
+.whatsapp-page .page-header h1 {
+    margin: 0 0 6px;
+    color: var(--text, #0f172a);
+}
+
+.whatsapp-page .page-header p {
+    margin: 0;
+    color: var(--muted, #64748b);
+}
+
+.whatsapp-summary-grid {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 12px;
+}
+
+.whatsapp-stat-card,
+.whatsapp-panel,
+.whatsapp-document-panel {
+    background: var(--card, #ffffff);
+    border: 1px solid var(--border, #dbe3ef);
+    border-radius: 18px;
+    box-shadow: 0 12px 30px rgba(15, 23, 42, .08);
+}
+
+.whatsapp-stat-card {
+    padding: 16px;
+    min-height: 104px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+}
+
+.whatsapp-stat-card span {
+    display: block;
+    color: var(--muted, #64748b);
+    font-size: .88rem;
+    margin-bottom: 8px;
+}
+
+.whatsapp-stat-card strong {
+    display: block;
+    color: var(--text, #0f172a);
+    font-size: 1.65rem;
+    line-height: 1;
+}
+
+.whatsapp-stat-card .icon {
+    width: 44px;
+    height: 44px;
+    border-radius: 15px;
+    display: grid;
+    place-items: center;
+    background: rgba(34, 197, 94, .13);
+    color: #16a34a;
+    font-size: 1.35rem;
+}
+
+.whatsapp-compose-layout {
+    display: grid;
+    grid-template-columns: minmax(0, 1.5fr) minmax(280px, .75fr);
+    gap: 16px;
+    align-items: start;
+}
+
+.whatsapp-panel,
+.whatsapp-document-panel {
+    padding: 18px;
+}
+
+.whatsapp-panel h2,
+.whatsapp-document-panel h2 {
+    margin: 0 0 14px;
+    color: var(--text, #0f172a);
+}
+
+.whatsapp-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 14px;
+}
+
+.whatsapp-grid .full {
+    grid-column: 1 / -1;
+}
+
+.whatsapp-page label {
+    color: var(--text, #0f172a);
+    font-weight: 800;
+    margin-bottom: 7px;
+    display: block;
+}
+
+.whatsapp-page input,
+.whatsapp-page select,
+.whatsapp-page textarea {
+    width: 100%;
+    border: 1px solid var(--border, #dbe3ef);
+    border-radius: 12px;
+    background: var(--input-bg, #ffffff);
+    color: var(--text, #0f172a);
+    padding: 11px 13px;
+    outline: none;
+}
+
+.whatsapp-page textarea {
+    min-height: 230px;
+    resize: vertical;
+    line-height: 1.7;
+    direction: rtl;
+}
+
+.whatsapp-help {
+    margin-top: 6px;
+    color: var(--muted, #64748b);
+    font-size: .84rem;
+}
+
+.whatsapp-note-box {
+    border: 1px solid rgba(34, 197, 94, .25);
+    background: rgba(34, 197, 94, .08);
+    color: var(--text, #0f172a);
+    border-radius: 14px;
+    padding: 13px 14px;
+    line-height: 1.7;
+}
+
+.whatsapp-warning-box {
+    border: 1px solid rgba(245, 158, 11, .35);
+    background: rgba(245, 158, 11, .10);
+    color: var(--text, #0f172a);
+    border-radius: 14px;
+    padding: 13px 14px;
+    line-height: 1.7;
+}
+
+.whatsapp-document-meta {
+    display: grid;
+    gap: 10px;
+    margin-bottom: 16px;
+}
+
+.whatsapp-document-meta div {
+    display: flex;
+    justify-content: space-between;
+    gap: 12px;
+    border-bottom: 1px dashed var(--border, #dbe3ef);
+    padding-bottom: 8px;
+}
+
+.whatsapp-document-meta span {
+    color: var(--muted, #64748b);
+}
+
+.whatsapp-document-meta strong {
+    color: var(--text, #0f172a);
+    text-align: left;
+}
+
+.whatsapp-actions-row,
+.whatsapp-page .page-actions {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+    flex-wrap: wrap;
+}
+
+.whatsapp-status {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 999px;
+    padding: 6px 11px;
+    font-weight: 800;
+    font-size: .82rem;
+    white-space: nowrap;
+}
+
+.whatsapp-status.opened,
+.whatsapp-status.prepared {
+    color: #14532d;
+    background: #bbf7d0;
+}
+
+.whatsapp-status.failed {
+    color: #7f1d1d;
+    background: #fecaca;
+}
+
+.whatsapp-table-wrap {
+    overflow: auto;
+}
+
+.whatsapp-page .table {
+    min-width: 950px;
+}
+
+.whatsapp-message-box {
+    white-space: pre-wrap;
+    line-height: 1.8;
+    background: var(--body-bg, #f8fafc);
+    border: 1px solid var(--border, #dbe3ef);
+    color: var(--text, #0f172a);
+    border-radius: 14px;
+    padding: 14px;
+}
+
+@media (max-width: 1100px) {
+    .whatsapp-summary-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .whatsapp-compose-layout {
+        grid-template-columns: 1fr;
+    }
+}
+
+@media (max-width: 640px) {
+    .whatsapp-summary-grid,
+    .whatsapp-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .whatsapp-actions-row .btn,
+    .whatsapp-page .page-actions .btn {
+        width: 100%;
+        justify-content: center;
+    }
+}
+
+/* whatsapp-color-fix:start
+   Fix input/select/textarea foreground/background contrast in dark mode.
+   The application defines --text as a light color in dark mode while this module
+   previously fell back to white input backgrounds, which made typed text and
+   placeholders difficult to read.
+*/
+.whatsapp-page input,
+.whatsapp-page select,
+.whatsapp-page textarea {
+    background: #ffffff;
+    color: #111827;
+    border-color: var(--border, #dbe3ef);
+    caret-color: var(--primary, #2563eb);
+    box-shadow: inset 0 1px 0 rgba(15, 23, 42, .03);
+}
+
+.whatsapp-page input::placeholder,
+.whatsapp-page textarea::placeholder {
+    color: #94a3b8;
+    opacity: 1;
+}
+
+.whatsapp-page select option {
+    background: #ffffff;
+    color: #111827;
+}
+
+.whatsapp-page input:focus,
+.whatsapp-page select:focus,
+.whatsapp-page textarea:focus {
+    border-color: var(--primary, #2563eb);
+    box-shadow: 0 0 0 3px rgba(37, 99, 235, .16);
+}
+
+html[data-theme="dark"] .whatsapp-page input,
+html[data-theme="dark"] .whatsapp-page select,
+html[data-theme="dark"] .whatsapp-page textarea {
+    background: #0f172a;
+    color: #e5e7eb;
+    border-color: #334155;
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, .03);
+}
+
+html[data-theme="dark"] .whatsapp-page input::placeholder,
+html[data-theme="dark"] .whatsapp-page textarea::placeholder {
+    color: #94a3b8;
+    opacity: .9;
+}
+
+html[data-theme="dark"] .whatsapp-page select option {
+    background: #0f172a;
+    color: #e5e7eb;
+}
+
+html[data-theme="dark"] .whatsapp-page input:focus,
+html[data-theme="dark"] .whatsapp-page select:focus,
+html[data-theme="dark"] .whatsapp-page textarea:focus {
+    border-color: #60a5fa;
+    box-shadow: 0 0 0 3px rgba(96, 165, 250, .18);
+}
+
+html[data-theme="dark"] .whatsapp-page input:-webkit-autofill,
+html[data-theme="dark"] .whatsapp-page textarea:-webkit-autofill,
+html[data-theme="dark"] .whatsapp-page select:-webkit-autofill {
+    -webkit-text-fill-color: #e5e7eb;
+    -webkit-box-shadow: 0 0 0 1000px #0f172a inset;
+    transition: background-color 9999s ease-in-out 0s;
+}
+
+html[data-theme="dark"] .whatsapp-note-box,
+html[data-theme="dark"] .whatsapp-warning-box {
+    color: #e5e7eb;
+}
+
+html[data-theme="dark"] .whatsapp-document-meta strong,
+html[data-theme="dark"] .whatsapp-message-box {
+    color: #e5e7eb;
+}
+
+.whatsapp-page textarea {
+    font-size: .96rem;
+}
+/* whatsapp-color-fix:end */

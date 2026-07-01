@@ -61,6 +61,12 @@ class ApplyRoutePermissions
         'emails.show' => 'emails.view',
         'documents.email.compose' => 'emails.send',
 
+        'whatsapp.index' => 'whatsapp.view',
+        'whatsapp.compose' => 'whatsapp.send',
+        'whatsapp.send' => 'whatsapp.send',
+        'whatsapp.show' => 'whatsapp.view',
+        'documents.whatsapp.compose' => 'whatsapp.send',
+
         'settings.*' => 'settings.manage',
         'system-health.*' => 'system_health.view',
 

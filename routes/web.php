@@ -9,6 +9,7 @@ use App\Http\Controllers\DepartmentController;
 use App\Http\Controllers\DocumentController;
 use App\Http\Controllers\DocumentTypeController;
 use App\Http\Controllers\EmailController;
+use App\Http\Controllers\WhatsappController;
 use App\Http\Controllers\FormLinkController;
 use App\Http\Controllers\SettingsController;
 use App\Http\Controllers\SystemHealthController;
@@ -139,6 +140,12 @@ Route::middleware(['auth', ApplyRoutePermissions::class])->group(function () {
     Route::post('/emails/send', [EmailController::class, 'send'])->name('emails.send');
     Route::get('/emails/{emailMessage}', [EmailController::class, 'show'])->name('emails.show');
     Route::get('/documents/{document}/send-email', [EmailController::class, 'composeDocument'])->name('documents.email.compose');
+
+    Route::get('/whatsapp', [WhatsappController::class, 'index'])->name('whatsapp.index');
+    Route::get('/whatsapp/compose', [WhatsappController::class, 'compose'])->name('whatsapp.compose');
+    Route::post('/whatsapp/send', [WhatsappController::class, 'send'])->name('whatsapp.send');
+    Route::get('/whatsapp/{whatsappMessage}', [WhatsappController::class, 'show'])->name('whatsapp.show');
+    Route::get('/documents/{document}/send-whatsapp', [WhatsappController::class, 'composeDocument'])->name('documents.whatsapp.compose');
 
     Route::resource('users', UserController::class)->except(['show']);
 

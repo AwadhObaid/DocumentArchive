@@ -36,6 +36,8 @@
     <link rel="stylesheet" href="{{ asset('css/global-font-scale-fix.css') }}?v={{ filemtime(public_path('css/global-font-scale-fix.css')) }}">
     {{-- DocumentArchive email module --}}
     <link rel="stylesheet" href="{{ asset('css/email-module.css') }}?v={{ filemtime(public_path('css/email-module.css')) }}">
+    {{-- DocumentArchive whatsapp module --}}
+    <link rel="stylesheet" href="{{ asset('css/whatsapp-module.css') }}?v={{ filemtime(public_path('css/whatsapp-module.css')) }}">
 </head>
 <body>
 
@@ -86,6 +88,10 @@
 
             @if(auth()->user()?->hasPermission('emails.view'))
                 <a href="{{ route('emails.index') }}" class="{{ request()->routeIs('emails.*') || request()->routeIs('documents.email.compose') ? 'active' : '' }}">📧 البريد الإلكتروني</a>
+            @endif
+
+            @if(auth()->user()?->hasPermission('whatsapp.view'))
+                <a href="{{ route('whatsapp.index') }}" class="{{ request()->routeIs('whatsapp.*') || request()->routeIs('documents.whatsapp.compose') ? 'active' : '' }}">🟢 واتساب</a>
             @endif
 
             @if(auth()->user()?->hasPermission('settings.manage'))

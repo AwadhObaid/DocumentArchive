@@ -19,6 +19,8 @@
         && $currentUser->hasPermission('attachments.download');
     $canSendEmail = $currentUser && method_exists($currentUser, 'hasPermission')
         && $currentUser->hasPermission('emails.send');
+    $canSendWhatsapp = $currentUser && method_exists($currentUser, 'hasPermission')
+        && $currentUser->hasPermission('whatsapp.send');
 
     $arabicDocumentValue = function (string $field, $raw) {
         if ($raw === null || $raw === '') {
@@ -137,6 +139,9 @@
             <a href="{{ url('/documents/'.$docId.'/print-reference') }}" class="btn btn-warning">طباعة رقم الكتاب</a>
             @if($canSendEmail)
                 <a href="{{ route('documents.email.compose', $document) }}" class="btn btn-info">إرسال بالبريد</a>
+            @endif
+            @if($canSendWhatsapp)
+                <a href="{{ route('documents.whatsapp.compose', $document) }}" class="btn btn-success">إرسال واتساب</a>
             @endif
         @endif
     </div>

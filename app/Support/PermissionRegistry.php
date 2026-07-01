@@ -73,6 +73,14 @@ class PermissionRegistry
                 ],
             ],
             [
+                'key' => 'whatsapp',
+                'label' => 'واتساب',
+                'permissions' => [
+                    'whatsapp.view' => 'عرض صفحة واتساب وسجل الرسائل',
+                    'whatsapp.send' => 'فتح واتساب لإرسال بيانات الكتب',
+                ],
+            ],
+            [
                 'key' => 'system',
                 'label' => 'إدارة النظام',
                 'permissions' => [
@@ -197,6 +205,7 @@ class PermissionRegistry
                 'reports.view',
                 'form_links.view',
                 'emails.view',
+                'whatsapp.view',
             ];
         }
 
@@ -213,6 +222,8 @@ class PermissionRegistry
             'form_links.view',
             'emails.view',
             'emails.send',
+            'whatsapp.view',
+            'whatsapp.send',
         ];
     }
 }
