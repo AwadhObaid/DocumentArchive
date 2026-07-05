@@ -13,6 +13,8 @@ use App\Http\Controllers\EmailController;
 use App\Http\Controllers\ContactController;
 use App\Http\Controllers\MessageTemplateController;
 use App\Http\Controllers\MemoController;
+use App\Http\Controllers\LiteController;
+use App\Http\Controllers\SessionActivityController;
 use App\Http\Controllers\WhatsappController;
 use App\Http\Controllers\SharedAttachmentLinkController;
 use App\Http\Controllers\FormLinkController;
@@ -48,6 +50,19 @@ Route::post('/logout', [AuthController::class, 'logout'])
 Route::middleware(['auth', ApplyRoutePermissions::class])->group(function () {
     Route::get('/', function () {
         return redirect()->route('dashboard');
+    });
+
+    Route::post('/session/activity', [SessionActivityController::class, 'ping'])
+        ->name('session.activity');
+
+    Route::prefix('lite')->name('lite.')->group(function () {
+        Route::get('/', [LiteController::class, 'index'])->name('index');
+        Route::get('/documents', [LiteController::class, 'documents'])->name('documents.index');
+        Route::get('/documents/{document}', [LiteController::class, 'documentShow'])->name('documents.show');
+        Route::get('/memos', [LiteController::class, 'memos'])->name('memos.index');
+        Route::get('/memos/{memo}', [LiteController::class, 'memoShow'])->name('memos.show');
+        Route::get('/notifications', [LiteController::class, 'notifications'])->name('notifications.index');
+        Route::get('/notifications/poll', [LiteController::class, 'poll'])->name('notifications.poll');
     });
 
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');

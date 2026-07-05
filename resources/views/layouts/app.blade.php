@@ -8,11 +8,21 @@
         $daSystemDepartmentName = \App\Models\Setting::getValue('system_department_name', 'الشحن والتأمين');
         $daSystemFullTitle = \App\Models\Setting::getValue('system_full_title', 'نظام الأرشيف الإلكتروني الخاص بقسم الشحن والتأمين');
         $daSystemTagline = \App\Models\Setting::getValue('system_tagline', 'إدارة الكتب، المرفقات، البوالص، والطباعة الرسمية');
-        $daSystemBrandIcon = \App\Models\Setting::getValue('system_brand_icon', '📁');
+        $daSystemBrandIcon = \App\Models\Setting::getValue('system_brand_icon', '🗂️');
+        $daAutoLogoutEnabled = (string) \App\Models\Setting::getValue('auto_logout_enabled', '0') === '1';
+        $daAutoLogoutMinutes = max(1, min(1440, (int) \App\Models\Setting::getValue('auto_logout_minutes', 30)));
+        $daAutoLogoutWarningSeconds = max(10, min(600, (int) \App\Models\Setting::getValue('auto_logout_warning_seconds', 60)));
+        $daAutoLogoutTimeoutSeconds = $daAutoLogoutMinutes * 60;
     @endphp
     {{-- document-archive-system-settings:end --}}
     <title>@yield('title', $daSystemName)</title>
     <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="csrf-token" content="{{ csrf_token() }}">
+    <meta name="theme-color" content="#0f172a">
+    <link rel="icon" type="image/svg+xml" href="{{ asset('favicon.svg') }}?v=20260705">
+    <link rel="shortcut icon" href="{{ asset('favicon.ico') }}?v=20260705">
+    <link rel="apple-touch-icon" href="{{ asset('apple-touch-icon.png') }}?v=20260705">
+    <link rel="manifest" href="{{ asset('site.webmanifest') }}?v=20260705">
 
     <link rel="stylesheet" href="{{ asset('css/app.css') }}">
     <link rel="stylesheet" href="{{ asset('css/cairo-global.css') }}">
@@ -42,8 +52,17 @@
     <link rel="stylesheet" href="{{ asset('css/whatsapp-module.css') }}?v={{ filemtime(public_path('css/whatsapp-module.css')) }}">
     {{-- DocumentArchive secure attachment share links --}}
     <link rel="stylesheet" href="{{ asset('css/shared-attachments.css') }}?v={{ filemtime(public_path('css/shared-attachments.css')) }}">
+    {{-- DocumentArchive auto logout --}}
+    <link rel="stylesheet" href="{{ asset('css/auto-logout.css') }}?v={{ filemtime(public_path('css/auto-logout.css')) }}">
 </head>
-<body>
+<body
+    data-auto-logout-enabled="{{ $daAutoLogoutEnabled ? '1' : '0' }}"
+    data-auto-logout-timeout="{{ $daAutoLogoutTimeoutSeconds }}"
+    data-auto-logout-warning="{{ min($daAutoLogoutWarningSeconds, max(10, $daAutoLogoutTimeoutSeconds - 5)) }}"
+    data-auto-logout-ping-url="{{ route('session.activity') }}"
+    data-auto-logout-login-url="{{ route('login') }}"
+    data-auto-logout-logout-url="{{ route('logout') }}"
+>
 
 <div class="app-shell">
     <aside class="sidebar" id="sidebar">
@@ -61,6 +80,8 @@
             @if(auth()->user()?->hasPermission('dashboard.view'))
                 <a href="{{ route('dashboard') }}" class="{{ request()->routeIs('dashboard') ? 'active' : '' }}">🏠 لوحة التحكم</a>
             @endif
+
+            <a href="{{ route('lite.index') }}" class="{{ request()->routeIs('lite.*') ? 'active' : '' }}">📱 نسخة الهاتف لايت</a>
 
             @if(auth()->user()?->hasPermission('documents.view'))
                 <a href="{{ route('documents.index') }}" class="{{ request()->routeIs('documents.index') ? 'active' : '' }}">📄 الكتب</a>
@@ -193,6 +214,20 @@
     </main>
 </div>
 
+<div class="auto-logout-modal" id="autoLogoutModal" aria-hidden="true">
+    <div class="auto-logout-card" role="dialog" aria-modal="true" aria-labelledby="autoLogoutTitle">
+        <div class="auto-logout-icon">🔒</div>
+        <div>
+            <h3 id="autoLogoutTitle">تنبيه انتهاء الجلسة</h3>
+            <p>لم يتم رصد نشاط في النظام. سيتم تسجيل الخروج تلقائياً خلال <strong data-auto-logout-countdown>60</strong> ثانية.</p>
+            <div class="auto-logout-actions">
+                <button type="button" class="btn btn-primary" data-auto-logout-stay>متابعة العمل</button>
+                <button type="button" class="btn btn-secondary" data-auto-logout-now>تسجيل الخروج الآن</button>
+            </div>
+        </div>
+    </div>
+</div>
+
 <script src="{{ asset('js/app.js') }}"></script>
     <script src="{{ asset('js/arabic-file-input.js') }}" defer></script>
 
@@ -212,5 +247,6 @@
     <script src="{{ asset('js/shared-attachments.js') }}?v={{ filemtime(public_path('js/shared-attachments.js')) }}" defer></script>
     {{-- Arabic UI V4 final guard --}}
     <script src="{{ asset('js/arabic-text-mojibake-v4.js') }}?v={{ filemtime(public_path('js/arabic-text-mojibake-v4.js')) }}" defer></script>
+    <script src="{{ asset('js/auto-logout.js') }}?v={{ filemtime(public_path('js/auto-logout.js')) }}" defer></script>
 </body>
 </html>

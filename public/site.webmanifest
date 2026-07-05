@@ -1,0 +1,14 @@
+{
+  "name": "نظام الأرشيف الإلكتروني",
+  "short_name": "الأرشيف",
+  "icons": [
+    { "src": "/favicon.svg", "sizes": "64x64", "type": "image/svg+xml" },
+    { "src": "/apple-touch-icon.png", "sizes": "180x180", "type": "image/png" }
+  ],
+  "start_url": "/lite",
+  "display": "standalone",
+  "background_color": "#07111f",
+  "theme_color": "#0f172a",
+  "dir": "rtl",
+  "lang": "ar"
+}

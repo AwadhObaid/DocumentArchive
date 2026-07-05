@@ -1,0 +1,268 @@
+:root {
+    color-scheme: dark;
+    --lite-bg: #07111f;
+    --lite-card: #0f1b2d;
+    --lite-card-2: #12233b;
+    --lite-border: rgba(148, 163, 184, .20);
+    --lite-text: #f8fafc;
+    --lite-muted: #9fb0c8;
+    --lite-primary: #3b82f6;
+    --lite-success: #16a34a;
+    --lite-warning: #f59e0b;
+    --lite-danger: #ef4444;
+}
+
+* { box-sizing: border-box; }
+html, body { margin: 0; min-height: 100%; }
+body {
+    direction: rtl;
+    font-family: "Cairo", "Tajawal", Tahoma, Arial, sans-serif;
+    background: radial-gradient(circle at top, #12233b 0, var(--lite-bg) 48%, #020617 100%);
+    color: var(--lite-text);
+    padding-bottom: 86px;
+}
+
+a { color: inherit; text-decoration: none; }
+button, input { font-family: inherit; }
+
+.lite-shell { width: min(760px, 100%); margin: 0 auto; padding: 14px; }
+.lite-topbar {
+    position: sticky; top: 0; z-index: 20;
+    display: flex; align-items: center; justify-content: space-between; gap: 10px;
+    padding: 14px;
+    margin: -14px -14px 12px;
+    background: rgba(7, 17, 31, .88);
+    backdrop-filter: blur(14px);
+    border-bottom: 1px solid var(--lite-border);
+}
+.lite-brand { display: flex; align-items: center; gap: 10px; min-width: 0; }
+.lite-brand-icon { width: 42px; height: 42px; display: grid; place-items: center; border-radius: 14px; background: rgba(59,130,246,.16); border: 1px solid rgba(96,165,250,.24); }
+.lite-brand h1 { margin: 0; font-size: 17px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.lite-brand p { margin: 3px 0 0; color: var(--lite-muted); font-size: 12px; }
+.lite-user-actions { display: flex; align-items: center; gap: 7px; }
+.lite-icon-btn { min-width: 42px; height: 42px; display: inline-grid; place-items: center; border-radius: 14px; background: rgba(15,23,42,.72); border: 1px solid var(--lite-border); color: var(--lite-text); }
+.lite-badge { display: inline-flex; min-width: 22px; height: 22px; align-items: center; justify-content: center; padding: 0 7px; border-radius: 99px; background: var(--lite-danger); color: white; font-size: 12px; font-weight: 800; }
+
+.lite-title { margin: 18px 0 14px; }
+.lite-title h2 { margin: 0 0 6px; font-size: 24px; }
+.lite-title p { margin: 0; color: var(--lite-muted); line-height: 1.8; }
+
+.lite-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+.lite-stat, .lite-card {
+    background: linear-gradient(135deg, rgba(15, 27, 45, .96), rgba(18, 35, 59, .86));
+    border: 1px solid var(--lite-border);
+    border-radius: 18px;
+    padding: 14px;
+    box-shadow: 0 18px 45px rgba(2,6,23,.18);
+}
+.lite-stat span { color: var(--lite-muted); font-size: 13px; }
+.lite-stat strong { display: block; font-size: 25px; margin-top: 5px; }
+
+.lite-section { margin-top: 16px; }
+.lite-section-head { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-bottom: 9px; }
+.lite-section-head h3 { margin: 0; font-size: 16px; }
+.lite-link { color: #bfdbfe; font-size: 13px; }
+
+.lite-list { display: grid; gap: 9px; }
+.lite-item { display: block; background: rgba(15, 27, 45, .82); border: 1px solid var(--lite-border); border-radius: 16px; padding: 13px; }
+.lite-item-top { display: flex; align-items: flex-start; justify-content: space-between; gap: 10px; }
+.lite-item-number { font-weight: 900; color: #dbeafe; direction: ltr; text-align: left; }
+.lite-item-date { color: var(--lite-muted); font-size: 12px; white-space: nowrap; }
+.lite-item h4 { margin: 8px 0 6px; font-size: 15px; line-height: 1.7; }
+.lite-meta { color: var(--lite-muted); font-size: 12px; line-height: 1.8; }
+.lite-pill { display: inline-flex; align-items: center; gap: 5px; padding: 5px 9px; border-radius: 999px; font-size: 12px; font-weight: 800; background: rgba(59,130,246,.13); color: #bfdbfe; border: 1px solid rgba(96,165,250,.20); }
+.lite-pill.success { background: rgba(22,163,74,.14); color: #86efac; border-color: rgba(22,163,74,.23); }
+.lite-pill.warning { background: rgba(245,158,11,.13); color: #fde68a; border-color: rgba(245,158,11,.24); }
+
+.lite-search { display: grid; grid-template-columns: 1fr auto; gap: 8px; margin-bottom: 12px; }
+.lite-search input { width: 100%; border: 1px solid var(--lite-border); background: rgba(15,23,42,.86); color: var(--lite-text); border-radius: 14px; padding: 12px 14px; }
+.lite-btn { border: 0; border-radius: 14px; padding: 11px 14px; font-weight: 800; background: var(--lite-primary); color: white; cursor: pointer; }
+.lite-btn.secondary { background: rgba(148,163,184,.15); color: #e2e8f0; border: 1px solid var(--lite-border); }
+
+.lite-detail-grid { display: grid; gap: 10px; }
+.lite-field { border: 1px solid var(--lite-border); border-radius: 14px; padding: 12px; background: rgba(15,23,42,.50); }
+.lite-field span { display: block; color: var(--lite-muted); font-size: 12px; margin-bottom: 4px; }
+.lite-field strong, .lite-field div { line-height: 1.8; }
+.lite-attachments { display: grid; gap: 8px; }
+.lite-attachment { display: flex; align-items: center; justify-content: space-between; gap: 8px; border: 1px solid var(--lite-border); border-radius: 14px; padding: 10px; background: rgba(15,23,42,.52); }
+.lite-attachment-name { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.lite-pagination { margin-top: 14px; color: var(--lite-muted); }
+.lite-pagination nav { display: flex; justify-content: center; }
+
+.lite-bottom-nav {
+    position: fixed; right: 0; left: 0; bottom: 0; z-index: 30;
+    display: grid; grid-template-columns: repeat(5, 1fr); gap: 6px;
+    padding: 9px max(9px, env(safe-area-inset-right)) max(9px, env(safe-area-inset-bottom)) max(9px, env(safe-area-inset-left));
+    background: rgba(7, 17, 31, .93);
+    border-top: 1px solid var(--lite-border);
+    backdrop-filter: blur(14px);
+}
+.lite-bottom-nav a { display: grid; place-items: center; gap: 3px; padding: 8px 4px; border-radius: 14px; color: var(--lite-muted); font-size: 11px; }
+.lite-bottom-nav a.active { background: rgba(59,130,246,.18); color: #dbeafe; }
+.lite-bottom-nav b { font-size: 18px; line-height: 1; }
+
+.lite-toast {
+    position: fixed; left: 12px; right: 12px; bottom: 86px; z-index: 40;
+    display: none; border: 1px solid rgba(96,165,250,.28); background: rgba(15,23,42,.96); color: var(--lite-text); border-radius: 18px; padding: 13px; box-shadow: 0 20px 50px rgba(0,0,0,.36);
+}
+.lite-toast.is-visible { display: block; }
+.lite-toast strong { display: block; margin-bottom: 5px; }
+.lite-toast p { margin: 0; color: var(--lite-muted); line-height: 1.7; }
+
+@media (max-width: 420px) {
+    .lite-grid { grid-template-columns: 1fr; }
+    .lite-title h2 { font-size: 21px; }
+    .lite-search { grid-template-columns: 1fr; }
+}
+
+/* ==========================================================
+   Lite pagination fix V17
+   تجعل أزرار السابق/التالي والأسهم داخل نسخة لايت مضبوطة الحجم
+   وتخفي نسخة الموبايل الافتراضية من Laravel حتى لا تتكرر الروابط.
+   ========================================================== */
+.lite-pagination {
+    margin: 18px 0 26px;
+    color: var(--lite-muted);
+    direction: rtl;
+    overflow: visible;
+}
+
+.lite-pagination nav[role="navigation"] {
+    display: block !important;
+    width: 100%;
+}
+
+/* إخفاء صف Laravel البسيط: السابق / التالي، لأنه يتكرر مع ترقيم الصفحات */
+.lite-pagination nav[role="navigation"] > div:first-child {
+    display: none !important;
+}
+
+/* صف المعلومات والترقيم */
+.lite-pagination nav[role="navigation"] > div:last-child {
+    display: grid !important;
+    grid-template-columns: 1fr;
+    justify-items: center;
+    gap: 10px;
+    width: 100%;
+}
+
+.lite-pagination nav[role="navigation"] > div:last-child > div:first-child {
+    width: 100%;
+    text-align: center;
+    color: var(--lite-muted);
+    font-size: 12px;
+    line-height: 1.8;
+}
+
+.lite-pagination nav[role="navigation"] > div:last-child > div:first-child p {
+    margin: 0;
+}
+
+.lite-pagination nav[role="navigation"] > div:last-child > div:last-child {
+    width: 100%;
+    display: flex !important;
+    justify-content: center;
+}
+
+/* الحاوية الداخلية لأرقام الصفحات */
+.lite-pagination nav[role="navigation"] > div:last-child > div:last-child > span {
+    display: inline-flex !important;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    max-width: 100%;
+    box-shadow: none !important;
+    border-radius: 0 !important;
+}
+
+/* كل زر داخل الترقيم */
+.lite-pagination nav[role="navigation"] > div:last-child > div:last-child > span > a,
+.lite-pagination nav[role="navigation"] > div:last-child > div:last-child > span > span:not([aria-current="page"]) {
+    display: inline-flex !important;
+    align-items: center;
+    justify-content: center;
+    min-width: 36px;
+    height: 36px;
+    padding: 0 10px !important;
+    border-radius: 12px !important;
+    border: 1px solid var(--lite-border) !important;
+    background: rgba(15, 27, 45, .88) !important;
+    color: #dbeafe !important;
+    font-size: 13px !important;
+    font-weight: 800;
+    line-height: 1 !important;
+    text-decoration: none !important;
+    overflow: hidden;
+}
+
+.lite-pagination nav[role="navigation"] > div:last-child > div:last-child > span > a:hover {
+    border-color: rgba(96, 165, 250, .45) !important;
+    background: rgba(59, 130, 246, .18) !important;
+}
+
+/* الصفحة الحالية */
+.lite-pagination nav[role="navigation"] span[aria-current="page"] {
+    display: inline-flex !important;
+    padding: 0 !important;
+    border: 0 !important;
+    background: transparent !important;
+    box-shadow: none !important;
+}
+
+.lite-pagination nav[role="navigation"] span[aria-current="page"] > span {
+    display: inline-flex !important;
+    align-items: center;
+    justify-content: center;
+    min-width: 36px;
+    height: 36px;
+    padding: 0 12px !important;
+    border-radius: 12px !important;
+    border: 1px solid rgba(96, 165, 250, .55) !important;
+    background: var(--lite-primary) !important;
+    color: #ffffff !important;
+    font-size: 13px !important;
+    font-weight: 900;
+    line-height: 1 !important;
+}
+
+/* ضبط حجم أسهم Laravel SVG التي تظهر ضخمة بدون Tailwind */
+.lite-pagination nav[role="navigation"] svg {
+    width: 17px !important;
+    height: 17px !important;
+    min-width: 17px !important;
+    min-height: 17px !important;
+    max-width: 17px !important;
+    max-height: 17px !important;
+    display: block !important;
+    flex: 0 0 17px !important;
+}
+
+/* النصوص المخفية الخاصة بقارئ الشاشة لا تظهر في الواجهة */
+.lite-pagination nav[role="navigation"] .sr-only {
+    position: absolute !important;
+    width: 1px !important;
+    height: 1px !important;
+    padding: 0 !important;
+    margin: -1px !important;
+    overflow: hidden !important;
+    clip: rect(0, 0, 0, 0) !important;
+    white-space: nowrap !important;
+    border: 0 !important;
+}
+
+@media (max-width: 480px) {
+    .lite-pagination nav[role="navigation"] > div:last-child > div:last-child > span {
+        gap: 5px;
+    }
+
+    .lite-pagination nav[role="navigation"] > div:last-child > div:last-child > span > a,
+    .lite-pagination nav[role="navigation"] > div:last-child > div:last-child > span > span:not([aria-current="page"]),
+    .lite-pagination nav[role="navigation"] span[aria-current="page"] > span {
+        min-width: 34px;
+        height: 34px;
+        padding: 0 9px !important;
+        border-radius: 11px !important;
+        font-size: 12px !important;
+    }
+}

@@ -183,7 +183,7 @@
     <div class="page-title">
         <div>
             <h1>إعدادات النظام</h1>
-            <p style="margin:6px 0 0; color:#94a3b8; line-height:1.7;">تحكم في هوية النظام، بداية الترقيم السنوي، وطريقة طباعة رقم الكتاب.</p>
+            <p style="margin:6px 0 0; color:#94a3b8; line-height:1.7;">تحكم في هوية النظام، بداية الترقيم السنوي، الأمان، وطريقة طباعة رقم الكتاب.</p>
         </div>
 
         <div style="display:flex; gap:10px; flex-wrap:wrap;">
@@ -205,6 +205,7 @@
                 <span class="settings-polish-badge">🔢 بداية الترقيم: {{ $printSummary['reference_start'] }}</span>
                 <span class="settings-polish-badge">🖨️ موضع الطباعة: {{ $printSummary['position'] }}</span>
                 <span class="settings-polish-badge">🔤 الخط: {{ $printSummary['font'] }}</span>
+                <span class="settings-polish-badge">🔒 الخروج التلقائي: {{ $printSummary['auto_logout'] }}</span>
             </div>
         </div>
 
@@ -242,7 +243,7 @@
                     <div class="form-group">
                         <label>أيقونة النظام</label>
                         <input type="text" name="system_brand_icon" value="{{ old('system_brand_icon', $settings['system_brand_icon']) }}" maxlength="16" required>
-                        <small class="settings-small-note">يمكن استخدام رمز بسيط مثل 📁 أو 🗂️.</small>
+                        <small class="settings-small-note">يمكن استخدام رمز بسيط مثل 🗂️ أو 📁. هذا يخص شعار القائمة، أما أيقونة تبويب المتصفح فتم تثبيتها كأيقونة أرشفة.</small>
                     </div>
 
                     <div class="form-group full">
@@ -254,6 +255,47 @@
                         <label>الوصف المختصر أعلى الصفحات</label>
                         <input type="text" name="system_tagline" value="{{ old('system_tagline', $settings['system_tagline']) }}" maxlength="255">
                     </div>
+                </div>
+
+                <hr style="margin: 25px 0; border: 0; border-top: 1px solid rgba(148,163,184,.35);">
+
+                <div class="settings-section-header">
+                    <div>
+                        <h2>إعدادات الأمان والجلسات</h2>
+                        <p>حدد مدة الخمول التي بعدها يسجل النظام خروج المستخدم تلقائياً، مع تنبيه قبل انتهاء الجلسة.</p>
+                    </div>
+                </div>
+
+                <div class="form-grid">
+                    <div class="form-group full">
+                        <label style="display:flex; gap:8px; align-items:center;">
+                            <input type="checkbox" name="auto_logout_enabled" value="1" @checked(old('auto_logout_enabled', $settings['auto_logout_enabled']) == '1')>
+                            تفعيل تسجيل الخروج التلقائي عند عدم النشاط
+                        </label>
+                        <small class="settings-small-note">عند التفعيل، يتم تسجيل الخروج تلقائياً إذا بقي المستخدم دون حركة أو طلبات للنظام خلال المدة المحددة.</small>
+                    </div>
+
+                    <div class="form-group">
+                        <label>مدة الخمول قبل تسجيل الخروج بالدقائق</label>
+                        <input type="number" name="auto_logout_minutes" value="{{ old('auto_logout_minutes', $settings['auto_logout_minutes']) }}" min="1" max="1440" required>
+                        <small class="settings-small-note">مثال: 30 دقيقة. الحد الأعلى 1440 دقيقة.</small>
+                    </div>
+
+                    <div class="form-group">
+                        <label>التنبيه قبل الخروج بالثواني</label>
+                        <input type="number" name="auto_logout_warning_seconds" value="{{ old('auto_logout_warning_seconds', $settings['auto_logout_warning_seconds']) }}" min="10" max="600" required>
+                        <small class="settings-small-note">مثال: 60 ثانية. يجب أن تكون أقل من مدة الخمول.</small>
+                    </div>
+
+                    <div class="form-group">
+                        <label>تحديث إشعارات نسخة الهاتف لايت كل</label>
+                        <input type="number" name="lite_notification_poll_seconds" value="{{ old('lite_notification_poll_seconds', $settings['lite_notification_poll_seconds']) }}" min="10" max="300" required>
+                        <small class="settings-small-note">بالـثواني. مثال: 30. تستخدمها نسخة الهاتف للمعاينة والتنبيهات.</small>
+                    </div>
+                </div>
+
+                <div class="settings-warning-box">
+                    الخروج التلقائي يعمل من الخادم والواجهة معاً: حتى لو بقيت الصفحة مفتوحة، سيظهر تنبيه قبل الخروج، ثم يتم إنهاء الجلسة عند انتهاء المدة.
                 </div>
 
                 <hr style="margin: 25px 0; border: 0; border-top: 1px solid rgba(148,163,184,.35);">

@@ -1,0 +1,68 @@
+.auto-logout-modal {
+    position: fixed;
+    inset: 0;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+    background: rgba(2, 6, 23, .72);
+    backdrop-filter: blur(8px);
+    z-index: 99999;
+}
+
+.auto-logout-modal.is-open {
+    display: flex;
+}
+
+.auto-logout-card {
+    width: min(520px, 100%);
+    display: grid;
+    grid-template-columns: 64px 1fr;
+    gap: 16px;
+    direction: rtl;
+    color: #e5e7eb;
+    background: linear-gradient(135deg, rgba(15, 23, 42, .98), rgba(30, 41, 59, .96));
+    border: 1px solid rgba(96, 165, 250, .28);
+    border-radius: 22px;
+    padding: 22px;
+    box-shadow: 0 28px 80px rgba(0, 0, 0, .45);
+}
+
+.auto-logout-icon {
+    width: 58px;
+    height: 58px;
+    display: grid;
+    place-items: center;
+    border-radius: 18px;
+    background: rgba(59, 130, 246, .15);
+    border: 1px solid rgba(96, 165, 250, .25);
+    font-size: 28px;
+}
+
+.auto-logout-card h3 {
+    margin: 0 0 8px;
+    font-size: 20px;
+}
+
+.auto-logout-card p {
+    margin: 0;
+    color: #cbd5e1;
+    line-height: 1.9;
+}
+
+.auto-logout-card strong {
+    color: #fbbf24;
+}
+
+.auto-logout-actions {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+    margin-top: 16px;
+}
+
+@media (max-width: 560px) {
+    .auto-logout-card {
+        grid-template-columns: 1fr;
+    }
+}

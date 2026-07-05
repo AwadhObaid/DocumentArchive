@@ -24,7 +24,11 @@ class SettingsController extends Controller
         'system_department_name' => 'الشحن والتأمين',
         'system_full_title' => 'نظام الأرشيف الإلكتروني الخاص بقسم الشحن والتأمين',
         'system_tagline' => 'إدارة الكتب، المرفقات، البوالص، والطباعة الرسمية',
-        'system_brand_icon' => '📁',
+        'system_brand_icon' => '🗂️',
+        'auto_logout_enabled' => '0',
+        'auto_logout_minutes' => '30',
+        'auto_logout_warning_seconds' => '60',
+        'lite_notification_poll_seconds' => '30',
         'reference_start_number' => '251230000',
         'print_department_title' => 'الشحن والتأمين',
         'print_font_family' => 'Cairo',
@@ -48,6 +52,7 @@ class SettingsController extends Controller
             'position' => $settings['print_top_mm'] . ' مم من الأعلى / ' . $settings['print_left_mm'] . ' مم من اليسار',
             'font' => $settings['print_font_family'] . ' - ' . $settings['print_font_size_pt'] . ' pt',
             'reference_start' => $settings['reference_start_number'],
+            'auto_logout' => ((string) $settings['auto_logout_enabled'] === '1') ? ($settings['auto_logout_minutes'] . ' دقيقة') : 'غير مفعل',
         ];
 
         return view('settings.edit', compact('settings', 'printFontOptions', 'printSummary'));
@@ -61,6 +66,10 @@ class SettingsController extends Controller
             'system_full_title' => ['required', 'string', 'max:180'],
             'system_tagline' => ['nullable', 'string', 'max:255'],
             'system_brand_icon' => ['required', 'string', 'max:16'],
+            'auto_logout_enabled' => ['nullable', 'boolean'],
+            'auto_logout_minutes' => ['required', 'integer', 'min:1', 'max:1440'],
+            'auto_logout_warning_seconds' => ['required', 'integer', 'min:10', 'max:600'],
+            'lite_notification_poll_seconds' => ['required', 'integer', 'min:10', 'max:300'],
             'reference_start_number' => ['required', 'integer', 'min:1', 'max:999999999999'],
             'print_department_title' => ['required', 'string', 'max:255'],
             'print_font_family' => ['required', 'string', Rule::in(array_keys(self::PRINT_FONT_OPTIONS))],
@@ -81,10 +90,22 @@ class SettingsController extends Controller
             'system_full_title.required' => 'العنوان الرئيسي مطلوب.',
             'system_brand_icon.required' => 'أيقونة النظام مطلوبة.',
             'reference_start_number.required' => 'رقم بداية الكتاب مطلوب.',
+            'auto_logout_minutes.required' => 'مدة الخمول قبل تسجيل الخروج مطلوبة.',
+            'auto_logout_minutes.min' => 'مدة الخمول يجب ألا تقل عن دقيقة واحدة.',
+            'auto_logout_warning_seconds.required' => 'مدة التنبيه قبل الخروج مطلوبة.',
+            'lite_notification_poll_seconds.required' => 'مدة تحديث إشعارات نسخة الهاتف مطلوبة.',
             'reference_start_number.integer' => 'رقم بداية الكتاب يجب أن يكون رقماً صحيحاً.',
             'print_department_title.required' => 'عنوان الطباعة مطلوب.',
             'print_font_family.in' => 'نوع الخط المختار غير مدعوم.',
         ]);
+
+        $validated['auto_logout_enabled'] = $request->boolean('auto_logout_enabled') ? '1' : '0';
+
+        if (((int) $validated['auto_logout_warning_seconds']) >= (((int) $validated['auto_logout_minutes']) * 60)) {
+            return back()
+                ->withErrors(['auto_logout_warning_seconds' => 'مدة التنبيه يجب أن تكون أقل من مدة الخمول الكاملة.'])
+                ->withInput();
+        }
 
         $before = $this->settingsForView();
 
@@ -94,6 +115,10 @@ class SettingsController extends Controller
             'system_full_title' => ['general', 'text', 'العنوان الرئيسي أعلى صفحات النظام'],
             'system_tagline' => ['general', 'text', 'الوصف المختصر أعلى صفحات النظام'],
             'system_brand_icon' => ['general', 'text', 'أيقونة النظام في القائمة الجانبية'],
+            'auto_logout_enabled' => ['security', 'boolean', 'تفعيل تسجيل الخروج التلقائي عند عدم النشاط'],
+            'auto_logout_minutes' => ['security', 'number', 'مدة الخمول بالدقائق قبل تسجيل الخروج التلقائي'],
+            'auto_logout_warning_seconds' => ['security', 'number', 'مدة ظهور تنبيه الخروج قبل انتهاء الجلسة بالثواني'],
+            'lite_notification_poll_seconds' => ['lite', 'number', 'مدة تحديث إشعارات نسخة الهاتف لايت بالثواني'],
             'reference_start_number' => ['references', 'number', 'رقم بداية الكتاب في بداية كل سنة'],
             'print_department_title' => ['printing', 'text', 'العنوان الثابت الذي يظهر أعلى رقم الكتاب'],
             'print_font_family' => ['printing', 'text', 'نوع خط صفحة طباعة رقم الكتاب'],
