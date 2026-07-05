@@ -6,12 +6,18 @@
 
 @section('content')
 @php
+    $memo = $memo ?? null;
+    $memos = $memos ?? collect();
     $selectedDocumentId = old('document_id', $document?->id);
+    $selectedMemoId = old('memo_id', $memo?->id);
     $selectedContactId = old('contact_id');
     $selectedTemplateId = old('message_template_id');
     $selectedAttachments = old('attachment_ids');
     if ($selectedAttachments === null && $document) {
         $selectedAttachments = $document->attachments->pluck('id')->map(fn ($id) => (string) $id)->all();
+    }
+    if ($selectedAttachments === null && $memo) {
+        $selectedAttachments = $memo->attachments->pluck('id')->map(fn ($id) => (string) $id)->all();
     }
     $selectedAttachments = array_map('strval', (array) $selectedAttachments);
 @endphp
@@ -33,6 +39,9 @@
             @if($document)
                 <a href="{{ route('documents.show', $document) }}" class="btn btn-secondary">عرض الكتاب</a>
             @endif
+            @if($memo)
+                <a href="{{ route('memos.show', $memo) }}" class="btn btn-secondary">عرض المذكرة</a>
+            @endif
         </div>
     </div>
 
@@ -45,6 +54,7 @@
               data-confirm-no="مراجعة قبل الإرسال">
             @csrf
             <input type="hidden" name="document_id" value="{{ $selectedDocumentId }}">
+            <input type="hidden" name="memo_id" value="{{ $selectedMemoId }}">
 
             <h2>بيانات الرسالة</h2>
             <div class="email-grid">
@@ -60,6 +70,14 @@
                     </select>
                     <div class="email-help">عند اختيار كتاب، سيتم تجهيز الموضوع ونص الرسالة والمرفقات تلقائيًا.</div>
                 </div>
+
+                @if($memo)
+                    <div class="form-group full">
+                        <label>المذكرة المختارة</label>
+                        <input type="text" value="{{ $memo->memo_number }} - {{ \Illuminate\Support\Str::limit($memo->subject ?: 'بدون موضوع', 90) }}" readonly>
+                        <div class="email-help">تم فتح هذه الصفحة من جدول المذكرات؛ سيتم إرسال بيانات ومرفقات هذه المذكرة.</div>
+                    </div>
+                @endif
 
                 <div class="form-group full">
                     <label>جهة الاتصال</label>
@@ -141,8 +159,35 @@
                 <div class="email-note-box" style="margin-top:16px;">هذا الكتاب لا يحتوي على مرفقات، سيتم إرسال بياناته فقط.</div>
             @endif
 
+            @if($memo && $memo->attachments->count())
+                <div class="form-group full" style="margin-top:16px;">
+                    <div style="display:flex;justify-content:space-between;gap:12px;align-items:center;flex-wrap:wrap;">
+                        <label style="margin:0;">مرفقات المذكرة</label>
+                        <button type="button" class="btn btn-sm btn-light" onclick="document.querySelectorAll('[data-email-attachment]').forEach(el => el.checked = true)">تحديد الكل</button>
+                    </div>
+                    <div class="email-attachments-list">
+                        @foreach($memo->attachments as $attachment)
+                            @php
+                                $exists = method_exists($attachment, 'existsOnDisk') ? $attachment->existsOnDisk() : false;
+                                $fileName = $attachment->original_name ?: $attachment->file_name;
+                            @endphp
+                            <label class="email-attachment-item">
+                                <input data-email-attachment type="checkbox" name="attachment_ids[]" value="{{ $attachment->id }}" @checked(in_array((string) $attachment->id, $selectedAttachments, true)) @disabled(!$exists)>
+                                <span>
+                                    <strong>{{ $fileName }}</strong>
+                                    <small>{{ $attachment->file_size_for_humans }} — {{ $exists ? 'موجود على التخزين' : 'مفقود من التخزين' }}</small>
+                                </span>
+                            </label>
+                        @endforeach
+                    </div>
+                    <div class="email-help">الحد الأقصى لإجمالي المرفقات في هذه المرحلة 25 MB.</div>
+                </div>
+            @elseif($memo)
+                <div class="email-note-box" style="margin-top:16px;">هذه المذكرة لا تحتوي على مرفقات، سيتم إرسال بياناتها فقط.</div>
+            @endif
 
-            @if($document && $document->attachments->count())
+
+            @if(($document && $document->attachments->count()) || ($memo && $memo->attachments->count()))
                 <div class="secure-link-compose-box">
                     <div class="secure-title">🔗 رابط مرفقات آمن</div>
                     <label class="inline-check">
@@ -189,9 +234,19 @@
                     <div><span>المرفقات</span><strong>{{ $document->attachments->count() }}</strong></div>
                 </div>
                 <a href="{{ route('documents.show', $document) }}" class="btn btn-secondary">فتح صفحة الكتاب</a>
+            @elseif($memo)
+                <h2>بيانات المذكرة المختارة</h2>
+                <div class="email-document-meta">
+                    <div><span>رقم المذكرة</span><strong>{{ $memo->memo_number }}</strong></div>
+                    <div><span>التاريخ</span><strong>{{ optional($memo->memo_date)->format('d/m/Y') ?: '-' }}</strong></div>
+                    <div><span>الموضوع</span><strong>{{ \Illuminate\Support\Str::limit($memo->subject ?: '-', 70) }}</strong></div>
+                    <div><span>الإدارة</span><strong>{{ $memo->department?->name ?? '-' }}</strong></div>
+                    <div><span>المرفقات</span><strong>{{ $memo->attachments->count() }}</strong></div>
+                </div>
+                <a href="{{ route('memos.show', $memo) }}" class="btn btn-secondary">فتح صفحة المذكرة</a>
             @else
                 <h2>رسالة عامة</h2>
-                <div class="email-note-box">لم يتم اختيار كتاب. يمكنك إرسال رسالة بريدية عامة من النظام، أو اختيار كتاب من القائمة لتجهيز بياناته ومرفقاته تلقائيًا.</div>
+                <div class="email-note-box">لم يتم اختيار كتاب أو مذكرة. يمكنك إرسال رسالة بريدية عامة من النظام.</div>
             @endif
 
             <div class="email-note-box" style="margin-top:14px;">

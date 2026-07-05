@@ -17,7 +17,7 @@
     <div class="card">
         <h2>رقم الكتاب: {{ $document->reference_number }}</h2>
 
-        @if(auth()->user()?->hasPermission('documents.update'))
+        @if(auth()->user()?->hasPermission('documents.edit'))
         <form method="POST" action="{{ route('documents.update', $document) }}" enctype="multipart/form-data">
             @csrf
             @method('PUT')
@@ -44,8 +44,21 @@
                 </div>
 
                 <div class="form-group full">
-                    <label>موضوع الكتاب</label>
-                    <textarea name="subject" required>{{ old('subject', $document->subject) }}</textarea>
+                    <label>موضوع الكتاب من القائمة</label>
+                    <select name="book_subject_id" id="book_subject_id" data-subject-select>
+                        <option value="">-- اختر موضوع الكتاب --</option>
+                        @foreach($bookSubjects as $bookSubject)
+                            <option value="{{ $bookSubject->id }}" data-subject-name="{{ $bookSubject->name }}" @selected((string) old('book_subject_id', $document->book_subject_id) === (string) $bookSubject->id)>
+                                {{ $bookSubject->name }}
+                            </option>
+                        @endforeach
+                    </select>
+                    <small>عند اختيار موضوع وترك النص التفصيلي فارغاً سيتم حفظ اسم الموضوع تلقائياً.</small>
+                </div>
+
+                <div class="form-group full">
+                    <label>موضوع إضافي / تفصيلي</label>
+                    <textarea name="subject" data-subject-text placeholder="اختر موضوعاً من القائمة أو اكتب موضوعاً تفصيلياً">{{ old('subject', $document->subject) }}</textarea>
                 </div>
 
                 <div class="form-group">
@@ -405,6 +418,28 @@
 })();
 </script>
 <!-- DA_POLICY_DUPLICATE_WARNING_V4_END -->
+
+<!-- DA_BOOK_SUBJECT_PICKER_START -->
+<script>
+(function () {
+    const select = document.querySelector('[data-subject-select]');
+    const textarea = document.querySelector('[data-subject-text]');
+    if (!select || !textarea) return;
+
+    function applySelectedSubject(force = false) {
+        const option = select.options[select.selectedIndex];
+        const name = option ? (option.dataset.subjectName || '').trim() : '';
+        if (!name) return;
+        if (force || textarea.value.trim() === '') {
+            textarea.value = name;
+        }
+    }
+
+    select.addEventListener('change', function () { applySelectedSubject(false); });
+    applySelectedSubject(false);
+})();
+</script>
+<!-- DA_BOOK_SUBJECT_PICKER_END -->
 @endsection
 
 

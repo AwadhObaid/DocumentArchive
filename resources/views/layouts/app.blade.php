@@ -70,6 +70,10 @@
                 <a href="{{ route('documents.create') }}" class="{{ request()->routeIs('documents.create') ? 'active' : '' }}">➕ إضافة كتاب</a>
             @endif
 
+            @if(auth()->user()?->hasPermission('memos.view'))
+                <a href="{{ route('memos.index') }}" class="{{ request()->routeIs('memos.*') ? 'active' : '' }}">📒 المذكرات</a>
+            @endif
+
             @if(auth()->user()?->hasPermission('documents.restore'))
                 <a href="{{ route('documents.trash') }}" class="{{ request()->routeIs('documents.trash') ? 'active' : '' }}">🗑️ سلة المحذوفات</a>
             @endif
@@ -84,6 +88,10 @@
 
             @if(auth()->user()?->hasPermission('document_types.manage'))
                 <a href="{{ route('document-types.index') }}" class="{{ request()->routeIs('document-types.*') ? 'active' : '' }}">📑 أنواع الكتب</a>
+            @endif
+
+            @if(auth()->user()?->hasPermission('book_subjects.manage'))
+                <a href="{{ route('book-subjects.index') }}" class="{{ request()->routeIs('book-subjects.*') ? 'active' : '' }}">📌 مواضيع الكتب</a>
             @endif
 
             @if(auth()->user()?->hasPermission('form_links.view'))

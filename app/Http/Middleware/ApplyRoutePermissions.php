@@ -29,6 +29,19 @@ class ApplyRoutePermissions
         'documents.print-reference' => 'documents.print',
         'documents.activity' => 'activity_logs.view',
         'documents.check-policy-duplicate' => 'documents.create',
+        'documents.next-reference-number' => 'documents.create',
+
+        'memos.index' => 'memos.view',
+        'memos.show' => 'memos.view',
+        'memos.create' => 'memos.create',
+        'memos.store' => 'memos.create',
+        'memos.edit' => 'memos.edit',
+        'memos.update' => 'memos.edit',
+        'memos.destroy' => 'memos.delete',
+        'memos.attachments.preview' => 'memos.attachments',
+        'memos.attachments.data' => 'memos.attachments',
+        'memos.attachments.inline' => 'memos.attachments',
+        'memos.attachments.download' => 'memos.attachments',
 
         'attachments.preview' => 'attachments.preview',
         'attachments.data' => 'attachments.preview',
@@ -54,6 +67,7 @@ class ApplyRoutePermissions
 
         'departments.*' => 'departments.manage',
         'document-types.*' => 'document_types.manage',
+        'book-subjects.*' => 'book_subjects.manage',
 
         'form-links.index' => 'form_links.view',
         'form-links.print' => 'form_links.view',

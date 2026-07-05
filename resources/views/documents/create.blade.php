@@ -112,8 +112,24 @@
                 </div>
 
                 <div class="form-group full">
-                    <label>موضوع الكتاب</label>
-                    <textarea name="subject" required>{{ old('subject') }}</textarea>
+                    <label>موضوع الكتاب من القائمة</label>
+                    <select name="book_subject_id" id="book_subject_id" data-subject-select>
+                        <option value="">-- اختر موضوع الكتاب --</option>
+                        @foreach($bookSubjects as $bookSubject)
+                            <option value="{{ $bookSubject->id }}" data-subject-name="{{ $bookSubject->name }}" @selected(old('book_subject_id') == $bookSubject->id)>
+                                {{ $bookSubject->name }}
+                            </option>
+                        @endforeach
+                    </select>
+                    <small>يمكن إدارة هذه القائمة من صفحة مواضيع الكتب.</small>
+                    @if(auth()->user()?->hasPermission('book_subjects.manage'))
+                        <small><a href="{{ route('book-subjects.index') }}">فتح إدارة مواضيع الكتب</a></small>
+                    @endif
+                </div>
+
+                <div class="form-group full">
+                    <label>موضوع إضافي / تفصيلي</label>
+                    <textarea name="subject" data-subject-text placeholder="اختر موضوعاً من القائمة أو اكتب موضوعاً تفصيلياً">{{ old('subject') }}</textarea>
                 </div>
 
                 <div class="form-group">
@@ -511,6 +527,28 @@
 })();
 </script>
 <!-- DA_POLICY_DUPLICATE_WARNING_V4_END -->
+
+<!-- DA_BOOK_SUBJECT_PICKER_START -->
+<script>
+(function () {
+    const select = document.querySelector('[data-subject-select]');
+    const textarea = document.querySelector('[data-subject-text]');
+    if (!select || !textarea) return;
+
+    function applySelectedSubject(force = false) {
+        const option = select.options[select.selectedIndex];
+        const name = option ? (option.dataset.subjectName || '').trim() : '';
+        if (!name) return;
+        if (force || textarea.value.trim() === '') {
+            textarea.value = name;
+        }
+    }
+
+    select.addEventListener('change', function () { applySelectedSubject(false); });
+    applySelectedSubject(false);
+})();
+</script>
+<!-- DA_BOOK_SUBJECT_PICKER_END -->
 @endsection
 
 

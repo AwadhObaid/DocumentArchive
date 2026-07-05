@@ -8,6 +8,7 @@ class EmailMessage extends Model
 {
     protected $fillable = [
         'document_id',
+        'memo_id',
         'created_by',
         'contact_id',
         'message_template_id',
@@ -42,6 +43,11 @@ class EmailMessage extends Model
     public function document()
     {
         return $this->belongsTo(Document::class);
+    }
+
+    public function memo()
+    {
+        return $this->belongsTo(Memo::class);
     }
 
     public function creator()

@@ -44,8 +44,8 @@
         <div class="email-summary-card email-summary-documents">
             <span class="email-summary-icon">📎</span>
             <div>
-                <small>مرتبطة بكتب</small>
-                <strong>{{ number_format($summary['with_documents'] ?? 0) }}</strong>
+                <small>مرتبطة بكتب / مذكرات</small>
+                <strong>{{ number_format(($summary['with_documents'] ?? 0) + ($summary['with_memos'] ?? 0)) }}</strong>
             </div>
         </div>
     </div>
@@ -63,7 +63,7 @@
                         <th>الحالة</th>
                         <th>الموضوع</th>
                         <th>إلى</th>
-                        <th>الكتاب</th>
+                        <th>الكتاب/المذكرة</th>
                         <th>المرفقات</th>
                         <th>المستخدم</th>
                         <th>التاريخ</th>
@@ -79,6 +79,8 @@
                             <td>
                                 @if($message->document)
                                     <a href="{{ route('documents.show', $message->document) }}">{{ $message->document->reference_number }}</a>
+                                @elseif($message->memo)
+                                    <a href="{{ route('memos.show', $message->memo) }}">{{ $message->memo->memo_number }}</a>
                                 @else
                                     -
                                 @endif

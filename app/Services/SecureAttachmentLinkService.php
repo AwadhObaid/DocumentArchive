@@ -4,6 +4,8 @@ namespace App\Services;
 
 use App\Models\Document;
 use App\Models\DocumentAttachment;
+use App\Models\Memo;
+use App\Models\MemoAttachment;
 use App\Models\SharedAttachmentLink;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
@@ -57,6 +59,57 @@ class SecureAttachmentLinkService
         }
 
         return $link->load(['document.department', 'document.documentType', 'items.attachment']);
+    }
+
+
+    public function createForMemo(
+        Memo $memo,
+        array $attachmentIds,
+        ?int $createdBy = null,
+        string $expiresIn = '24h',
+        ?int $maxDownloads = null,
+        ?string $password = null,
+        ?string $notes = null
+    ): SharedAttachmentLink {
+        $attachmentIds = array_values(array_unique(array_filter(array_map('intval', $attachmentIds))));
+
+        if ($attachmentIds === []) {
+            $attachmentIds = $memo->attachments()->pluck('id')->map(fn ($id) => (int) $id)->all();
+        }
+
+        $attachments = MemoAttachment::query()
+            ->where('memo_id', $memo->id)
+            ->whereIn('id', $attachmentIds)
+            ->get();
+
+        if ($attachments->isEmpty()) {
+            throw new \InvalidArgumentException('لا توجد مرفقات صالحة لإنشاء رابط مشاركة.');
+        }
+
+        $link = SharedAttachmentLink::create([
+            'document_id' => null,
+            'memo_id' => $memo->id,
+            'created_by' => $createdBy ?: Auth::id(),
+            'token' => $this->uniqueToken(),
+            'title' => 'مرفقات المذكرة رقم ' . ($memo->memo_number ?: $memo->id),
+            'notes' => $notes,
+            'password_hash' => $password ? Hash::make($password) : null,
+            'expires_at' => $this->expiresAt($expiresIn),
+            'max_downloads' => $maxDownloads,
+            'download_count' => 0,
+            'view_count' => 0,
+            'is_active' => true,
+        ]);
+
+        foreach ($attachments as $attachment) {
+            $link->items()->create([
+                'document_attachment_id' => null,
+                'memo_attachment_id' => $attachment->id,
+                'download_count' => 0,
+            ]);
+        }
+
+        return $link->load(['memo.department', 'items.memoAttachment']);
     }
 
     public function appendLinkToBody(string $body, SharedAttachmentLink $link): string

@@ -383,6 +383,16 @@
                 </div>
 
                 <div class="form-group">
+                    <label>موضوع الكتاب من القائمة</label>
+                    <select name="book_subject_id">
+                        <option value="">كل المواضيع</option>
+                        @foreach($bookSubjects as $bookSubject)
+                            <option value="{{ $bookSubject->id }}" @selected(request('book_subject_id') == $bookSubject->id)>{{ $bookSubject->name }}</option>
+                        @endforeach
+                    </select>
+                </div>
+
+                <div class="form-group">
                     <label>حالة الكتاب</label>
                     <select name="status">
                         <option value="">كل الحالات</option>
@@ -524,7 +534,7 @@
 
                         $isTrashed = method_exists($document, 'trashed') && $document->trashed();
                         $attachmentsCount = $document->attachments_count ?? ($document->mainAttachment ? 1 : 0);
-                        $subject = $document->subject ?: $document->title ?: $document->description ?: '-';
+                        $subject = $document->subject ?: $document->bookSubject?->name ?: $document->title ?: $document->description ?: '-';
                         $mainPolicy = $document->main_policy_number ?: '-';
                         $subPolicy = $document->sub_policy_number ?: '-';
                     @endphp
@@ -533,6 +543,9 @@
                         <td class="document-date-cell">{{ $formatDocumentDate($document) }}</td>
                         <td class="document-subject-cell">
                             <strong>{{ \Illuminate\Support\Str::limit($subject, 90) }}</strong>
+                            @if($document->bookSubject)
+                                <small>الموضوع من القائمة: {{ $document->bookSubject->name }}</small>
+                            @endif
                             @if(!empty($document->title) && $document->title !== $subject)
                                 <small>{{ \Illuminate\Support\Str::limit($document->title, 80) }}</small>
                             @endif
@@ -615,7 +628,7 @@
                     @php
                         $isTrashed = method_exists($document, 'trashed') && $document->trashed();
                         $attachmentsCount = $document->attachments_count ?? ($document->mainAttachment ? 1 : 0);
-                        $subject = $document->subject ?: $document->title ?: $document->description ?: '-';
+                        $subject = $document->subject ?: $document->bookSubject?->name ?: $document->title ?: $document->description ?: '-';
                         $mainPolicy = $document->main_policy_number ?: '-';
                         $subPolicy = $document->sub_policy_number ?: '-';
                     @endphp

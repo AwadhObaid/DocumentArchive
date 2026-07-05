@@ -27,7 +27,7 @@
     <div class="whatsapp-summary-grid">
         <div class="whatsapp-stat-card"><div><span>إجمالي العمليات</span><strong>{{ $summary['total'] ?? 0 }}</strong></div><div class="icon">🟢</div></div>
         <div class="whatsapp-stat-card"><div><span>تم فتح واتساب</span><strong>{{ $summary['opened'] ?? 0 }}</strong></div><div class="icon">✅</div></div>
-        <div class="whatsapp-stat-card"><div><span>مرتبطة بكتب</span><strong>{{ $summary['with_documents'] ?? 0 }}</strong></div><div class="icon">📄</div></div>
+        <div class="whatsapp-stat-card"><div><span>مرتبطة بكتب / مذكرات</span><strong>{{ ($summary['with_documents'] ?? 0) + ($summary['with_memos'] ?? 0) }}</strong></div><div class="icon">📄</div></div>
         <div class="whatsapp-stat-card"><div><span>عمليات اليوم</span><strong>{{ $summary['today'] ?? 0 }}</strong></div><div class="icon">📅</div></div>
     </div>
 
@@ -46,7 +46,7 @@
                         <th>الحالة</th>
                         <th>المستلم</th>
                         <th>الرقم</th>
-                        <th>الكتاب</th>
+                        <th>الكتاب/المذكرة</th>
                         <th>معاينة الرسالة</th>
                         <th>المستخدم</th>
                         <th>التاريخ</th>
@@ -62,6 +62,8 @@
                             <td>
                                 @if($message->document)
                                     <a href="{{ route('documents.show', $message->document) }}">{{ $message->document->reference_number }}</a>
+                                @elseif($message->memo)
+                                    <a href="{{ route('memos.show', $message->memo) }}">{{ $message->memo->memo_number }}</a>
                                 @else
                                     -
                                 @endif

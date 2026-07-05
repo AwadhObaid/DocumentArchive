@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\BookSubject;
 use App\Models\Department;
 use App\Models\Document;
 use App\Models\DocumentAttachment;
@@ -27,6 +28,12 @@ class DocumentController extends Controller
 
         $documentTypes = DocumentType::query()
             ->where('is_active', true)
+            ->orderBy('name')
+            ->get();
+
+        $bookSubjects = BookSubject::query()
+            ->where('is_active', true)
+            ->orderBy('sort_order')
             ->orderBy('name')
             ->get();
 
@@ -61,7 +68,7 @@ class DocumentController extends Controller
             default => Document::query(),
         };
 
-        $baseQuery->with(['department', 'documentType', 'mainAttachment']);
+        $baseQuery->with(['department', 'documentType', 'bookSubject', 'mainAttachment']);
 
         try {
             $baseQuery->withCount('attachments');
@@ -134,6 +141,10 @@ class DocumentController extends Controller
                     $subQuery->orWhereHas('documentType', function ($typeQuery) use ($q) {
                         $typeQuery->where('name', 'like', "%{$q}%");
                     });
+
+                    $subQuery->orWhereHas('bookSubject', function ($subjectQuery) use ($q) {
+                        $subjectQuery->where('name', 'like', "%{$q}%");
+                    });
                 });
             }
 
@@ -171,6 +182,10 @@ class DocumentController extends Controller
 
             if ($request->filled('document_type_id') && $hasColumn('document_type_id')) {
                 $query->where('documents.document_type_id', $request->document_type_id);
+            }
+
+            if ($request->filled('book_subject_id') && $hasColumn('book_subject_id')) {
+                $query->where('documents.book_subject_id', $request->book_subject_id);
             }
 
             if ($request->filled('status') && $hasColumn('status')) {
@@ -315,6 +330,7 @@ class DocumentController extends Controller
             'receiver',
             'department_id',
             'document_type_id',
+            'book_subject_id',
             'status',
             'priority',
             'confidentiality',
@@ -352,6 +368,7 @@ class DocumentController extends Controller
             'documents',
             'departments',
             'documentTypes',
+            'bookSubjects',
             'summary',
             'statusOptions',
             'priorityOptions',
@@ -380,9 +397,15 @@ class DocumentController extends Controller
             ->orderBy('name')
             ->get();
 
+        $bookSubjects = BookSubject::query()
+            ->where('is_active', true)
+            ->orderBy('sort_order')
+            ->orderBy('name')
+            ->get();
+
         $initialNextReference = ReferenceNumberGenerator::preview(date('Y-m-d'));
 
-        return view('documents.create', compact('departments', 'documentTypes', 'initialNextReference'));
+        return view('documents.create', compact('departments', 'documentTypes', 'bookSubjects', 'initialNextReference'));
     }
 
     public function nextReferenceNumber(Request $request)
@@ -412,7 +435,8 @@ class DocumentController extends Controller
             'main_policy_number' => ['nullable', 'string', 'max:255'],
             'sub_policy_number' => ['nullable', 'string', 'max:255'],
             'title' => ['required', 'string', 'max:255'],
-            'subject' => ['nullable', 'string'],
+            'book_subject_id' => ['nullable', 'exists:book_subjects,id'],
+            'subject' => ['nullable', 'string', 'required_without:book_subject_id'],
             'description' => ['nullable', 'string'],
             'sender' => ['nullable', 'string', 'max:255'],
             'receiver' => ['nullable', 'string', 'max:255'],
@@ -426,6 +450,7 @@ class DocumentController extends Controller
 
         $validated['main_policy_number'] = $this->normalizeDocumentNumber($validated['main_policy_number'] ?? null);
         $validated['sub_policy_number'] = $this->normalizeDocumentNumber($validated['sub_policy_number'] ?? null);
+        $validated = $this->resolveBookSubjectData($validated);
 
         $document = DB::transaction(function () use ($request, $validated) {
             $reference = ReferenceNumberGenerator::generate($validated['reference_date']);
@@ -441,6 +466,7 @@ class DocumentController extends Controller
 
                 'title' => $validated['title'],
                 'subject' => $validated['subject'] ?? null,
+                'book_subject_id' => $validated['book_subject_id'] ?? null,
                 'description' => $validated['description'] ?? null,
                 'sender' => $validated['sender'] ?? null,
                 'receiver' => $validated['receiver'] ?? null,
@@ -482,7 +508,7 @@ class DocumentController extends Controller
 
     public function show(Document $document)
     {
-        $document->load(['department', 'documentType', 'attachments']);
+        $document->load(['department', 'documentType', 'bookSubject', 'attachments']);
 
         return view('documents.show', compact('document'));
     }
@@ -499,9 +525,20 @@ class DocumentController extends Controller
             ->orderBy('name')
             ->get();
 
-        $document->load(['department', 'documentType', 'attachments']);
+        $bookSubjects = BookSubject::query()
+            ->where(function ($query) use ($document) {
+                $query->where('is_active', true);
+                if ($document->book_subject_id) {
+                    $query->orWhere('id', $document->book_subject_id);
+                }
+            })
+            ->orderBy('sort_order')
+            ->orderBy('name')
+            ->get();
 
-        return view('documents.edit', compact('document', 'departments', 'documentTypes'));
+        $document->load(['department', 'documentType', 'bookSubject', 'attachments']);
+
+        return view('documents.edit', compact('document', 'departments', 'documentTypes', 'bookSubjects'));
     }
 
     public function update(Request $request, Document $document)
@@ -511,7 +548,8 @@ class DocumentController extends Controller
             'main_policy_number' => ['nullable', 'string', 'max:255'],
             'sub_policy_number' => ['nullable', 'string', 'max:255'],
             'title' => ['required', 'string', 'max:255'],
-            'subject' => ['nullable', 'string'],
+            'book_subject_id' => ['nullable', 'exists:book_subjects,id'],
+            'subject' => ['nullable', 'string', 'required_without:book_subject_id'],
             'description' => ['nullable', 'string'],
             'sender' => ['nullable', 'string', 'max:255'],
             'receiver' => ['nullable', 'string', 'max:255'],
@@ -526,6 +564,7 @@ class DocumentController extends Controller
 
         $validated['main_policy_number'] = $this->normalizeDocumentNumber($validated['main_policy_number'] ?? null);
         $validated['sub_policy_number'] = $this->normalizeDocumentNumber($validated['sub_policy_number'] ?? null);
+        $validated = $this->resolveBookSubjectData($validated);
 
         DB::transaction(function () use ($request, $document, $validated) {
             $document->update([
@@ -534,6 +573,7 @@ class DocumentController extends Controller
                 'sub_policy_number' => $validated['sub_policy_number'] ?? null,
                 'title' => $validated['title'],
                 'subject' => $validated['subject'] ?? null,
+                'book_subject_id' => $validated['book_subject_id'] ?? null,
                 'description' => $validated['description'] ?? null,
                 'sender' => $validated['sender'] ?? null,
                 'receiver' => $validated['receiver'] ?? null,
@@ -956,6 +996,25 @@ class DocumentController extends Controller
                 'original_name' => $attachment->original_name,
             ]
         );
+    }
+
+    private function resolveBookSubjectData(array $validated): array
+    {
+        $subjectId = $validated['book_subject_id'] ?? null;
+        $subjectText = trim((string) ($validated['subject'] ?? ''));
+
+        if ($subjectId) {
+            $bookSubject = BookSubject::query()->find($subjectId);
+
+            if ($bookSubject && $subjectText === '') {
+                $subjectText = $bookSubject->name;
+            }
+        }
+
+        $validated['book_subject_id'] = $subjectId ?: null;
+        $validated['subject'] = $subjectText !== '' ? $subjectText : null;
+
+        return $validated;
     }
 
     private function normalizeDocumentNumber(?string $value): ?string

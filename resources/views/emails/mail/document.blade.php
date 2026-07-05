@@ -31,5 +31,21 @@
             </table>
         </div>
     @endif
+
+    @if(!empty($memo))
+        <div class="box">
+            <strong>ملخص بيانات المذكرة</strong>
+            <table class="meta">
+                <tbody>
+                    <tr><th>رقم المذكرة</th><td>{{ $memo->memo_number }}</td></tr>
+                    <tr><th>تاريخ المذكرة</th><td>{{ optional($memo->memo_date)->format('d/m/Y') ?: '-' }}</td></tr>
+                    <tr><th>الموضوع</th><td>{{ $memo->subject ?: '-' }}</td></tr>
+                    <tr><th>الإدارة</th><td>{{ $memo->department?->name ?? '-' }}</td></tr>
+                    <tr><th>الواردة من</th><td>{{ $memo->sender ?: '-' }}</td></tr>
+                    <tr><th>المستلم</th><td>{{ $memo->receiver ?: '-' }}</td></tr>
+                </tbody>
+            </table>
+        </div>
+    @endif
 </body>
 </html>

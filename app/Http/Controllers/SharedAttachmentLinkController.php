@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Document;
+use App\Models\Memo;
 use App\Models\SharedAttachmentLink;
 use App\Models\SharedAttachmentLinkItem;
 use App\Services\ActivityLogger;
@@ -24,7 +25,7 @@ class SharedAttachmentLinkController extends Controller
         }
 
         $query = SharedAttachmentLink::query()
-            ->with(['document.department', 'creator'])
+            ->with(['document.department', 'memo.department', 'creator'])
             ->withCount('items')
             ->latest();
 
@@ -62,11 +63,18 @@ class SharedAttachmentLinkController extends Controller
     public function create(Request $request): View
     {
         $document = null;
+        $memo = null;
 
         if ($request->filled('document_id')) {
             $document = Document::query()
                 ->with(['department', 'documentType', 'attachments'])
                 ->findOrFail((int) $request->document_id);
+        }
+
+        if (!$document && $request->filled('memo_id')) {
+            $memo = Memo::query()
+                ->with(['department', 'attachments'])
+                ->findOrFail((int) $request->memo_id);
         }
 
         $documents = Document::query()
@@ -76,45 +84,90 @@ class SharedAttachmentLinkController extends Controller
             ->limit(120)
             ->get();
 
-        return view('shared-attachment-links.create', compact('document', 'documents'));
+        return view('shared-attachment-links.create', compact('document', 'memo', 'documents'));
+    }
+
+
+    public function createMemo(Memo $memo): View
+    {
+        $memo->load(['department', 'attachments']);
+
+        $documents = Document::query()
+            ->with(['department', 'documentType'])
+            ->withCount('attachments')
+            ->latest('id')
+            ->limit(120)
+            ->get();
+
+        $document = null;
+
+        return view('shared-attachment-links.create', compact('document', 'memo', 'documents'));
     }
 
     public function store(Request $request, SecureAttachmentLinkService $service): RedirectResponse
     {
         $validated = $request->validate([
-            'document_id' => ['required', 'integer', 'exists:documents,id'],
+            'document_id' => ['nullable', 'integer', 'exists:documents,id'],
+            'memo_id' => ['nullable', 'integer', 'exists:memos,id'],
             'attachment_ids' => ['required', 'array', 'min:1'],
-            'attachment_ids.*' => ['integer', 'exists:document_attachments,id'],
+            'attachment_ids.*' => ['integer'],
             'expires_in' => ['required', 'in:1h,3h,12h,24h,3d,7d'],
             'max_downloads' => ['nullable', 'integer', 'min:1', 'max:1000'],
             'password' => ['nullable', 'string', 'max:100'],
             'notes' => ['nullable', 'string', 'max:1000'],
         ]);
 
-        $document = Document::query()
-            ->with(['department', 'documentType', 'attachments'])
-            ->findOrFail((int) $validated['document_id']);
+        $document = null;
+        $memo = null;
+
+        if (!empty($validated['document_id'])) {
+            $document = Document::query()
+                ->with(['department', 'documentType', 'attachments'])
+                ->findOrFail((int) $validated['document_id']);
+        } elseif (!empty($validated['memo_id'])) {
+            $memo = Memo::query()
+                ->with(['department', 'attachments'])
+                ->findOrFail((int) $validated['memo_id']);
+        } else {
+            return back()->withErrors(['document_id' => 'اختر كتابًا أو مذكرة لإنشاء رابط المرفقات.'])->withInput();
+        }
 
         $invalidAttachment = collect($validated['attachment_ids'])
             ->map(fn ($id) => (int) $id)
-            ->first(fn ($id) => !$document->attachments->contains('id', $id));
+            ->first(function ($id) use ($document, $memo) {
+                return $memo
+                    ? ! $memo->attachments->contains('id', $id)
+                    : ! $document->attachments->contains('id', $id);
+            });
 
         if ($invalidAttachment) {
             return back()
-                ->withErrors(['attachment_ids' => 'تم اختيار مرفق لا يتبع هذا الكتاب.'])
+                ->withErrors(['attachment_ids' => $memo ? 'تم اختيار مرفق لا يتبع هذه المذكرة.' : 'تم اختيار مرفق لا يتبع هذا الكتاب.'])
                 ->withInput();
         }
 
         try {
-            $link = $service->createForDocument(
-                $document,
-                (array) $validated['attachment_ids'],
-                Auth::id(),
-                (string) $validated['expires_in'],
-                isset($validated['max_downloads']) ? (int) $validated['max_downloads'] : null,
-                $validated['password'] ?? null,
-                $validated['notes'] ?? null
-            );
+            if ($memo) {
+                $link = $service->createForMemo(
+                    $memo,
+                    (array) $validated['attachment_ids'],
+                    Auth::id(),
+                    (string) $validated['expires_in'],
+                    isset($validated['max_downloads']) ? (int) $validated['max_downloads'] : null,
+                    $validated['password'] ?? null,
+                    $validated['notes'] ?? null
+                );
+            } else {
+                $link = $service->createForDocument(
+                    $document,
+                    (array) $validated['attachment_ids'],
+                    Auth::id(),
+                    (string) $validated['expires_in'],
+                    isset($validated['max_downloads']) ? (int) $validated['max_downloads'] : null,
+                    $validated['password'] ?? null,
+                    $validated['notes'] ?? null
+                );
+            }
         } catch (\Throwable $exception) {
             return back()
                 ->withErrors(['attachment_ids' => $exception->getMessage()])
@@ -123,11 +176,14 @@ class SharedAttachmentLinkController extends Controller
 
         ActivityLogger::log(
             'shared_attachment_link.created',
-            'تم إنشاء رابط مشاركة آمن لمرفقات الكتاب رقم ' . ($document->reference_number ?: $document->id),
+            $memo
+                ? 'تم إنشاء رابط مشاركة آمن لمرفقات المذكرة رقم ' . ($memo->memo_number ?: $memo->id)
+                : 'تم إنشاء رابط مشاركة آمن لمرفقات الكتاب رقم ' . ($document->reference_number ?: $document->id),
             $link,
             [
-                'document_id' => $document->id,
-                'reference_number' => $document->reference_number,
+                'document_id' => $document?->id,
+                'memo_id' => $memo?->id,
+                'reference_number' => $document?->reference_number ?: $memo?->memo_number,
                 'attachments_count' => $link->items()->count(),
                 'expires_at' => $link->expires_at?->toDateTimeString(),
             ]
@@ -140,7 +196,7 @@ class SharedAttachmentLinkController extends Controller
 
     public function show(SharedAttachmentLink $sharedAttachmentLink): View
     {
-        $sharedAttachmentLink->load(['document.department', 'document.documentType', 'creator', 'items.attachment']);
+        $sharedAttachmentLink->load(['document.department', 'document.documentType', 'memo.department', 'creator', 'items.attachment', 'items.memoAttachment']);
 
         return view('shared-attachment-links.show', ['link' => $sharedAttachmentLink]);
     }
@@ -151,9 +207,9 @@ class SharedAttachmentLinkController extends Controller
 
         ActivityLogger::log(
             'shared_attachment_link.revoked',
-            'تم تعطيل رابط مشاركة آمن للكتاب رقم ' . ($sharedAttachmentLink->document?->reference_number ?: $sharedAttachmentLink->document_id),
+            'تم تعطيل رابط مشاركة آمن ' . ($sharedAttachmentLink->memo ? 'للمذكرة رقم ' . $sharedAttachmentLink->memo->memo_number : 'للكتاب رقم ' . ($sharedAttachmentLink->document?->reference_number ?: $sharedAttachmentLink->document_id)),
             $sharedAttachmentLink,
-            ['document_id' => $sharedAttachmentLink->document_id]
+            ['document_id' => $sharedAttachmentLink->document_id, 'memo_id' => $sharedAttachmentLink->memo_id]
         );
 
         return back()->with('success', 'تم تعطيل رابط المشاركة.');
@@ -219,7 +275,8 @@ class SharedAttachmentLinkController extends Controller
             return redirect()->route('shared-attachments.public.show', $token);
         }
 
-        $attachment = $item->attachment;
+        $item->loadMissing(['attachment', 'memoAttachment']);
+        $attachment = $item->resolved_attachment;
         abort_unless($attachment, 404);
 
         $disk = Storage::disk($attachment->disk ?: 'local');
@@ -253,7 +310,7 @@ class SharedAttachmentLinkController extends Controller
     private function publicLink(string $token): ?SharedAttachmentLink
     {
         return SharedAttachmentLink::query()
-            ->with(['document.department', 'document.documentType', 'items.attachment'])
+            ->with(['document.department', 'document.documentType', 'memo.department', 'items.attachment', 'items.memoAttachment'])
             ->where('token', $token)
             ->first();
     }

@@ -61,8 +61,8 @@
                     @forelse($links as $link)
                         <tr>
                             <td>
-                                <strong>{{ $link->document?->reference_number ?: '-' }}</strong>
-                                <small>{{ \Illuminate\Support\Str::limit($link->document?->subject ?: $link->document?->title ?: $link->title ?: '-', 70) }}</small>
+                                <strong>{{ $link->document?->reference_number ?: ($link->memo?->memo_number ?: '-') }}</strong>
+                                <small>{{ \Illuminate\Support\Str::limit($link->document?->subject ?: $link->document?->title ?: $link->memo?->subject ?: $link->title ?: '-', 70) }}</small>
                             </td>
                             <td><span class="share-badge {{ $link->status_class }}">{{ $link->status_name }}</span></td>
                             <td>{{ $link->items_count }} مرفق</td>

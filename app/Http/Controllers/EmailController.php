@@ -6,6 +6,8 @@ use App\Models\Contact;
 use App\Models\Document;
 use App\Models\DocumentAttachment;
 use App\Models\EmailMessage;
+use App\Models\Memo;
+use App\Models\MemoAttachment;
 use App\Models\MessageTemplate;
 use App\Services\ActivityLogger;
 use App\Services\SecureAttachmentLinkService;
@@ -24,7 +26,7 @@ class EmailController extends Controller
     public function index(): View
     {
         $messages = EmailMessage::query()
-            ->with(['document', 'creator', 'contact', 'messageTemplate'])
+            ->with(['document', 'memo', 'creator', 'contact', 'messageTemplate'])
             ->latest()
             ->paginate(15);
 
@@ -33,6 +35,7 @@ class EmailController extends Controller
             'sent' => EmailMessage::query()->where('status', 'sent')->count(),
             'failed' => EmailMessage::query()->where('status', 'failed')->count(),
             'with_documents' => EmailMessage::query()->whereNotNull('document_id')->count(),
+            'with_memos' => EmailMessage::query()->whereNotNull('memo_id')->count(),
         ];
 
         return view('emails.index', compact('messages', 'summary'));
@@ -41,11 +44,18 @@ class EmailController extends Controller
     public function compose(Request $request): View
     {
         $document = null;
+        $memo = null;
 
         if ($request->filled('document_id')) {
             $document = Document::query()
                 ->with(['department', 'documentType', 'attachments'])
                 ->findOrFail((int) $request->document_id);
+        }
+
+        if (!$document && $request->filled('memo_id')) {
+            $memo = Memo::query()
+                ->with(['department', 'attachments'])
+                ->findOrFail((int) $request->memo_id);
         }
 
         $documents = Document::query()
@@ -54,10 +64,17 @@ class EmailController extends Controller
             ->limit(120)
             ->get();
 
-        $defaults = $this->defaultsForDocument($document);
-        $composeSupport = $this->composeSupport($document, 'email');
+        $memos = Memo::query()
+            ->with(['department'])
+            ->withCount('attachments')
+            ->latest('id')
+            ->limit(120)
+            ->get();
 
-        return view('emails.compose', array_merge(compact('document', 'documents', 'defaults'), $composeSupport));
+        $defaults = $memo ? $this->defaultsForMemo($memo) : $this->defaultsForDocument($document);
+        $composeSupport = $this->composeSupport($document, 'email', $memo);
+
+        return view('emails.compose', array_merge(compact('document', 'memo', 'documents', 'memos', 'defaults'), $composeSupport));
     }
 
     public function composeDocument(Document $document): View
@@ -70,16 +87,50 @@ class EmailController extends Controller
             ->limit(120)
             ->get();
 
-        $defaults = $this->defaultsForDocument($document);
-        $composeSupport = $this->composeSupport($document, 'email');
+        $memos = Memo::query()
+            ->with(['department'])
+            ->withCount('attachments')
+            ->latest('id')
+            ->limit(120)
+            ->get();
 
-        return view('emails.compose', array_merge(compact('document', 'documents', 'defaults'), $composeSupport));
+        $memo = null;
+        $defaults = $this->defaultsForDocument($document);
+        $composeSupport = $this->composeSupport($document, 'email', $memo);
+
+        return view('emails.compose', array_merge(compact('document', 'memo', 'documents', 'memos', 'defaults'), $composeSupport));
+    }
+
+
+    public function composeMemo(Memo $memo): View
+    {
+        $memo->load(['department', 'attachments']);
+
+        $documents = Document::query()
+            ->with(['department', 'documentType'])
+            ->latest('id')
+            ->limit(120)
+            ->get();
+
+        $memos = Memo::query()
+            ->with(['department'])
+            ->withCount('attachments')
+            ->latest('id')
+            ->limit(120)
+            ->get();
+
+        $document = null;
+        $defaults = $this->defaultsForMemo($memo);
+        $composeSupport = $this->composeSupport($document, 'email', $memo);
+
+        return view('emails.compose', array_merge(compact('document', 'memo', 'documents', 'memos', 'defaults'), $composeSupport));
     }
 
     public function send(Request $request): RedirectResponse
     {
         $validated = $request->validate([
             'document_id' => ['nullable', 'integer', 'exists:documents,id'],
+            'memo_id' => ['nullable', 'integer', 'exists:memos,id'],
             'contact_id' => ['nullable', 'integer', 'exists:contacts,id'],
             'message_template_id' => ['nullable', 'integer', 'exists:message_templates,id'],
             'to' => ['required', 'string', 'max:2000'],
@@ -88,7 +139,7 @@ class EmailController extends Controller
             'subject' => ['required', 'string', 'max:255'],
             'body' => ['required', 'string'],
             'attachment_ids' => ['nullable', 'array'],
-            'attachment_ids.*' => ['integer', 'exists:document_attachments,id'],
+            'attachment_ids.*' => ['integer'],
             'include_secure_attachment_link' => ['nullable', 'boolean'],
             'secure_link_expires_in' => ['nullable', 'in:1h,3h,12h,24h,3d,7d'],
             'secure_link_password' => ['nullable', 'string', 'max:100'],
@@ -111,10 +162,15 @@ class EmailController extends Controller
         }
 
         $document = null;
+        $memo = null;
         if (!empty($validated['document_id'])) {
             $document = Document::query()
                 ->with(['department', 'documentType', 'attachments'])
                 ->findOrFail((int) $validated['document_id']);
+        } elseif (!empty($validated['memo_id'])) {
+            $memo = Memo::query()
+                ->with(['department', 'attachments'])
+                ->findOrFail((int) $validated['memo_id']);
         }
 
         $contact = null;
@@ -128,7 +184,7 @@ class EmailController extends Controller
         }
 
         $selectedAttachmentIds = array_values(array_unique(array_map('intval', (array) ($validated['attachment_ids'] ?? []))));
-        $attachments = $this->resolveAttachments($selectedAttachmentIds, $document);
+        $attachments = $this->resolveAttachments($selectedAttachmentIds, $document, $memo);
 
         $missingFiles = [];
         $totalSize = 0;
@@ -155,17 +211,29 @@ class EmailController extends Controller
         $secureAttachmentLink = null;
         $body = (string) $validated['body'];
 
-        if ($document && $request->boolean('include_secure_attachment_link')) {
+        if (($document || $memo) && $request->boolean('include_secure_attachment_link')) {
             try {
-                $secureAttachmentLink = app(SecureAttachmentLinkService::class)->createForDocument(
-                    $document,
-                    $selectedAttachmentIds !== [] ? $selectedAttachmentIds : $document->attachments->pluck('id')->all(),
-                    Auth::id(),
-                    (string) ($validated['secure_link_expires_in'] ?? '24h'),
-                    null,
-                    $validated['secure_link_password'] ?? null,
-                    'تم إنشاء الرابط من صفحة البريد الإلكتروني.'
-                );
+                if ($memo) {
+                    $secureAttachmentLink = app(SecureAttachmentLinkService::class)->createForMemo(
+                        $memo,
+                        $selectedAttachmentIds !== [] ? $selectedAttachmentIds : $memo->attachments->pluck('id')->all(),
+                        Auth::id(),
+                        (string) ($validated['secure_link_expires_in'] ?? '24h'),
+                        null,
+                        $validated['secure_link_password'] ?? null,
+                        'تم إنشاء الرابط من صفحة البريد الإلكتروني للمذكرة.'
+                    );
+                } else {
+                    $secureAttachmentLink = app(SecureAttachmentLinkService::class)->createForDocument(
+                        $document,
+                        $selectedAttachmentIds !== [] ? $selectedAttachmentIds : $document->attachments->pluck('id')->all(),
+                        Auth::id(),
+                        (string) ($validated['secure_link_expires_in'] ?? '24h'),
+                        null,
+                        $validated['secure_link_password'] ?? null,
+                        'تم إنشاء الرابط من صفحة البريد الإلكتروني.'
+                    );
+                }
 
                 $body = app(SecureAttachmentLinkService::class)->appendLinkToBody($body, $secureAttachmentLink);
             } catch (\Throwable $exception) {
@@ -177,6 +245,7 @@ class EmailController extends Controller
 
         $emailMessage = EmailMessage::create([
             'document_id' => $document?->id,
+            'memo_id' => $memo?->id,
             'created_by' => Auth::id(),
             'contact_id' => $contact?->id,
             'message_template_id' => $template?->id,
@@ -195,6 +264,7 @@ class EmailController extends Controller
         try {
             Mail::send('emails.mail.document', [
                 'document' => $document,
+                'memo' => $memo,
                 'bodyText' => $body,
                 'emailMessage' => $emailMessage,
             ], function ($message) use ($to, $cc, $bcc, $validated, $attachments) {
@@ -234,11 +304,12 @@ class EmailController extends Controller
 
             ActivityLogger::log(
                 'email.sent',
-                'تم إرسال بريد إلكتروني' . ($document ? ' للكتاب رقم ' . $document->reference_number : ''),
+                'تم إرسال بريد إلكتروني' . ($document ? ' للكتاب رقم ' . $document->reference_number : ($memo ? ' للمذكرة رقم ' . $memo->memo_number : '')),
                 $emailMessage,
                 [
                     'document_id' => $document?->id,
-                    'reference_number' => $document?->reference_number,
+                    'memo_id' => $memo?->id,
+                    'reference_number' => $document?->reference_number ?: $memo?->memo_number,
                     'contact_id' => $contact?->id,
                     'message_template_id' => $template?->id,
                     'to' => $to,
@@ -260,11 +331,12 @@ class EmailController extends Controller
 
             ActivityLogger::log(
                 'email.failed',
-                'فشل إرسال بريد إلكتروني' . ($document ? ' للكتاب رقم ' . $document->reference_number : ''),
+                'فشل إرسال بريد إلكتروني' . ($document ? ' للكتاب رقم ' . $document->reference_number : ($memo ? ' للمذكرة رقم ' . $memo->memo_number : '')),
                 $emailMessage,
                 [
                     'document_id' => $document?->id,
-                    'reference_number' => $document?->reference_number,
+                    'memo_id' => $memo?->id,
+                    'reference_number' => $document?->reference_number ?: $memo?->memo_number,
                     'contact_id' => $contact?->id,
                     'message_template_id' => $template?->id,
                     'error' => $exception->getMessage(),
@@ -279,7 +351,7 @@ class EmailController extends Controller
 
     public function show(EmailMessage $emailMessage): View
     {
-        $emailMessage->load(['document.department', 'document.documentType', 'creator', 'contact', 'messageTemplate']);
+        $emailMessage->load(['document.department', 'document.documentType', 'memo.department', 'creator', 'contact', 'messageTemplate']);
 
         return view('emails.show', compact('emailMessage'));
     }
@@ -323,7 +395,43 @@ class EmailController extends Controller
         ];
     }
 
-    private function composeSupport(?Document $document, string $channel): array
+
+    private function defaultsForMemo(?Memo $memo): array
+    {
+        if (!$memo) {
+            return [
+                'subject' => '',
+                'body' => '',
+            ];
+        }
+
+        $date = $memo->memo_date ? $memo->memo_date->format('d/m/Y') : '-';
+        $department = $memo->department?->name ?: '-';
+
+        $subject = 'إرسال مذكرة رقم ' . ($memo->memo_number ?: '-') . ' - ' . ($memo->subject ?: '');
+
+        $body = implode("\n", array_filter([
+            'السلام عليكم ورحمة الله وبركاته،',
+            '',
+            'مرفق لكم بيانات ومرفقات المذكرة التالية:',
+            '',
+            'رقم المذكرة: ' . ($memo->memo_number ?: '-'),
+            'تاريخ المذكرة: ' . $date,
+            'موضوع المذكرة: ' . ($memo->subject ?: '-'),
+            'الإدارة: ' . $department,
+            'الواردة من: ' . ($memo->sender ?: '-'),
+            'المستلم: ' . ($memo->receiver ?: '-'),
+            '',
+            'مع التحية،',
+        ], fn ($line) => $line !== null));
+
+        return [
+            'subject' => $subject,
+            'body' => $body,
+        ];
+    }
+
+    private function composeSupport(?Document $document, string $channel, ?Memo $memo = null): array
     {
         $contacts = Contact::query()
             ->active()
@@ -360,9 +468,43 @@ class EmailController extends Controller
             ],
         ])->all();
 
-        $documentVariables = MessageTemplate::variableValues($document);
+        $documentVariables = $this->templateVariables($document, $memo);
 
         return compact('contacts', 'templates', 'contactPayload', 'templatePayload', 'documentVariables');
+    }
+
+
+    private function templateVariables(?Document $document = null, ?Memo $memo = null): array
+    {
+        if ($memo) {
+            $attachmentsCount = $memo->relationLoaded('attachments') ? $memo->attachments->count() : $memo->attachments()->count();
+            $date = $memo->memo_date ? $memo->memo_date->format('d/m/Y') : '-';
+
+            return [
+                'document_number' => $memo->memo_number ?: '-',
+                'reference_number' => $memo->memo_number ?: '-',
+                'memo_number' => $memo->memo_number ?: '-',
+                'document_date' => $date,
+                'reference_date' => $date,
+                'memo_date' => $date,
+                'title' => $memo->subject ?: '-',
+                'subject' => $memo->subject ?: '-',
+                'description' => $memo->description ?: '-',
+                'department' => $memo->department?->name ?: '-',
+                'document_type' => 'مذكرة واردة',
+                'sender' => $memo->sender ?: '-',
+                'receiver' => $memo->receiver ?: '-',
+                'main_policy_number' => '-',
+                'sub_policy_number' => '-',
+                'attachments_count' => (string) $attachmentsCount,
+                'today' => now()->format('d/m/Y'),
+                'system_name' => \App\Models\Setting::getValue('system_name', 'الأرشيف الإلكتروني'),
+                'department_name' => \App\Models\Setting::getValue('system_department_name', 'الشحن والتأمين'),
+                'share_link' => '-',
+            ];
+        }
+
+        return MessageTemplate::variableValues($document);
     }
 
     private function parseRecipients(string $value): array
@@ -387,10 +529,17 @@ class EmailController extends Controller
         return $errors;
     }
 
-    private function resolveAttachments(array $selectedAttachmentIds, ?Document $document)
+    private function resolveAttachments(array $selectedAttachmentIds, ?Document $document, ?Memo $memo = null)
     {
         if ($selectedAttachmentIds === []) {
             return collect();
+        }
+
+        if ($memo) {
+            return MemoAttachment::query()
+                ->where('memo_id', $memo->id)
+                ->whereIn('id', $selectedAttachmentIds)
+                ->get();
         }
 
         $query = DocumentAttachment::query()

@@ -20,6 +20,7 @@ class Document extends Model
 
         'title',
         'subject',
+        'book_subject_id',
         'description',
         'sender',
         'receiver',
@@ -61,6 +62,11 @@ class Document extends Model
     public function documentType()
     {
         return $this->belongsTo(DocumentType::class);
+    }
+
+    public function bookSubject()
+    {
+        return $this->belongsTo(BookSubject::class);
     }
 
     public function creator()

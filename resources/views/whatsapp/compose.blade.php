@@ -6,7 +6,10 @@
 
 @section('content')
 @php
+    $memo = $memo ?? null;
+    $memos = $memos ?? collect();
     $selectedDocumentId = old('document_id', $document?->id);
+    $selectedMemoId = old('memo_id', $memo?->id);
     $selectedContactId = old('contact_id');
     $selectedTemplateId = old('message_template_id');
 @endphp
@@ -28,6 +31,9 @@
             @if($document)
                 <a href="{{ route('documents.show', $document) }}" class="btn btn-secondary">عرض الكتاب</a>
             @endif
+            @if($memo)
+                <a href="{{ route('memos.show', $memo) }}" class="btn btn-secondary">عرض المذكرة</a>
+            @endif
         </div>
     </div>
 
@@ -40,6 +46,7 @@
               data-confirm-no="مراجعة قبل الفتح">
             @csrf
             <input type="hidden" name="document_id" value="{{ $selectedDocumentId }}">
+            <input type="hidden" name="memo_id" value="{{ $selectedMemoId }}">
 
             <h2>بيانات الرسالة</h2>
             <div class="whatsapp-grid">
@@ -55,6 +62,14 @@
                     </select>
                     <div class="whatsapp-help">عند اختيار كتاب، سيتم تجهيز نص الرسالة تلقائيًا من بياناته.</div>
                 </div>
+
+                @if($memo)
+                    <div class="form-group full">
+                        <label>المذكرة المختارة</label>
+                        <input type="text" value="{{ $memo->memo_number }} - {{ \Illuminate\Support\Str::limit($memo->subject ?: 'بدون موضوع', 90) }}" readonly>
+                        <div class="whatsapp-help">تم فتح هذه الصفحة من جدول المذكرات؛ سيتم تجهيز رسالة واتساب من بيانات هذه المذكرة.</div>
+                    </div>
+                @endif
 
                 <div class="form-group full">
                     <label>جهة الاتصال</label>
@@ -101,7 +116,7 @@
             </div>
 
 
-            @if($document && $document->attachments->count())
+            @if(($document && $document->attachments->count()) || ($memo && $memo->attachments->count()))
                 <div class="secure-link-compose-box">
                     <div class="secure-title">🔗 رابط مرفقات آمن</div>
                     <label class="inline-check">
@@ -148,9 +163,19 @@
                     <div><span>المرفقات</span><strong>{{ $document->attachments->count() }}</strong></div>
                 </div>
                 <a href="{{ route('documents.show', $document) }}" class="btn btn-secondary">فتح صفحة الكتاب</a>
+            @elseif($memo)
+                <h2>بيانات المذكرة المختارة</h2>
+                <div class="whatsapp-document-meta">
+                    <div><span>رقم المذكرة</span><strong>{{ $memo->memo_number }}</strong></div>
+                    <div><span>التاريخ</span><strong>{{ optional($memo->memo_date)->format('d/m/Y') ?: '-' }}</strong></div>
+                    <div><span>الموضوع</span><strong>{{ \Illuminate\Support\Str::limit($memo->subject ?: '-', 70) }}</strong></div>
+                    <div><span>الإدارة</span><strong>{{ $memo->department?->name ?? '-' }}</strong></div>
+                    <div><span>المرفقات</span><strong>{{ $memo->attachments->count() }}</strong></div>
+                </div>
+                <a href="{{ route('memos.show', $memo) }}" class="btn btn-secondary">فتح صفحة المذكرة</a>
             @else
                 <h2>رسالة عامة</h2>
-                <div class="whatsapp-note-box">لم يتم اختيار كتاب. يمكنك تجهيز رسالة واتساب عامة، أو اختيار كتاب من القائمة لتعبئة بياناته تلقائيًا.</div>
+                <div class="whatsapp-note-box">لم يتم اختيار كتاب أو مذكرة. يمكنك تجهيز رسالة واتساب عامة.</div>
             @endif
 
             <div class="whatsapp-warning-box" style="margin-top:14px;">

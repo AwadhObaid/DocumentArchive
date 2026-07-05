@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Contact;
 use App\Models\Document;
 use App\Models\MessageTemplate;
+use App\Models\Memo;
 use App\Models\WhatsappMessage;
 use App\Services\ActivityLogger;
 use App\Services\SecureAttachmentLinkService;
@@ -18,7 +19,7 @@ class WhatsappController extends Controller
     public function index(): View
     {
         $messages = WhatsappMessage::query()
-            ->with(['document', 'creator', 'contact', 'messageTemplate'])
+            ->with(['document', 'memo', 'creator', 'contact', 'messageTemplate'])
             ->latest()
             ->paginate(15);
 
@@ -26,6 +27,7 @@ class WhatsappController extends Controller
             'total' => WhatsappMessage::query()->count(),
             'opened' => WhatsappMessage::query()->where('status', 'opened')->count(),
             'with_documents' => WhatsappMessage::query()->whereNotNull('document_id')->count(),
+            'with_memos' => WhatsappMessage::query()->whereNotNull('memo_id')->count(),
             'today' => WhatsappMessage::query()->whereDate('created_at', now()->toDateString())->count(),
         ];
 
@@ -35,11 +37,18 @@ class WhatsappController extends Controller
     public function compose(Request $request): View
     {
         $document = null;
+        $memo = null;
 
         if ($request->filled('document_id')) {
             $document = Document::query()
                 ->with(['department', 'documentType', 'attachments'])
                 ->findOrFail((int) $request->document_id);
+        }
+
+        if (!$document && $request->filled('memo_id')) {
+            $memo = Memo::query()
+                ->with(['department', 'attachments'])
+                ->findOrFail((int) $request->memo_id);
         }
 
         $documents = Document::query()
@@ -48,10 +57,17 @@ class WhatsappController extends Controller
             ->limit(120)
             ->get();
 
-        $defaults = $this->defaultsForDocument($document);
-        $composeSupport = $this->composeSupport($document, 'whatsapp');
+        $memos = Memo::query()
+            ->with(['department'])
+            ->withCount('attachments')
+            ->latest('id')
+            ->limit(120)
+            ->get();
 
-        return view('whatsapp.compose', array_merge(compact('document', 'documents', 'defaults'), $composeSupport));
+        $defaults = $memo ? $this->defaultsForMemo($memo) : $this->defaultsForDocument($document);
+        $composeSupport = $this->composeSupport($document, 'whatsapp', $memo);
+
+        return view('whatsapp.compose', array_merge(compact('document', 'memo', 'documents', 'memos', 'defaults'), $composeSupport));
     }
 
     public function composeDocument(Document $document): View
@@ -64,16 +80,50 @@ class WhatsappController extends Controller
             ->limit(120)
             ->get();
 
-        $defaults = $this->defaultsForDocument($document);
-        $composeSupport = $this->composeSupport($document, 'whatsapp');
+        $memos = Memo::query()
+            ->with(['department'])
+            ->withCount('attachments')
+            ->latest('id')
+            ->limit(120)
+            ->get();
 
-        return view('whatsapp.compose', array_merge(compact('document', 'documents', 'defaults'), $composeSupport));
+        $memo = null;
+        $defaults = $this->defaultsForDocument($document);
+        $composeSupport = $this->composeSupport($document, 'whatsapp', $memo);
+
+        return view('whatsapp.compose', array_merge(compact('document', 'memo', 'documents', 'memos', 'defaults'), $composeSupport));
+    }
+
+
+    public function composeMemo(Memo $memo): View
+    {
+        $memo->load(['department', 'attachments']);
+
+        $documents = Document::query()
+            ->with(['department', 'documentType'])
+            ->latest('id')
+            ->limit(120)
+            ->get();
+
+        $memos = Memo::query()
+            ->with(['department'])
+            ->withCount('attachments')
+            ->latest('id')
+            ->limit(120)
+            ->get();
+
+        $document = null;
+        $defaults = $this->defaultsForMemo($memo);
+        $composeSupport = $this->composeSupport($document, 'whatsapp', $memo);
+
+        return view('whatsapp.compose', array_merge(compact('document', 'memo', 'documents', 'memos', 'defaults'), $composeSupport));
     }
 
     public function send(Request $request): RedirectResponse
     {
         $validated = $request->validate([
             'document_id' => ['nullable', 'integer', 'exists:documents,id'],
+            'memo_id' => ['nullable', 'integer', 'exists:memos,id'],
             'contact_id' => ['nullable', 'integer', 'exists:contacts,id'],
             'message_template_id' => ['nullable', 'integer', 'exists:message_templates,id'],
             'recipient_name' => ['nullable', 'string', 'max:120'],
@@ -93,10 +143,15 @@ class WhatsappController extends Controller
         }
 
         $document = null;
+        $memo = null;
         if (!empty($validated['document_id'])) {
             $document = Document::query()
                 ->with(['department', 'documentType', 'attachments'])
                 ->findOrFail((int) $validated['document_id']);
+        } elseif (!empty($validated['memo_id'])) {
+            $memo = Memo::query()
+                ->with(['department', 'attachments'])
+                ->findOrFail((int) $validated['memo_id']);
         }
 
         $contact = null;
@@ -112,17 +167,29 @@ class WhatsappController extends Controller
         $secureAttachmentLink = null;
         $messageBody = (string) $validated['message_body'];
 
-        if ($document && $request->boolean('include_secure_attachment_link')) {
+        if (($document || $memo) && $request->boolean('include_secure_attachment_link')) {
             try {
-                $secureAttachmentLink = app(SecureAttachmentLinkService::class)->createForDocument(
-                    $document,
-                    $document->attachments->pluck('id')->all(),
-                    Auth::id(),
-                    (string) ($validated['secure_link_expires_in'] ?? '24h'),
-                    null,
-                    $validated['secure_link_password'] ?? null,
-                    'تم إنشاء الرابط من صفحة واتساب.'
-                );
+                if ($memo) {
+                    $secureAttachmentLink = app(SecureAttachmentLinkService::class)->createForMemo(
+                        $memo,
+                        $memo->attachments->pluck('id')->all(),
+                        Auth::id(),
+                        (string) ($validated['secure_link_expires_in'] ?? '24h'),
+                        null,
+                        $validated['secure_link_password'] ?? null,
+                        'تم إنشاء الرابط من صفحة واتساب للمذكرة.'
+                    );
+                } else {
+                    $secureAttachmentLink = app(SecureAttachmentLinkService::class)->createForDocument(
+                        $document,
+                        $document->attachments->pluck('id')->all(),
+                        Auth::id(),
+                        (string) ($validated['secure_link_expires_in'] ?? '24h'),
+                        null,
+                        $validated['secure_link_password'] ?? null,
+                        'تم إنشاء الرابط من صفحة واتساب.'
+                    );
+                }
 
                 $messageBody = app(SecureAttachmentLinkService::class)->appendLinkToBody($messageBody, $secureAttachmentLink);
             } catch (\Throwable $exception) {
@@ -136,6 +203,7 @@ class WhatsappController extends Controller
 
         $message = WhatsappMessage::create([
             'document_id' => $document?->id,
+            'memo_id' => $memo?->id,
             'created_by' => Auth::id(),
             'contact_id' => $contact?->id,
             'message_template_id' => $template?->id,
@@ -150,11 +218,12 @@ class WhatsappController extends Controller
 
         ActivityLogger::log(
             'whatsapp.opened',
-            'تم فتح واتساب لإرسال رسالة' . ($document ? ' للكتاب رقم ' . $document->reference_number : ''),
+            'تم فتح واتساب لإرسال رسالة' . ($document ? ' للكتاب رقم ' . $document->reference_number : ($memo ? ' للمذكرة رقم ' . $memo->memo_number : '')),
             $message,
             [
                 'document_id' => $document?->id,
-                'reference_number' => $document?->reference_number,
+                'memo_id' => $memo?->id,
+                'reference_number' => $document?->reference_number ?: $memo?->memo_number,
                 'contact_id' => $contact?->id,
                 'message_template_id' => $template?->id,
                 'secure_attachment_link_id' => $secureAttachmentLink?->id,
@@ -167,7 +236,7 @@ class WhatsappController extends Controller
 
     public function show(WhatsappMessage $whatsappMessage): View
     {
-        $whatsappMessage->load(['document.department', 'document.documentType', 'creator', 'contact', 'messageTemplate']);
+        $whatsappMessage->load(['document.department', 'document.documentType', 'memo.department', 'creator', 'contact', 'messageTemplate']);
 
         return view('whatsapp.show', compact('whatsappMessage'));
     }
@@ -211,7 +280,43 @@ class WhatsappController extends Controller
         ];
     }
 
-    private function composeSupport(?Document $document, string $channel): array
+
+    private function defaultsForMemo(?Memo $memo): array
+    {
+        if (!$memo) {
+            return [
+                'message_body' => '',
+            ];
+        }
+
+        $date = $memo->memo_date ? $memo->memo_date->format('d/m/Y') : '-';
+        $department = $memo->department?->name ?: '-';
+        $attachmentsCount = $memo->attachments?->count() ?? 0;
+
+        $body = implode("\n", array_filter([
+            'السلام عليكم ورحمة الله وبركاته،',
+            '',
+            'نرسل لكم بيانات المذكرة التالية:',
+            '',
+            'رقم المذكرة: ' . ($memo->memo_number ?: '-'),
+            'تاريخ المذكرة: ' . $date,
+            'موضوع المذكرة: ' . ($memo->subject ?: '-'),
+            'الإدارة: ' . $department,
+            'الواردة من: ' . ($memo->sender ?: '-'),
+            'المستلم: ' . ($memo->receiver ?: '-'),
+            '',
+            'عدد المرفقات المسجلة في النظام: ' . $attachmentsCount,
+            'ملاحظة: يمكن إضافة رابط مرفقات آمن داخل الرسالة من الخيار أدناه.',
+            '',
+            'مع التحية،',
+        ], fn ($line) => $line !== null));
+
+        return [
+            'message_body' => $body,
+        ];
+    }
+
+    private function composeSupport(?Document $document, string $channel, ?Memo $memo = null): array
     {
         $contacts = Contact::query()
             ->active()
@@ -248,9 +353,43 @@ class WhatsappController extends Controller
             ],
         ])->all();
 
-        $documentVariables = MessageTemplate::variableValues($document);
+        $documentVariables = $this->templateVariables($document, $memo);
 
         return compact('contacts', 'templates', 'contactPayload', 'templatePayload', 'documentVariables');
+    }
+
+
+    private function templateVariables(?Document $document = null, ?Memo $memo = null): array
+    {
+        if ($memo) {
+            $attachmentsCount = $memo->relationLoaded('attachments') ? $memo->attachments->count() : $memo->attachments()->count();
+            $date = $memo->memo_date ? $memo->memo_date->format('d/m/Y') : '-';
+
+            return [
+                'document_number' => $memo->memo_number ?: '-',
+                'reference_number' => $memo->memo_number ?: '-',
+                'memo_number' => $memo->memo_number ?: '-',
+                'document_date' => $date,
+                'reference_date' => $date,
+                'memo_date' => $date,
+                'title' => $memo->subject ?: '-',
+                'subject' => $memo->subject ?: '-',
+                'description' => $memo->description ?: '-',
+                'department' => $memo->department?->name ?: '-',
+                'document_type' => 'مذكرة واردة',
+                'sender' => $memo->sender ?: '-',
+                'receiver' => $memo->receiver ?: '-',
+                'main_policy_number' => '-',
+                'sub_policy_number' => '-',
+                'attachments_count' => (string) $attachmentsCount,
+                'today' => now()->format('d/m/Y'),
+                'system_name' => \App\Models\Setting::getValue('system_name', 'الأرشيف الإلكتروني'),
+                'department_name' => \App\Models\Setting::getValue('system_department_name', 'الشحن والتأمين'),
+                'share_link' => '-',
+            ];
+        }
+
+        return MessageTemplate::variableValues($document);
     }
 
     private function normalizePhone(string $phone): ?string

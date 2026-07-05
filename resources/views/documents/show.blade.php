@@ -160,7 +160,8 @@
         <table class="table details-table">
             <tbody>
                 <tr><th>تاريخ الكتاب</th><td>{{ optional($value($document ?? null, 'reference_date', null))->format('Y-m-d') ?? $value($document ?? null, 'reference_date') }}</td></tr>
-                <tr><th>موضوع الكتاب</th><td>{{ $value($document ?? null, 'subject') }}</td></tr>
+                <tr><th>موضوع الكتاب من القائمة</th><td>{{ $document?->bookSubject?->name ?: '-' }}</td></tr>
+                <tr><th>موضوع الكتاب التفصيلي</th><td>{{ $value($document ?? null, 'subject') }}</td></tr>
                 <tr><th>عنوان الكتاب</th><td>{{ $value($document ?? null, 'title') }}</td></tr>
                 <tr><th>البوليصة الرئيسية</th><td>{{ $value($document ?? null, 'main_policy_number') }}</td></tr>
                 <tr><th>البوليصة الفرعية</th><td>{{ $value($document ?? null, 'sub_policy_number') }}</td></tr>

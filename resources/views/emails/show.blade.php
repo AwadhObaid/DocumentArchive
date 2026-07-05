@@ -16,6 +16,9 @@
             @if($emailMessage->document && auth()->user()?->hasPermission('emails.send'))
                 <a href="{{ route('documents.email.compose', $emailMessage->document) }}" class="btn btn-primary">إرسال جديد لهذا الكتاب</a>
             @endif
+            @if($emailMessage->memo && auth()->user()?->hasPermission('emails.send'))
+                <a href="{{ route('memos.email.compose', $emailMessage->memo) }}" class="btn btn-primary">إرسال جديد لهذه المذكرة</a>
+            @endif
         </div>
     </div>
 
@@ -56,9 +59,18 @@
                     <div><span>النوع</span><strong>{{ $emailMessage->document->documentType?->name ?? '-' }}</strong></div>
                 </div>
                 <a href="{{ route('documents.show', $emailMessage->document) }}" class="btn btn-secondary">فتح الكتاب</a>
+            @elseif($emailMessage->memo)
+                <h2>المذكرة المرتبطة</h2>
+                <div class="email-document-meta">
+                    <div><span>رقم المذكرة</span><strong>{{ $emailMessage->memo->memo_number }}</strong></div>
+                    <div><span>التاريخ</span><strong>{{ optional($emailMessage->memo->memo_date)->format('d/m/Y') ?: '-' }}</strong></div>
+                    <div><span>الموضوع</span><strong>{{ \Illuminate\Support\Str::limit($emailMessage->memo->subject ?: '-', 70) }}</strong></div>
+                    <div><span>الإدارة</span><strong>{{ $emailMessage->memo->department?->name ?? '-' }}</strong></div>
+                </div>
+                <a href="{{ route('memos.show', $emailMessage->memo) }}" class="btn btn-secondary">فتح المذكرة</a>
             @else
-                <h2>لا يوجد كتاب مرتبط</h2>
-                <div class="email-note-box">هذه الرسالة لم تُرسل من كتاب محدد.</div>
+                <h2>لا يوجد كتاب أو مذكرة مرتبطة</h2>
+                <div class="email-note-box">هذه الرسالة لم تُرسل من كتاب أو مذكرة محددة.</div>
             @endif
 
             @if($emailMessage->attachment_names)

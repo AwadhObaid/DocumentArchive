@@ -8,6 +8,7 @@ class SharedAttachmentLink extends Model
 {
     protected $fillable = [
         'document_id',
+        'memo_id',
         'created_by',
         'token',
         'title',
@@ -38,6 +39,11 @@ class SharedAttachmentLink extends Model
     public function document()
     {
         return $this->belongsTo(Document::class);
+    }
+
+    public function memo()
+    {
+        return $this->belongsTo(Memo::class);
     }
 
     public function creator()

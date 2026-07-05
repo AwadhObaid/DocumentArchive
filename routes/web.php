@@ -3,6 +3,7 @@
 use App\Http\Controllers\ActivityLogController;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\BackupController;
+use App\Http\Controllers\BookSubjectController;
 use App\Http\Controllers\ReportController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\DepartmentController;
@@ -11,6 +12,7 @@ use App\Http\Controllers\DocumentTypeController;
 use App\Http\Controllers\EmailController;
 use App\Http\Controllers\ContactController;
 use App\Http\Controllers\MessageTemplateController;
+use App\Http\Controllers\MemoController;
 use App\Http\Controllers\WhatsappController;
 use App\Http\Controllers\SharedAttachmentLinkController;
 use App\Http\Controllers\FormLinkController;
@@ -118,6 +120,9 @@ Route::middleware(['auth', ApplyRoutePermissions::class])->group(function () {
     Route::get('/documents/{document}/shared-attachments/create', [SharedAttachmentLinkController::class, 'create'])
         ->name('documents.shared-attachments.create');
 
+    Route::get('/memos/{memo}/shared-attachments/create', [SharedAttachmentLinkController::class, 'createMemo'])
+        ->name('memos.shared-attachments.create');
+
     Route::get('/attachments/{attachment}/inline', [DocumentController::class, 'inlineAttachment'])
         ->name('attachments.inline');
 
@@ -146,6 +151,26 @@ Route::middleware(['auth', ApplyRoutePermissions::class])->group(function () {
         ->parameters([
             'document-types' => 'documentType',
         ]);
+
+    Route::resource('book-subjects', BookSubjectController::class)
+        ->except(['show'])
+        ->parameters([
+            'book-subjects' => 'bookSubject',
+        ]);
+
+    Route::get('/memos/{memo}/attachments/{attachment}/preview', [MemoController::class, 'previewAttachment'])
+        ->name('memos.attachments.preview');
+
+    Route::get('/memos/{memo}/attachments/{attachment}/data', [MemoController::class, 'attachmentData'])
+        ->name('memos.attachments.data');
+
+    Route::get('/memos/{memo}/attachments/{attachment}/inline', [MemoController::class, 'inlineAttachment'])
+        ->name('memos.attachments.inline');
+
+    Route::get('/memos/{memo}/attachments/{attachment}/download', [MemoController::class, 'downloadAttachment'])
+        ->name('memos.attachments.download');
+
+    Route::resource('memos', MemoController::class);
 
     Route::get('/users/{user}/password', [UserController::class, 'editPassword'])
         ->name('users.password.edit');
@@ -182,12 +207,14 @@ Route::middleware(['auth', ApplyRoutePermissions::class])->group(function () {
     Route::post('/emails/send', [EmailController::class, 'send'])->name('emails.send');
     Route::get('/emails/{emailMessage}', [EmailController::class, 'show'])->name('emails.show');
     Route::get('/documents/{document}/send-email', [EmailController::class, 'composeDocument'])->name('documents.email.compose');
+    Route::get('/memos/{memo}/send-email', [EmailController::class, 'composeMemo'])->name('memos.email.compose');
 
     Route::get('/whatsapp', [WhatsappController::class, 'index'])->name('whatsapp.index');
     Route::get('/whatsapp/compose', [WhatsappController::class, 'compose'])->name('whatsapp.compose');
     Route::post('/whatsapp/send', [WhatsappController::class, 'send'])->name('whatsapp.send');
     Route::get('/whatsapp/{whatsappMessage}', [WhatsappController::class, 'show'])->name('whatsapp.show');
     Route::get('/documents/{document}/send-whatsapp', [WhatsappController::class, 'composeDocument'])->name('documents.whatsapp.compose');
+    Route::get('/memos/{memo}/send-whatsapp', [WhatsappController::class, 'composeMemo'])->name('memos.whatsapp.compose');
 
     Route::resource('users', UserController::class)->except(['show']);
 

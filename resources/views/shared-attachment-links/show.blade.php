@@ -9,12 +9,15 @@
     <div class="share-page-header">
         <div>
             <h1>تفاصيل رابط المشاركة</h1>
-            <p>رابط مخصص لمرفقات الكتاب رقم {{ $link->document?->reference_number ?: '-' }}.</p>
+            <p>رابط مخصص لمرفقات {{ $link->memo ? 'المذكرة رقم ' . $link->memo->memo_number : 'الكتاب رقم ' . ($link->document?->reference_number ?: '-') }}.</p>
         </div>
         <div class="share-actions">
             <a href="{{ route('shared-attachment-links.index') }}" class="btn btn-light">سجل الروابط</a>
             @if($link->document)
                 <a href="{{ route('documents.show', $link->document) }}" class="btn btn-secondary">عرض الكتاب</a>
+            @endif
+            @if($link->memo)
+                <a href="{{ route('memos.show', $link->memo) }}" class="btn btn-secondary">عرض المذكرة</a>
             @endif
         </div>
     </div>
@@ -55,12 +58,12 @@
         </div>
 
         <div class="share-card">
-            <h2>بيانات الكتاب</h2>
+            <h2>{{ $link->memo ? 'بيانات المذكرة' : 'بيانات الكتاب' }}</h2>
             <div class="share-info-list">
-                <div><span>رقم الكتاب</span><strong>{{ $link->document?->reference_number ?: '-' }}</strong></div>
-                <div><span>التاريخ</span><strong>{{ optional($link->document?->reference_date)->format('d/m/Y') ?: '-' }}</strong></div>
-                <div><span>الموضوع</span><strong>{{ $link->document?->subject ?: $link->document?->title ?: '-' }}</strong></div>
-                <div><span>الإدارة</span><strong>{{ $link->document?->department?->name ?: '-' }}</strong></div>
+                <div><span>{{ $link->memo ? 'رقم المذكرة' : 'رقم الكتاب' }}</span><strong>{{ $link->document?->reference_number ?: ($link->memo?->memo_number ?: '-') }}</strong></div>
+                <div><span>التاريخ</span><strong>{{ $link->memo ? optional($link->memo?->memo_date)->format('d/m/Y') : (optional($link->document?->reference_date)->format('d/m/Y') ?: '-') }}</strong></div>
+                <div><span>الموضوع</span><strong>{{ $link->document?->subject ?: $link->document?->title ?: $link->memo?->subject ?: '-' }}</strong></div>
+                <div><span>الإدارة</span><strong>{{ $link->document?->department?->name ?: $link->memo?->department?->name ?: '-' }}</strong></div>
                 <div><span>أنشأه</span><strong>{{ $link->creator?->name ?: '-' }}</strong></div>
                 <div><span>تاريخ الإنشاء</span><strong>{{ $link->created_at?->format('Y-m-d H:i') }}</strong></div>
             </div>
@@ -81,7 +84,7 @@
                 </thead>
                 <tbody>
                     @foreach($link->items as $item)
-                        @php $attachment = $item->attachment; @endphp
+                        @php $attachment = $item->attachment ?: $item->memoAttachment; @endphp
                         <tr>
                             <td>{{ $attachment?->original_name ?: $attachment?->file_name ?: 'مرفق' }}</td>
                             <td>{{ $attachment?->file_size_for_humans ?: '-' }}</td>

@@ -9,6 +9,7 @@ class SharedAttachmentLinkItem extends Model
     protected $fillable = [
         'shared_attachment_link_id',
         'document_attachment_id',
+        'memo_attachment_id',
         'download_count',
         'last_downloaded_at',
     ];
@@ -29,5 +30,15 @@ class SharedAttachmentLinkItem extends Model
     public function attachment()
     {
         return $this->belongsTo(DocumentAttachment::class, 'document_attachment_id');
+    }
+
+    public function memoAttachment()
+    {
+        return $this->belongsTo(MemoAttachment::class, 'memo_attachment_id');
+    }
+
+    public function getResolvedAttachmentAttribute()
+    {
+        return $this->attachment ?: $this->memoAttachment;
     }
 }

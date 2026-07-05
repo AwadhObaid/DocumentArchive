@@ -44,9 +44,19 @@
                     <div><span>النوع</span><strong>{{ $document->documentType?->name ?? '-' }}</strong></div>
                 </div>
                 <a href="{{ route('documents.show', $document) }}" class="btn btn-secondary">فتح صفحة الكتاب</a>
+            @elseif($whatsappMessage->memo)
+                @php($memo = $whatsappMessage->memo)
+                <h2>المذكرة المرتبطة</h2>
+                <div class="whatsapp-document-meta">
+                    <div><span>رقم المذكرة</span><strong>{{ $memo->memo_number }}</strong></div>
+                    <div><span>التاريخ</span><strong>{{ optional($memo->memo_date)->format('d/m/Y') ?: '-' }}</strong></div>
+                    <div><span>الموضوع</span><strong>{{ \Illuminate\Support\Str::limit($memo->subject ?: '-', 70) }}</strong></div>
+                    <div><span>الإدارة</span><strong>{{ $memo->department?->name ?? '-' }}</strong></div>
+                </div>
+                <a href="{{ route('memos.show', $memo) }}" class="btn btn-secondary">فتح صفحة المذكرة</a>
             @else
-                <h2>بدون كتاب</h2>
-                <div class="whatsapp-note-box">هذه الرسالة غير مرتبطة بكتاب محدد.</div>
+                <h2>بدون كتاب أو مذكرة</h2>
+                <div class="whatsapp-note-box">هذه الرسالة غير مرتبطة بكتاب أو مذكرة محددة.</div>
             @endif
         </aside>
     </div>

@@ -45,9 +45,19 @@ class User extends Authenticatable
         return $this->hasMany(Document::class, 'created_by');
     }
 
+    public function memos()
+    {
+        return $this->hasMany(Memo::class, 'created_by');
+    }
+
     public function uploadedAttachments()
     {
         return $this->hasMany(DocumentAttachment::class, 'uploaded_by');
+    }
+
+    public function uploadedMemoAttachments()
+    {
+        return $this->hasMany(MemoAttachment::class, 'uploaded_by');
     }
 
     public function activityLogs()

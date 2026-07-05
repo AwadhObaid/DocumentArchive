@@ -2,7 +2,7 @@
 <html lang="ar" dir="rtl">
 <head>
     <meta charset="utf-8">
-    <title>مرفقات مشتركة - {{ $link->document?->reference_number ?: '' }}</title>
+    <title>مرفقات مشتركة - {{ $link->document?->reference_number ?: ($link->memo?->memo_number ?: '') }}</title>
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <link rel="stylesheet" href="{{ asset('css/shared-attachments.css') }}?v={{ filemtime(public_path('css/shared-attachments.css')) }}">
 </head>
@@ -12,23 +12,23 @@
             <div class="share-public-header">
                 <div>
                     <div class="share-public-brand">📁 DocumentArchive</div>
-                    <h1>مرفقات الكتاب</h1>
+                    <h1>{{ $link->memo ? 'مرفقات المذكرة' : 'مرفقات الكتاب' }}</h1>
                     <p>يمكنك تحميل المرفقات المتاحة قبل انتهاء صلاحية الرابط.</p>
                 </div>
                 <span class="share-badge {{ $link->status_class }}">{{ $link->status_name }}</span>
             </div>
 
             <div class="share-public-meta">
-                <div><span>رقم الكتاب</span><strong>{{ $link->document?->reference_number ?: '-' }}</strong></div>
-                <div><span>تاريخ الكتاب</span><strong>{{ optional($link->document?->reference_date)->format('d/m/Y') ?: '-' }}</strong></div>
-                <div><span>الموضوع</span><strong>{{ $link->document?->subject ?: $link->document?->title ?: '-' }}</strong></div>
+                <div><span>{{ $link->memo ? 'رقم المذكرة' : 'رقم الكتاب' }}</span><strong>{{ $link->document?->reference_number ?: ($link->memo?->memo_number ?: '-') }}</strong></div>
+                <div><span>{{ $link->memo ? 'تاريخ المذكرة' : 'تاريخ الكتاب' }}</span><strong>{{ $link->memo ? optional($link->memo?->memo_date)->format('d/m/Y') : (optional($link->document?->reference_date)->format('d/m/Y') ?: '-') }}</strong></div>
+                <div><span>الموضوع</span><strong>{{ $link->document?->subject ?: $link->document?->title ?: $link->memo?->subject ?: '-' }}</strong></div>
                 <div><span>تنتهي الصلاحية</span><strong>{{ $link->expires_at ? $link->expires_at->format('Y-m-d H:i') : 'غير محدد' }}</strong></div>
             </div>
 
             <div class="share-public-files">
                 @foreach($link->items as $item)
                     @php
-                        $attachment = $item->attachment;
+                        $attachment = $item->attachment ?: $item->memoAttachment;
                         $exists = $attachment && method_exists($attachment, 'existsOnDisk') ? $attachment->existsOnDisk() : false;
                     @endphp
                     <div class="share-public-file">
