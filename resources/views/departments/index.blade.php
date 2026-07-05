@@ -7,7 +7,19 @@
 @section('content')
     {{-- DEFINITIONS_POLISH_VIEW_START --}}
     <style>
-        .definitions-page { display: grid; gap: 18px; }
+        .definitions-page {
+            display: grid;
+            gap: 18px;
+            width: 100%;
+            max-width: 100%;
+            min-width: 0;
+            overflow-x: hidden !important;
+        }
+        .definitions-page .card {
+            min-width: 0;
+            max-width: 100%;
+            box-sizing: border-box;
+        }
         .definitions-header { display:flex; align-items:flex-start; justify-content:space-between; gap:12px; flex-wrap:wrap; }
         .definitions-header h1 { margin:0; }
         .definitions-header p { margin:6px 0 0; color:var(--muted, #6b7280); }
@@ -19,18 +31,176 @@
         .definition-filter-grid { display:grid; grid-template-columns:2fr repeat(3, minmax(150px, 1fr)) auto; gap:10px; align-items:end; }
         .definition-filter-grid .form-group { margin:0; }
         .definition-filter-actions { display:flex; gap:8px; flex-wrap:wrap; align-items:center; }
-        .definitions-table-scroll { width:100%; overflow:auto; border-radius:14px; }
-        .definitions-table-scroll table { min-width:900px; }
+
+        /* Departments table scroll fix V11
+           The Arabic global fixes use !important on table cells, so this page must
+           override them with higher specificity and !important as well. */
+        .definitions-table-card {
+            width: 100%;
+            max-width: 100%;
+            min-width: 0;
+            overflow: hidden !important;
+            box-sizing: border-box;
+        }
+        .departments-scroll-shell {
+            width: 100%;
+            max-width: 100%;
+            min-width: 0;
+            overflow-x: auto !important;
+            overflow-y: hidden !important;
+            border-radius: 14px;
+            padding-bottom: 14px;
+            -webkit-overflow-scrolling: touch;
+            overscroll-behavior-x: contain;
+            scrollbar-gutter: stable;
+            scrollbar-width: auto;
+            scrollbar-color: rgba(59,130,246,.95) rgba(148,163,184,.24);
+        }
+        .departments-scroll-shell::-webkit-scrollbar { height: 15px; }
+        .departments-scroll-shell::-webkit-scrollbar-track {
+            background: rgba(148,163,184,.24);
+            border-radius: 999px;
+        }
+        .departments-scroll-shell::-webkit-scrollbar-thumb {
+            background: rgba(59,130,246,.95);
+            border-radius: 999px;
+            border: 3px solid rgba(15,23,42,.30);
+        }
+        .departments-scroll-shell::-webkit-scrollbar-thumb:hover { background: rgba(37,99,235,1); }
+        .departments-scroll-inner {
+            width: 1360px !important;
+            min-width: 1360px !important;
+            max-width: none !important;
+        }
+        html[dir="rtl"] .departments-scroll-shell table.departments-scroll-table,
+        .departments-scroll-shell table.departments-scroll-table {
+            width: 1360px !important;
+            min-width: 1360px !important;
+            max-width: none !important;
+            table-layout: fixed !important;
+            border-collapse: collapse !important;
+            display: table !important;
+        }
+        html[dir="rtl"] .departments-scroll-shell table.departments-scroll-table th,
+        html[dir="rtl"] .departments-scroll-shell table.departments-scroll-table td,
+        .departments-scroll-shell table.departments-scroll-table th,
+        .departments-scroll-shell table.departments-scroll-table td {
+            white-space: nowrap !important;
+            overflow-wrap: normal !important;
+            word-break: keep-all !important;
+            text-overflow: clip !important;
+            vertical-align: middle !important;
+        }
+        html[dir="rtl"] .departments-scroll-shell table.departments-scroll-table td.department-description-cell,
+        .departments-scroll-shell table.departments-scroll-table td.department-description-cell {
+            white-space: normal !important;
+            overflow-wrap: break-word !important;
+            word-break: normal !important;
+            line-height: 1.65;
+        }
+        .departments-scroll-table col.col-name { width: 220px; }
+        .departments-scroll-table col.col-code { width: 190px; }
+        .departments-scroll-table col.col-desc { width: 360px; }
+        .departments-scroll-table col.col-status { width: 150px; }
+        .departments-scroll-table col.col-active { width: 130px; }
+        .departments-scroll-table col.col-all { width: 120px; }
+        .departments-scroll-table col.col-actions { width: 290px; }
+
         .definition-code { direction:ltr; unicode-bidi:embed; font-family:ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace; font-size:12px; }
         .definition-status { display:inline-flex; align-items:center; gap:6px; padding:5px 10px; border-radius:999px; font-size:12px; font-weight:700; }
         .definition-status.active { background:rgba(34,197,94,.12); color:#15803d; }
         .definition-status.inactive { background:rgba(100,116,139,.14); color:#475569; }
-        .definition-actions { display:flex; flex-wrap:wrap; gap:8px; align-items:center; }
+        .definition-actions { display:flex; flex-wrap:nowrap; gap:8px; align-items:center; min-width: 260px; }
         .definition-actions form { margin:0; }
+        .definition-actions .btn { flex:0 0 auto; }
         .definitions-page .pagination svg { width:18px !important; height:18px !important; max-width:18px !important; max-height:18px !important; }
         .definitions-page .pagination { margin-top:14px; overflow:auto; }
         @media (max-width: 900px) { .definition-stats { grid-template-columns:repeat(2, minmax(0, 1fr)); } .definition-filter-grid { grid-template-columns:1fr; } }
         @media (max-width: 560px) { .definition-stats { grid-template-columns:1fr; } .definitions-header { display:grid; } }
+
+
+        /* departments-table-scroll-fix-v12:start
+           Final guard: keep horizontal scrolling inside the departments table card only.
+           Uses a deliberately wider inner canvas plus a JS guard below because several
+           global Arabic no-truncate rules override table sizing on this project. */
+        body {
+            overflow-x: hidden !important;
+        }
+        .definitions-page,
+        .definitions-table-card {
+            width: 100% !important;
+            max-width: 100% !important;
+            min-width: 0 !important;
+            overflow-x: hidden !important;
+        }
+        .departments-scroll-shell[data-departments-scroll-v12] {
+            display: block !important;
+            position: relative !important;
+            width: 100% !important;
+            max-width: 100% !important;
+            min-width: 0 !important;
+            overflow-x: scroll !important;
+            overflow-y: hidden !important;
+            padding-bottom: 16px !important;
+            margin-bottom: 4px !important;
+            border-radius: 14px !important;
+            direction: rtl !important;
+            -webkit-overflow-scrolling: touch !important;
+            overscroll-behavior-x: contain !important;
+            scrollbar-gutter: stable both-edges !important;
+            scrollbar-width: auto !important;
+            scrollbar-color: rgba(59,130,246,.95) rgba(148,163,184,.24) !important;
+        }
+        .departments-scroll-shell[data-departments-scroll-v12]::-webkit-scrollbar {
+            height: 16px !important;
+            display: block !important;
+        }
+        .departments-scroll-shell[data-departments-scroll-v12]::-webkit-scrollbar-track {
+            background: rgba(148,163,184,.24) !important;
+            border-radius: 999px !important;
+        }
+        .departments-scroll-shell[data-departments-scroll-v12]::-webkit-scrollbar-thumb {
+            background: rgba(59,130,246,.95) !important;
+            border-radius: 999px !important;
+            border: 3px solid rgba(15,23,42,.30) !important;
+        }
+        .departments-scroll-wide-v12 {
+            display: block !important;
+            width: 1480px !important;
+            min-width: 1480px !important;
+            max-width: none !important;
+        }
+        .departments-scroll-shell[data-departments-scroll-v12] table.departments-scroll-table {
+            display: table !important;
+            width: 1480px !important;
+            min-width: 1480px !important;
+            max-width: none !important;
+            table-layout: fixed !important;
+            border-collapse: collapse !important;
+        }
+        .departments-scroll-shell[data-departments-scroll-v12] table.departments-scroll-table th,
+        .departments-scroll-shell[data-departments-scroll-v12] table.departments-scroll-table td {
+            white-space: nowrap !important;
+            overflow-wrap: normal !important;
+            word-break: keep-all !important;
+            text-overflow: clip !important;
+            vertical-align: middle !important;
+        }
+        .departments-scroll-shell[data-departments-scroll-v12] table.departments-scroll-table td.department-description-cell {
+            white-space: normal !important;
+            overflow-wrap: break-word !important;
+            word-break: normal !important;
+        }
+        .departments-scroll-shell[data-departments-scroll-v12] .definition-actions {
+            display: flex !important;
+            flex-wrap: nowrap !important;
+            gap: 8px !important;
+            align-items: center !important;
+            min-width: 260px !important;
+            white-space: nowrap !important;
+        }
+        /* departments-table-scroll-fix-v12:end */
+
     </style>
 
     <div class="definitions-page">
@@ -94,9 +264,19 @@
             </form>
         </div>
 
-        <div class="card">
-            <div class="definitions-table-scroll">
-                <table>
+        <div class="card definitions-table-card">
+            <div class="departments-scroll-shell" data-departments-scroll-v12 tabindex="0" aria-label="جدول الإدارات قابل للتمرير أفقيًا">
+                <div class="departments-scroll-inner departments-scroll-wide-v12">
+                <table class="departments-scroll-table">
+                    <colgroup>
+                        <col class="col-name">
+                        <col class="col-code">
+                        <col class="col-desc">
+                        <col class="col-status">
+                        <col class="col-active">
+                        <col class="col-all">
+                        <col class="col-actions">
+                    </colgroup>
                     <thead>
                     <tr>
                         <th>اسم الإدارة</th>
@@ -113,7 +293,7 @@
                         <tr>
                             <td><strong>{{ $department->name }}</strong></td>
                             <td><span class="definition-code">{{ $department->code ?: '-' }}</span></td>
-                            <td>{{ $department->description ?: '-' }}</td>
+                            <td class="department-description-cell">{{ $department->description ?: '-' }}</td>
                             <td>
                                 @if($department->is_active)
                                     <span class="definition-status active">● نشطة</span>
@@ -143,10 +323,57 @@
                     @endforelse
                     </tbody>
                 </table>
+                </div>
             </div>
 
             <div class="pagination">{{ $departments->links() }}</div>
         </div>
     </div>
     {{-- DEFINITIONS_POLISH_VIEW_END --}}
+
+
+    {{-- departments-table-scroll-fix-v12:js:start --}}
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            var shell = document.querySelector('.departments-scroll-shell[data-departments-scroll-v12]');
+            if (!shell) return;
+
+            var wide = shell.querySelector('.departments-scroll-wide-v12');
+            var table = shell.querySelector('table.departments-scroll-table');
+
+            function forceDepartmentsTableScroll() {
+                var clientWidth = Math.max(shell.clientWidth || 0, 320);
+                var targetWidth = Math.max(1480, clientWidth + 520);
+
+                shell.style.setProperty('display', 'block', 'important');
+                shell.style.setProperty('width', '100%', 'important');
+                shell.style.setProperty('max-width', '100%', 'important');
+                shell.style.setProperty('overflow-x', 'scroll', 'important');
+                shell.style.setProperty('overflow-y', 'hidden', 'important');
+                shell.style.setProperty('padding-bottom', '16px', 'important');
+
+                if (wide) {
+                    wide.style.setProperty('display', 'block', 'important');
+                    wide.style.setProperty('width', targetWidth + 'px', 'important');
+                    wide.style.setProperty('min-width', targetWidth + 'px', 'important');
+                    wide.style.setProperty('max-width', 'none', 'important');
+                }
+
+                if (table) {
+                    table.style.setProperty('display', 'table', 'important');
+                    table.style.setProperty('width', targetWidth + 'px', 'important');
+                    table.style.setProperty('min-width', targetWidth + 'px', 'important');
+                    table.style.setProperty('max-width', 'none', 'important');
+                    table.style.setProperty('table-layout', 'fixed', 'important');
+                }
+            }
+
+            forceDepartmentsTableScroll();
+            window.setTimeout(forceDepartmentsTableScroll, 80);
+            window.setTimeout(forceDepartmentsTableScroll, 350);
+            window.addEventListener('resize', forceDepartmentsTableScroll);
+        });
+    </script>
+    {{-- departments-table-scroll-fix-v12:js:end --}}
+
 @endsection
