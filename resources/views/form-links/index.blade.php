@@ -137,10 +137,18 @@
 
                     @php
                         $legacyPreviewUrl = 'docarchive-print://preview?url=' . rawurlencode($formLink->url) . '&title=' . rawurlencode($formLink->title);
+                        $formPath = parse_url(trim((string) $formLink->url), PHP_URL_PATH) ?: trim((string) $formLink->url);
+                        $isLocalPdfForm = str_starts_with(trim((string) $formLink->url), '/') && str_ends_with(strtolower((string) $formPath), '.pdf');
                     @endphp
 
                     <div class="forms-actions">
-                        <a href="{{ $formLink->url }}" class="btn btn-success" @if($formLink->opens_new_tab) target="_blank" rel="noopener noreferrer" @endif>فتح النموذج</a>
+                        @if($isLocalPdfForm)
+                            <a href="{{ route('form-links.preview', $formLink) }}" class="btn btn-success">عرض النموذج</a>
+                            <a href="{{ route('form-links.download', $formLink) }}" class="btn btn-primary">تحميل</a>
+                        @else
+                            <a href="{{ $formLink->url }}" class="btn btn-success" @if($formLink->opens_new_tab) target="_blank" rel="noopener noreferrer" @endif>فتح النموذج</a>
+                        @endif
+
                         <a href="{{ route('form-links.print', $formLink) }}" class="btn btn-secondary" target="_blank" rel="noopener noreferrer">فتح للطباعة</a>
                         <a href="{{ $legacyPreviewUrl }}" class="btn btn-legacy-preview">معاينة الطباعة القديمة</a>
 

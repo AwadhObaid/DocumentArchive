@@ -81,6 +81,9 @@ class ApplyRoutePermissions
         'book-subjects.*' => 'book_subjects.manage',
 
         'form-links.index' => 'form_links.view',
+        'form-links.preview' => 'form_links.view',
+        'form-links.inline' => 'form_links.view',
+        'form-links.download' => 'form_links.view',
         'form-links.print' => 'form_links.view',
         'form-links.create' => 'form_links.manage',
         'form-links.store' => 'form_links.manage',

@@ -45,4 +45,14 @@ class FormLink extends Model
     {
         return $this->belongsTo(User::class, 'updated_by');
     }
+
+    public function templateFields()
+    {
+        return $this->hasMany(FormTemplateField::class);
+    }
+
+    public function formSubmissions()
+    {
+        return $this->hasMany(FormSubmission::class);
+    }
 }

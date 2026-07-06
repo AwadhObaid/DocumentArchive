@@ -7,7 +7,7 @@
     <div class="form-group">
         <label>رابط النموذج</label>
         <input type="text" name="url" value="{{ old('url', $formLink->url) }}" required dir="ltr" placeholder="https://example.com/form أو /documents/create">
-        <small class="hint">يقبل رابطاً خارجياً يبدأ بـ https:// أو مساراً داخلياً يبدأ بـ /.</small>
+        <small class="hint">يقبل رابطاً خارجياً يبدأ بـ https:// أو مساراً داخلياً يبدأ بـ /. لملفات PDF المحلية ضع الملف داخل public/forms واستخدم مثال: /forms/Instead_shift.pdf</small>
     </div>
 
     <div class="form-group">

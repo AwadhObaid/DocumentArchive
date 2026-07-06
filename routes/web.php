@@ -213,6 +213,19 @@ Route::middleware(['auth', ApplyRoutePermissions::class])->group(function () {
         ->name('users.deactivate');
 
 
+    Route::get('/form-links/{formLink}/preview', [FormLinkController::class, 'preview'])
+        ->name('form-links.preview');
+
+    Route::get('/form-links/{formLink}/inline/{filename}', [FormLinkController::class, 'inline'])
+        ->where('filename', '.*')
+        ->name('form-links.inline.file');
+
+    Route::get('/form-links/{formLink}/inline', [FormLinkController::class, 'inline'])
+        ->name('form-links.inline');
+
+    Route::get('/form-links/{formLink}/download', [FormLinkController::class, 'download'])
+        ->name('form-links.download');
+
     Route::get('/form-links/{formLink}/print', [FormLinkController::class, 'print'])
         ->name('form-links.print');
 

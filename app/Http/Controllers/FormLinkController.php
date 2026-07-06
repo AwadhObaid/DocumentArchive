@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\FormLink;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\File;
 use Illuminate\Validation\ValidationException;
 
 class FormLinkController extends Controller
@@ -142,6 +143,82 @@ class FormLinkController extends Controller
             ->with('success', 'تم حذف النموذج بنجاح.');
     }
 
+
+    public function preview(Request $request, FormLink $formLink)
+    {
+        $this->authorizeFormLinkView($request, $formLink);
+
+        $sourceUrl = trim((string) $formLink->url);
+        $localFile = $this->localPublicFileInfo($sourceUrl);
+        $fileName = $localFile['file_name'] ?? basename(parse_url($sourceUrl, PHP_URL_PATH) ?: $sourceUrl);
+        $extension = strtolower(pathinfo((string) $fileName, PATHINFO_EXTENSION));
+        $mimeType = $localFile['mime_type'] ?? $this->mimeTypeForExtension($extension);
+        $isLocalFile = (bool) $localFile;
+        $isPdf = $extension === 'pdf' || str_contains(strtolower((string) $mimeType), 'pdf');
+        $isImage = in_array($extension, ['jpg', 'jpeg', 'png', 'gif', 'webp', 'bmp', 'svg'], true)
+            || str_starts_with(strtolower((string) $mimeType), 'image/');
+        $publicUrl = $localFile['public_url'] ?? $sourceUrl;
+        $inlineUrl = $isLocalFile
+            ? route('form-links.inline.file', ['formLink' => $formLink, 'filename' => $fileName])
+            : $sourceUrl;
+        $downloadUrl = $isLocalFile ? route('form-links.download', $formLink) : $sourceUrl;
+
+        return view('form-links.preview', compact(
+            'formLink',
+            'sourceUrl',
+            'fileName',
+            'extension',
+            'mimeType',
+            'isLocalFile',
+            'isPdf',
+            'isImage',
+            'publicUrl',
+            'inlineUrl',
+            'downloadUrl'
+        ));
+    }
+
+    public function inline(Request $request, FormLink $formLink, ?string $filename = null)
+    {
+        $this->authorizeFormLinkView($request, $formLink);
+
+        $file = $this->localPublicFileInfo(trim((string) $formLink->url));
+
+        if (! $file) {
+            abort(404, 'هذا النموذج ليس ملفاً محلياً قابلاً للمعاينة داخل النظام.');
+        }
+
+        $extension = strtolower(pathinfo($file['file_name'], PATHINFO_EXTENSION));
+        $mimeType = $file['mime_type'] ?: $this->mimeTypeForExtension($extension);
+        $inlineName = $file['file_name'] ?: ('form-preview.' . ($extension ?: 'bin'));
+        if ($filename !== null && basename($filename) !== $file['file_name']) {
+            // Keep the real stored file name in the response, but allow the route to end with .pdf
+            // so Chrome's built-in PDF viewer treats the URL as a previewable PDF resource.
+            $inlineName = $file['file_name'];
+        }
+
+        return response()->file($file['path'], [
+            'Content-Type' => $mimeType,
+            'Content-Disposition' => 'inline; filename="' . $inlineName . '"',
+            'Cache-Control' => 'private, max-age=0, must-revalidate',
+            'Pragma' => 'public',
+            'X-Content-Type-Options' => 'nosniff',
+        ]);
+    }
+
+    public function download(Request $request, FormLink $formLink)
+    {
+        $this->authorizeFormLinkView($request, $formLink);
+
+        $file = $this->localPublicFileInfo(trim((string) $formLink->url));
+
+        if (! $file) {
+            return redirect()->away($formLink->url);
+        }
+
+        return response()->download($file['path'], $file['file_name']);
+    }
+
     public function print(Request $request, FormLink $formLink)
     {
         $canManage = (bool) $request->user()?->hasPermission('form_links.manage');
@@ -184,6 +261,85 @@ class FormLinkController extends Controller
         }
 
         return view('form-links.print', compact('formLink', 'sourceUrl', 'scale', 'margin', 'printableHtml', 'fetchError'));
+    }
+
+
+    private function authorizeFormLinkView(Request $request, FormLink $formLink): void
+    {
+        $canManage = (bool) $request->user()?->hasPermission('form_links.manage');
+
+        if (! $formLink->is_active && ! $canManage) {
+            abort(404);
+        }
+    }
+
+    private function localPublicFileInfo(string $url): ?array
+    {
+        $url = trim($url);
+
+        if ($url === '' || str_starts_with($url, '//') || ! str_starts_with($url, '/')) {
+            return null;
+        }
+
+        $path = parse_url($url, PHP_URL_PATH);
+        $path = rawurldecode((string) ($path ?: $url));
+        $path = str_replace('\\', '/', $path);
+        $path = ltrim($path, '/');
+
+        if ($path === '' || str_contains($path, '../') || str_contains($path, '..\\') || str_starts_with($path, '..')) {
+            return null;
+        }
+
+        $fullPath = public_path($path);
+
+        if (! File::exists($fullPath) || ! File::isFile($fullPath)) {
+            return null;
+        }
+
+        $publicRoot = realpath(public_path());
+        $realPath = realpath($fullPath);
+
+        if (! $publicRoot || ! $realPath || ! str_starts_with($realPath, $publicRoot . DIRECTORY_SEPARATOR)) {
+            return null;
+        }
+
+        $fileName = basename($realPath);
+        $extension = strtolower(pathinfo($fileName, PATHINFO_EXTENSION));
+
+        return [
+            'path' => $realPath,
+            'file_name' => $fileName,
+            'extension' => $extension,
+            'mime_type' => $this->mimeTypeForExtension($extension),
+            'size' => File::size($realPath),
+            'public_url' => url($this->encodePublicPath('/' . $path)),
+        ];
+    }
+
+
+    private function encodePublicPath(string $path): string
+    {
+        $path = '/' . ltrim(str_replace('\\', '/', $path), '/');
+
+        $segments = array_map(static function ($segment) {
+            return rawurlencode(rawurldecode($segment));
+        }, explode('/', trim($path, '/')));
+
+        return '/' . implode('/', $segments);
+    }
+
+    private function mimeTypeForExtension(?string $extension): string
+    {
+        return match (strtolower((string) $extension)) {
+            'pdf' => 'application/pdf',
+            'jpg', 'jpeg' => 'image/jpeg',
+            'png' => 'image/png',
+            'gif' => 'image/gif',
+            'webp' => 'image/webp',
+            'bmp' => 'image/bmp',
+            'svg' => 'image/svg+xml',
+            default => 'application/octet-stream',
+        };
     }
 
     private function validatedData(Request $request): array
