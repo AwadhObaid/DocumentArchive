@@ -34,6 +34,9 @@ class SystemNotificationService
                 'events.attachment_uploaded' => ['label' => 'رفع مرفق', 'description' => 'إشعار عند رفع مرفق جديد لكتاب.'],
                 'events.attachment_deleted' => ['label' => 'حذف مرفق', 'description' => 'إشعار عند حذف مرفق من كتاب.'],
             ],
+            'internal_messages' => [
+                'internal_messages.new_message' => ['label' => 'رسالة داخلية جديدة', 'description' => 'إشعار عند وصول مراسلة داخلية أو إحالة كتاب/مذكرة لمستخدم.'],
+            ],
             'flash' => [
                 'flash.success' => ['label' => 'رسائل النجاح العامة', 'description' => 'حفظ رسائل النجاح العامة داخل مركز الإشعارات. ملاحظة: رسائل الكتب التي يمكن تمييزها تخضع لإعداد أحداث الكتب.'],
                 'flash.warning' => ['label' => 'رسائل التحذير', 'description' => 'حفظ رسائل التحذير المهمة.'],
@@ -323,6 +326,7 @@ class SystemNotificationService
             $normalized = str_replace(['document.', 'attachment.', 'documents.', 'attachments.'], ['', '', '', ''], $value);
             $normalized = str_replace(['-', ' '], '_', $normalized);
             if (str_starts_with($value, 'events.')) { return $value; }
+            if (str_starts_with($value, 'internal_messages.')) { return $value; }
             if (in_array($normalized, ['document_created', 'created', 'create_document', 'store_document'], true)) { return 'events.document_created'; }
             if (in_array($normalized, ['document_updated', 'updated', 'update_document'], true)) { return 'events.document_updated'; }
             if (in_array($normalized, ['document_deleted', 'deleted', 'delete_document', 'trashed'], true)) { return 'events.document_deleted'; }
@@ -337,6 +341,10 @@ class SystemNotificationService
 
         if ($source === 'system_monitor' && is_string($uniqueKey) && str_starts_with($uniqueKey, 'system:')) {
             return 'system.' . substr($uniqueKey, strlen('system:'));
+        }
+
+        if ($type === 'internal_message' || $source === 'internal_messages') {
+            return 'internal_messages.new_message';
         }
 
         // Exact event type support.

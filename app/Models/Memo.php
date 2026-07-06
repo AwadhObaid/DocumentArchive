@@ -53,6 +53,11 @@ class Memo extends Model
         return $this->hasOne(MemoAttachment::class)->where('is_main', true);
     }
 
+    public function internalMessages()
+    {
+        return $this->hasMany(InternalMessage::class);
+    }
+
     public function getStatusNameAttribute(): string
     {
         return match ($this->status) {

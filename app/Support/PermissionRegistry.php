@@ -95,6 +95,16 @@ class PermissionRegistry
                     'message_templates.manage' => 'إضافة وتعديل وحذف قوالب الرسائل',
                 ],
             ],
+
+            [
+                'key' => 'internal_messages',
+                'label' => 'المراسلات الداخلية',
+                'permissions' => [
+                    'internal_messages.view' => 'عرض المراسلات الداخلية',
+                    'internal_messages.send' => 'إرسال مراسلات داخلية وربط الكتب والمذكرات',
+                    'internal_messages.manage' => 'إدارة جميع المراسلات الداخلية',
+                ],
+            ],
             [
                 'key' => 'emails',
                 'label' => 'البريد الإلكتروني',
@@ -241,6 +251,7 @@ class PermissionRegistry
                 'whatsapp.view',
                 'contacts.view',
                 'message_templates.view',
+                'internal_messages.view',
             ];
         }
 
@@ -266,6 +277,8 @@ class PermissionRegistry
             'emails.send',
             'whatsapp.view',
             'whatsapp.send',
+            'internal_messages.view',
+            'internal_messages.send',
         ];
     }
 }

@@ -58,6 +58,17 @@ class ApplyRoutePermissions
 
         'activity-logs.*' => 'activity_logs.view',
 
+
+        'internal-messages.index' => 'internal_messages.view',
+        'internal-messages.create' => 'internal_messages.send',
+        'internal-messages.store' => 'internal_messages.send',
+        'internal-messages.show' => 'internal_messages.view',
+        'internal-messages.archive' => 'internal_messages.view',
+        'internal-messages.attachments.inline' => 'internal_messages.view',
+        'internal-messages.attachments.download' => 'internal_messages.view',
+        'documents.internal-message.create' => 'internal_messages.send',
+        'memos.internal-message.create' => 'internal_messages.send',
+
         'reports.index' => 'reports.view',
         'reports.print' => 'reports.view',
         'reports.export' => 'reports.export',

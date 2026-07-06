@@ -7,6 +7,8 @@
         && $currentUser->hasPermission('memos.attachments');
     $canEditMemo = $currentUser && method_exists($currentUser, 'hasPermission')
         && $currentUser->hasPermission('memos.edit');
+    $canSendInternalMemo = $currentUser && method_exists($currentUser, 'hasPermission')
+        && $currentUser->hasPermission('internal_messages.send');
 
     $memoValue = function ($value, string $fallback = '-') {
         if ($value === null || $value === '') {
@@ -109,6 +111,9 @@
         <a href="{{ route('memos.index') }}" class="btn btn-light">رجوع</a>
         @if($canEditMemo)
             <a href="{{ route('memos.edit', $memo) }}" class="btn btn-primary">تعديل</a>
+        @endif
+        @if($canSendInternalMemo)
+            <a href="{{ route('memos.internal-message.create', $memo) }}" class="btn btn-info">إرسال داخلي</a>
         @endif
     </div>
 </div>

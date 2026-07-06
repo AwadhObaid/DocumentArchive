@@ -14,6 +14,7 @@ use App\Http\Controllers\ContactController;
 use App\Http\Controllers\MessageTemplateController;
 use App\Http\Controllers\MemoController;
 use App\Http\Controllers\LiteController;
+use App\Http\Controllers\InternalMessageController;
 use App\Http\Controllers\SessionActivityController;
 use App\Http\Controllers\WhatsappController;
 use App\Http\Controllers\SharedAttachmentLinkController;
@@ -66,6 +67,18 @@ Route::middleware(['auth', ApplyRoutePermissions::class])->group(function () {
     });
 
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
+
+    Route::get('/internal-messages', [InternalMessageController::class, 'index'])->name('internal-messages.index');
+    Route::get('/internal-messages/create', [InternalMessageController::class, 'create'])->name('internal-messages.create');
+    Route::post('/internal-messages', [InternalMessageController::class, 'store'])->name('internal-messages.store');
+    Route::get('/internal-messages/{internalMessage}', [InternalMessageController::class, 'show'])->name('internal-messages.show');
+    Route::patch('/internal-messages/{internalMessage}/archive', [InternalMessageController::class, 'archive'])->name('internal-messages.archive');
+    Route::get('/internal-messages/{internalMessage}/attachments/{attachment}/preview', [InternalMessageController::class, 'previewAttachment'])->name('internal-messages.attachments.preview');
+    Route::get('/internal-messages/{internalMessage}/attachments/{attachment}/data', [InternalMessageController::class, 'attachmentData'])->name('internal-messages.attachments.data');
+    Route::get('/internal-messages/{internalMessage}/attachments/{attachment}/inline', [InternalMessageController::class, 'inlineAttachment'])->name('internal-messages.attachments.inline');
+    Route::get('/internal-messages/{internalMessage}/attachments/{attachment}/download', [InternalMessageController::class, 'downloadAttachment'])->name('internal-messages.attachments.download');
+    Route::get('/documents/{document}/internal-send', [InternalMessageController::class, 'createForDocument'])->name('documents.internal-message.create');
+    Route::get('/memos/{memo}/internal-send', [InternalMessageController::class, 'createForMemo'])->name('memos.internal-message.create');
     Route::get('/system-health', [SystemHealthController::class, 'index'])
         ->name('system-health.index');
     Route::get('/data-quality', [DataQualityController::class, 'index'])

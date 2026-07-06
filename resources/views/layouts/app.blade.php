@@ -52,6 +52,8 @@
     <link rel="stylesheet" href="{{ asset('css/whatsapp-module.css') }}?v={{ filemtime(public_path('css/whatsapp-module.css')) }}">
     {{-- DocumentArchive secure attachment share links --}}
     <link rel="stylesheet" href="{{ asset('css/shared-attachments.css') }}?v={{ filemtime(public_path('css/shared-attachments.css')) }}">
+    {{-- DocumentArchive internal messages --}}
+    <link rel="stylesheet" href="{{ asset('css/internal-messages.css') }}?v={{ filemtime(public_path('css/internal-messages.css')) }}">
     {{-- DocumentArchive auto logout --}}
     <link rel="stylesheet" href="{{ asset('css/auto-logout.css') }}?v={{ filemtime(public_path('css/auto-logout.css')) }}">
 </head>
@@ -82,6 +84,26 @@
             @endif
 
             <a href="{{ route('lite.index') }}" class="{{ request()->routeIs('lite.*') ? 'active' : '' }}">📱 نسخة الهاتف لايت</a>
+
+
+            @if(auth()->user()?->hasPermission('internal_messages.view'))
+                @php
+                    $daInternalMessagesUnread = 0;
+                    try {
+                        if (\Illuminate\Support\Facades\Schema::hasTable('internal_messages')) {
+                            $daInternalMessagesUnread = \App\Models\InternalMessage::query()->unreadFor((int) auth()->id())->count();
+                        }
+                    } catch (\Throwable $e) {
+                        $daInternalMessagesUnread = 0;
+                    }
+                @endphp
+                <a href="{{ route('internal-messages.index') }}" class="{{ request()->routeIs('internal-messages.*') || request()->routeIs('documents.internal-message.*') || request()->routeIs('memos.internal-message.*') ? 'active' : '' }}">
+                    💌 المراسلات الداخلية
+                    @if($daInternalMessagesUnread > 0)
+                        <span class="side-nav-badge">{{ $daInternalMessagesUnread > 99 ? '99+' : $daInternalMessagesUnread }}</span>
+                    @endif
+                </a>
+            @endif
 
             @if(auth()->user()?->hasPermission('documents.view'))
                 <a href="{{ route('documents.index') }}" class="{{ request()->routeIs('documents.index') ? 'active' : '' }}">📄 الكتب</a>

@@ -23,6 +23,8 @@
         && $currentUser->hasPermission('whatsapp.send');
     $canShareAttachments = $currentUser && method_exists($currentUser, 'hasPermission')
         && $currentUser->hasPermission('attachment_shares.create');
+    $canSendInternal = $currentUser && method_exists($currentUser, 'hasPermission')
+        && $currentUser->hasPermission('internal_messages.send');
 
     $arabicDocumentValue = function (string $field, $raw) {
         if ($raw === null || $raw === '') {
@@ -147,6 +149,9 @@
             @endif
             @if($canShareAttachments && $attachmentsList->count())
                 <a href="{{ route('documents.shared-attachments.create', $document) }}" class="btn btn-secondary">رابط مرفقات آمن</a>
+            @endif
+            @if($canSendInternal)
+                <a href="{{ route('documents.internal-message.create', $document) }}" class="btn btn-primary">إرسال داخلي</a>
             @endif
         @endif
     </div>

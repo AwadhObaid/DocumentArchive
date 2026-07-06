@@ -112,7 +112,7 @@
     #memosTableScroll .memos-table th:nth-child(7),
     #memosTableScroll .memos-table td:nth-child(7) { min-width: 115px !important; }
     #memosTableScroll .memos-table th:nth-child(8),
-    #memosTableScroll .memos-table td:nth-child(8) { min-width: 650px !important; }
+    #memosTableScroll .memos-table td:nth-child(8) { min-width: 760px !important; }
 
     #memosTableScroll .memos-actions {
         display: inline-flex !important;
@@ -310,6 +310,9 @@
                                     @endif
                                     @if(auth()->user()?->hasPermission('whatsapp.send'))
                                         <a href="{{ route('memos.whatsapp.compose', $memo) }}" class="btn memo-action-btn btn-memo-whatsapp">إرسال واتساب</a>
+                                    @endif
+                                    @if(auth()->user()?->hasPermission('internal_messages.send'))
+                                        <a href="{{ route('memos.internal-message.create', $memo) }}" class="btn memo-action-btn btn-memo-email">إرسال داخلي</a>
                                     @endif
                                     @if(auth()->user()?->hasPermission('attachment_shares.create') && ($memo->attachments_count ?? 0) > 0)
                                         <a href="{{ route('memos.shared-attachments.create', $memo) }}" class="btn memo-action-btn btn-memo-share">رابط المرفقات</a>

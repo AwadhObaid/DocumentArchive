@@ -592,6 +592,9 @@
                                     @if($can('whatsapp.send'))
                                         <a class="btn btn-success" href="{{ route('documents.whatsapp.compose', $document) }}">إرسال واتساب</a>
                                     @endif
+                                    @if($can('internal_messages.send'))
+                                        <a class="btn btn-primary" href="{{ route('documents.internal-message.create', $document) }}">إرسال داخلي</a>
+                                    @endif
                                     @if($can('attachment_shares.create') && $attachmentsCount > 0)
                                         <a class="btn btn-secondary" href="{{ route('documents.shared-attachments.create', $document) }}">رابط مرفقات</a>
                                     @endif
@@ -660,6 +663,9 @@
                                 @endif
                                 @if($can('whatsapp.send'))
                                     <a class="btn btn-success" href="{{ route('documents.whatsapp.compose', $document) }}">إرسال واتساب</a>
+                                @endif
+                                @if($can('internal_messages.send'))
+                                    <a class="btn btn-primary" href="{{ route('documents.internal-message.create', $document) }}">إرسال داخلي</a>
                                 @endif
                                 @if($can('attachment_shares.create') && $attachmentsCount > 0)
                                     <a class="btn btn-secondary" href="{{ route('documents.shared-attachments.create', $document) }}">رابط مرفقات</a>

@@ -95,6 +95,12 @@ class Document extends Model
     }
 
 
+    public function internalMessages()
+    {
+        return $this->hasMany(InternalMessage::class);
+    }
+
+
     public function sharedAttachmentLinks()
     {
         return $this->hasMany(SharedAttachmentLink::class);

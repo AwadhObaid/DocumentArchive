@@ -87,6 +87,22 @@ class User extends Authenticatable
     }
 
 
+
+    public function sentInternalMessages()
+    {
+        return $this->hasMany(InternalMessage::class, 'sender_id');
+    }
+
+    public function receivedInternalMessages()
+    {
+        return $this->hasMany(InternalMessage::class, 'receiver_id');
+    }
+
+    public function uploadedInternalMessageAttachments()
+    {
+        return $this->hasMany(InternalMessageAttachment::class, 'uploaded_by');
+    }
+
     public function createdSharedAttachmentLinks()
     {
         return $this->hasMany(SharedAttachmentLink::class, 'created_by');
