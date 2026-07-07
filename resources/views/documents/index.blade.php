@@ -517,6 +517,7 @@
                     <th>الإدارة</th>
                     <th>النوع</th>
                     <th>الحالة</th>
+                    <th>الاعتماد</th>
                     <th>الأولوية</th>
                     <th>المرفقات</th>
                     <th>حالة السجل</th>
@@ -558,6 +559,7 @@
                         <td>{{ $document->department?->name ?? '-' }}</td>
                         <td>{{ $document->documentType?->name ?? '-' }}</td>
                         <td><span class="pill">{{ $document->status_name ?? $statusLabel($document->status ?? null) }}</span></td>
+                        <td><span class="workflow-status-badge workflow-status-{{ $document->workflow_status ?: 'draft' }}">{{ $document->workflow_status_name ?? \App\Models\WorkflowAction::statusName($document->workflow_status ?? 'draft') }}</span></td>
                         <td><span class="pill {{ $priorityClass }}">{{ $document->priority_name ?? $priorityLabel($document->priority ?? null) }}</span></td>
                         <td>
                             @if($attachmentsCount > 0)
@@ -580,7 +582,7 @@
                                     @if($can('documents.view'))
                                         <a class="btn btn-secondary" href="{{ route('documents.show', $document) }}">عرض</a>
                                     @endif
-                                    @if($can('documents.edit'))
+                                    @if($can('documents.edit') && (! method_exists($document, 'canBeModifiedBy') || $document->canBeModifiedBy(auth()->user())))
                                         <a class="btn btn-primary" href="{{ route('documents.edit', $document) }}">تعديل</a>
                                     @endif
                                     @if($can('documents.print'))
@@ -598,7 +600,7 @@
                                     @if($can('attachment_shares.create') && $attachmentsCount > 0)
                                         <a class="btn btn-secondary" href="{{ route('documents.shared-attachments.create', $document) }}">رابط مرفقات</a>
                                     @endif
-                                    @if($can('documents.delete') || $can('documents.destroy'))
+                                    @if(($can('documents.delete') || $can('documents.destroy')) && (! method_exists($document, 'canBeModifiedBy') || $document->canBeModifiedBy(auth()->user())))
                                         <form method="POST" action="{{ route('documents.destroy', $document) }}" data-confirm="هل أنت متأكد من حذف هذا الكتاب؟">
                                             @csrf
                                             @method('DELETE')
@@ -620,7 +622,7 @@
                     </tr>
                 @empty
                     <tr>
-                        <td colspan="12" class="empty-documents">لا توجد كتب مطابقة لمعايير البحث الحالية.</td>
+                        <td colspan="13" class="empty-documents">لا توجد كتب مطابقة لمعايير البحث الحالية.</td>
                     </tr>
                 @endforelse
                 </tbody>
@@ -646,13 +648,14 @@
                             <div class="mobile-info-item"><span>النوع</span><strong>{{ $document->documentType?->name ?? '-' }}</strong></div>
                             <div class="mobile-info-item"><span>المرفقات</span><strong>{{ $attachmentsCount > 0 ? $attachmentsCount . ' مرفق' : 'لا يوجد' }}</strong></div>
                             <div class="mobile-info-item"><span>حالة السجل</span><strong>{{ $isTrashed ? 'محذوف' : 'نشط' }}</strong></div>
+                            <div class="mobile-info-item"><span>الاعتماد</span><strong>{{ $document->workflow_status_name ?? \App\Models\WorkflowAction::statusName($document->workflow_status ?? 'draft') }}</strong></div>
                         </div>
                         <div class="actions">
                             @if(!$isTrashed)
                                 @if($can('documents.view'))
                                     <a class="btn btn-secondary" href="{{ route('documents.show', $document) }}">عرض</a>
                                 @endif
-                                @if($can('documents.edit'))
+                                @if($can('documents.edit') && (! method_exists($document, 'canBeModifiedBy') || $document->canBeModifiedBy(auth()->user())))
                                     <a class="btn btn-primary" href="{{ route('documents.edit', $document) }}">تعديل</a>
                                 @endif
                                 @if($can('documents.print'))

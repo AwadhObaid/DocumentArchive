@@ -30,6 +30,14 @@ class Document extends Model
         'created_by',
 
         'status',
+        'workflow_status',
+        'workflow_note',
+        'workflow_submitted_by',
+        'workflow_submitted_at',
+        'workflow_reviewed_by',
+        'workflow_reviewed_at',
+        'workflow_finalized_by',
+        'workflow_finalized_at',
         'confidentiality',
         'priority',
 
@@ -48,6 +56,9 @@ class Document extends Model
             'reference_sequence' => 'integer',
             'reference_date' => 'date',
             'deleted_at' => 'datetime',
+            'workflow_submitted_at' => 'datetime',
+            'workflow_reviewed_at' => 'datetime',
+            'workflow_finalized_at' => 'datetime',
 
             'print_top_mm' => 'decimal:2',
             'print_left_mm' => 'decimal:2',
@@ -104,6 +115,51 @@ class Document extends Model
     public function sharedAttachmentLinks()
     {
         return $this->hasMany(SharedAttachmentLink::class);
+    }
+
+
+    public function workflowActions()
+    {
+        return $this->morphMany(WorkflowAction::class, 'workflowable')->latest();
+    }
+
+    public function workflowSubmitter()
+    {
+        return $this->belongsTo(User::class, 'workflow_submitted_by');
+    }
+
+    public function workflowReviewer()
+    {
+        return $this->belongsTo(User::class, 'workflow_reviewed_by');
+    }
+
+    public function workflowFinalizer()
+    {
+        return $this->belongsTo(User::class, 'workflow_finalized_by');
+    }
+
+    public function getWorkflowStatusNameAttribute(): string
+    {
+        return WorkflowAction::statusName($this->workflow_status ?: 'draft');
+    }
+
+    public function isWorkflowFinalized(): bool
+    {
+        return ($this->workflow_status ?: 'draft') === 'final_archived';
+    }
+
+    public function isWorkflowLocked(): bool
+    {
+        return $this->isWorkflowFinalized();
+    }
+
+    public function canBeModifiedBy(?User $user): bool
+    {
+        if (! $this->isWorkflowLocked()) {
+            return true;
+        }
+
+        return $user && method_exists($user, 'hasPermission') && $user->hasPermission('workflow.override');
     }
 
     public function getFormattedDateAttribute(): string

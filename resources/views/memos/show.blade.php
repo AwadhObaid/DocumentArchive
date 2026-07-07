@@ -6,7 +6,8 @@
     $canUseMemoAttachments = $currentUser && method_exists($currentUser, 'hasPermission')
         && $currentUser->hasPermission('memos.attachments');
     $canEditMemo = $currentUser && method_exists($currentUser, 'hasPermission')
-        && $currentUser->hasPermission('memos.edit');
+        && $currentUser->hasPermission('memos.edit')
+        && (! method_exists($memo, 'canBeModifiedBy') || $memo->canBeModifiedBy($currentUser));
     $canSendInternalMemo = $currentUser && method_exists($currentUser, 'hasPermission')
         && $currentUser->hasPermission('internal_messages.send');
 
@@ -140,6 +141,8 @@
         </table>
     </div>
 </div>
+
+@include('partials.workflow-panel', ['record' => $memo, 'type' => 'memo'])
 
 <div class="card mt-4 memo-attachments-card">
     <div class="card-header">

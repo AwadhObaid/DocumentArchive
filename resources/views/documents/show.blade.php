@@ -25,6 +25,9 @@
         && $currentUser->hasPermission('attachment_shares.create');
     $canSendInternal = $currentUser && method_exists($currentUser, 'hasPermission')
         && $currentUser->hasPermission('internal_messages.send');
+    $canEditDocument = $currentUser && method_exists($currentUser, 'hasPermission')
+        && $currentUser->hasPermission('documents.edit')
+        && (! method_exists($document, 'canBeModifiedBy') || $document->canBeModifiedBy($currentUser));
 
     $arabicDocumentValue = function (string $field, $raw) {
         if ($raw === null || $raw === '') {
@@ -138,7 +141,9 @@
     <div class="page-actions no-print" style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;">
         <a href="{{ url('/documents') }}" class="btn btn-light">رجوع</a>
         @if($docId)
-            <a href="{{ url('/documents/'.$docId.'/edit') }}" class="btn btn-primary">تعديل</a>
+            @if($canEditDocument)
+                <a href="{{ url('/documents/'.$docId.'/edit') }}" class="btn btn-primary">تعديل</a>
+            @endif
             <a href="{{ url('/documents/'.$docId.'/activity') }}" class="btn btn-info">سجل الحركة</a>
             <a href="{{ url('/documents/'.$docId.'/print-reference') }}" class="btn btn-warning">طباعة رقم الكتاب</a>
             @if($canSendEmail)
@@ -183,6 +188,8 @@
         </table>
     </div>
 </div>
+
+@include('partials.workflow-panel', ['record' => $document, 'type' => 'document'])
 
 <div class="card mt-4 document-attachments-card">
     <div class="card-header">

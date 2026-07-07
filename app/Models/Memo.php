@@ -19,6 +19,14 @@ class Memo extends Model
         'sender',
         'receiver',
         'status',
+        'workflow_status',
+        'workflow_note',
+        'workflow_submitted_by',
+        'workflow_submitted_at',
+        'workflow_reviewed_by',
+        'workflow_reviewed_at',
+        'workflow_finalized_by',
+        'workflow_finalized_at',
         'notes',
         'search_text',
         'created_by',
@@ -30,6 +38,9 @@ class Memo extends Model
             'memo_sequence' => 'integer',
             'memo_date' => 'date',
             'deleted_at' => 'datetime',
+            'workflow_submitted_at' => 'datetime',
+            'workflow_reviewed_at' => 'datetime',
+            'workflow_finalized_at' => 'datetime',
         ];
     }
 
@@ -56,6 +67,51 @@ class Memo extends Model
     public function internalMessages()
     {
         return $this->hasMany(InternalMessage::class);
+    }
+
+
+    public function workflowActions()
+    {
+        return $this->morphMany(WorkflowAction::class, 'workflowable')->latest();
+    }
+
+    public function workflowSubmitter()
+    {
+        return $this->belongsTo(User::class, 'workflow_submitted_by');
+    }
+
+    public function workflowReviewer()
+    {
+        return $this->belongsTo(User::class, 'workflow_reviewed_by');
+    }
+
+    public function workflowFinalizer()
+    {
+        return $this->belongsTo(User::class, 'workflow_finalized_by');
+    }
+
+    public function getWorkflowStatusNameAttribute(): string
+    {
+        return WorkflowAction::statusName($this->workflow_status ?: 'draft');
+    }
+
+    public function isWorkflowFinalized(): bool
+    {
+        return ($this->workflow_status ?: 'draft') === 'final_archived';
+    }
+
+    public function isWorkflowLocked(): bool
+    {
+        return $this->isWorkflowFinalized();
+    }
+
+    public function canBeModifiedBy(?User $user): bool
+    {
+        if (! $this->isWorkflowLocked()) {
+            return true;
+        }
+
+        return $user && method_exists($user, 'hasPermission') && $user->hasPermission('workflow.override');
     }
 
     public function getStatusNameAttribute(): string

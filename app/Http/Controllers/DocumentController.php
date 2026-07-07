@@ -476,6 +476,7 @@ class DocumentController extends Controller
                 'created_by' => Auth::id(),
 
                 'status' => 'active',
+                'workflow_status' => 'draft',
                 'confidentiality' => $validated['confidentiality'],
                 'priority' => $validated['priority'],
 
@@ -508,13 +509,15 @@ class DocumentController extends Controller
 
     public function show(Document $document)
     {
-        $document->load(['department', 'documentType', 'bookSubject', 'attachments']);
+        $document->load(['department', 'documentType', 'bookSubject', 'attachments', 'workflowActions.actor', 'workflowSubmitter', 'workflowReviewer', 'workflowFinalizer']);
 
         return view('documents.show', compact('document'));
     }
 
     public function edit(Document $document)
     {
+        $this->ensureDocumentCanBeModified($document);
+
         $departments = Department::query()
             ->where('is_active', true)
             ->orderBy('name')
@@ -543,6 +546,8 @@ class DocumentController extends Controller
 
     public function update(Request $request, Document $document)
     {
+        $this->ensureDocumentCanBeModified($document);
+
         $validated = $request->validate([
             'reference_date' => ['required', 'date'],
             'main_policy_number' => ['nullable', 'string', 'max:255'],
@@ -610,6 +615,8 @@ class DocumentController extends Controller
 
     public function destroy(Document $document)
     {
+        $this->ensureDocumentCanBeModified($document);
+
         ActivityLogger::log(
             'document.deleted',
             'تم حذف الكتاب رقم ' . $document->reference_number . ' ونقله إلى سلة المحذوفات',
@@ -957,6 +964,14 @@ class DocumentController extends Controller
 
         abort_unless($allowed, 403, 'غير مصرح لك بتنزيل هذا المرفق.');
     }
+
+    private function ensureDocumentCanBeModified(Document $document): void
+    {
+        if (method_exists($document, 'canBeModifiedBy') && ! $document->canBeModifiedBy(Auth::user())) {
+            abort(403, 'هذا الكتاب مؤرشف نهائيًا ولا يمكن تعديله أو حذفه إلا بصلاحية عليا.');
+        }
+    }
+
     private function storeAttachment(Request $request, Document $document): void
     {
         $file = $request->file('attachment');

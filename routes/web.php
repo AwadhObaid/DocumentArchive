@@ -21,6 +21,7 @@ use App\Http\Controllers\SharedAttachmentLinkController;
 use App\Http\Controllers\FormLinkController;
 use App\Http\Controllers\SettingsController;
 use App\Http\Controllers\SystemAboutController;
+use App\Http\Controllers\WorkflowController;
 use App\Http\Controllers\SystemHealthController;
 use App\Http\Controllers\DataQualityController;
 use App\Http\Controllers\UserController;
@@ -107,6 +108,22 @@ Route::middleware(['auth', ApplyRoutePermissions::class])->group(function () {
 
     Route::get('/documents/{document}/activity', [ActivityLogController::class, 'document'])
         ->name('documents.activity');
+
+
+    Route::post('/documents/{document}/workflow/submit', [WorkflowController::class, 'submitDocument'])->name('documents.workflow.submit');
+    Route::post('/documents/{document}/workflow/approve', [WorkflowController::class, 'approveDocument'])->name('documents.workflow.approve');
+    Route::post('/documents/{document}/workflow/reject', [WorkflowController::class, 'rejectDocument'])->name('documents.workflow.reject');
+    Route::post('/documents/{document}/workflow/return', [WorkflowController::class, 'returnDocument'])->name('documents.workflow.return');
+    Route::post('/documents/{document}/workflow/finalize', [WorkflowController::class, 'finalizeDocument'])->name('documents.workflow.finalize');
+    Route::post('/documents/{document}/workflow/reopen', [WorkflowController::class, 'reopenDocument'])->name('documents.workflow.reopen');
+
+    Route::post('/memos/{memo}/workflow/submit', [WorkflowController::class, 'submitMemo'])->name('memos.workflow.submit');
+    Route::post('/memos/{memo}/workflow/approve', [WorkflowController::class, 'approveMemo'])->name('memos.workflow.approve');
+    Route::post('/memos/{memo}/workflow/reject', [WorkflowController::class, 'rejectMemo'])->name('memos.workflow.reject');
+    Route::post('/memos/{memo}/workflow/return', [WorkflowController::class, 'returnMemo'])->name('memos.workflow.return');
+    Route::post('/memos/{memo}/workflow/finalize', [WorkflowController::class, 'finalizeMemo'])->name('memos.workflow.finalize');
+    Route::post('/memos/{memo}/workflow/reopen', [WorkflowController::class, 'reopenMemo'])->name('memos.workflow.reopen');
+
 
     Route::get('/documents/trash', [DocumentController::class, 'trash'])
         ->name('documents.trash');

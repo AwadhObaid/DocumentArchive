@@ -37,6 +37,17 @@ class PermissionRegistry
                 ],
             ],
             [
+                'key' => 'workflow',
+                'label' => 'الاعتماد والأرشفة النهائية',
+                'permissions' => [
+                    'workflow.submit' => 'إرسال الكتب والمذكرات للمراجعة',
+                    'workflow.approve' => 'اعتماد الكتب والمذكرات',
+                    'workflow.reject' => 'رفض أو إرجاع الكتب والمذكرات للتعديل',
+                    'workflow.finalize' => 'الأرشفة النهائية ومنع التعديل',
+                    'workflow.override' => 'إعادة فتح السجلات المؤرشفة نهائيًا',
+                ],
+            ],
+            [
                 'key' => 'attachments',
                 'label' => 'المرفقات',
                 'permissions' => [
@@ -268,6 +279,10 @@ class PermissionRegistry
             'memos.create',
             'memos.edit',
             'memos.attachments',
+            'workflow.submit',
+            'workflow.approve',
+            'workflow.reject',
+            'workflow.finalize',
             'attachments.preview',
             'attachments.download',
             'attachment_shares.view',

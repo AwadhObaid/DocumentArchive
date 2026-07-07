@@ -289,6 +289,7 @@
                         <th>الواردة من</th>
                         <th>المرفقات</th>
                         <th>الحالة</th>
+                        <th>الاعتماد</th>
                         <th>إجراءات</th>
                     </tr>
                 </thead>
@@ -302,6 +303,7 @@
                             <td>{{ $memo->sender ?: '-' }}</td>
                             <td>{{ number_format($memo->attachments_count ?? 0) }}</td>
                             <td><span class="memo-status {{ $memo->status }}">{{ $memo->status_name }}</span></td>
+                            <td><span class="workflow-status-badge workflow-status-{{ $memo->workflow_status ?: 'draft' }}">{{ $memo->workflow_status_name ?? \App\Models\WorkflowAction::statusName($memo->workflow_status ?? 'draft') }}</span></td>
                             <td>
                                 <div class="memos-actions">
                                     <a href="{{ route('memos.show', $memo) }}" class="btn memo-action-btn btn-memo-view">عرض</a>
@@ -317,10 +319,10 @@
                                     @if(auth()->user()?->hasPermission('attachment_shares.create') && ($memo->attachments_count ?? 0) > 0)
                                         <a href="{{ route('memos.shared-attachments.create', $memo) }}" class="btn memo-action-btn btn-memo-share">رابط المرفقات</a>
                                     @endif
-                                    @if(auth()->user()?->hasPermission('memos.edit'))
+                                    @if(auth()->user()?->hasPermission('memos.edit') && (! method_exists($memo, 'canBeModifiedBy') || $memo->canBeModifiedBy(auth()->user())))
                                         <a href="{{ route('memos.edit', $memo) }}" class="btn memo-action-btn btn-memo-edit">تعديل</a>
                                     @endif
-                                    @if(auth()->user()?->hasPermission('memos.delete'))
+                                    @if(auth()->user()?->hasPermission('memos.delete') && (! method_exists($memo, 'canBeModifiedBy') || $memo->canBeModifiedBy(auth()->user())))
                                         <form method="POST" action="{{ route('memos.destroy', $memo) }}" data-confirm="هل تريد حذف هذه المذكرة؟">
                                             @csrf
                                             @method('DELETE')
@@ -331,7 +333,7 @@
                             </td>
                         </tr>
                     @empty
-                        <tr><td colspan="8">لا توجد مذكرات مطابقة.</td></tr>
+                        <tr><td colspan="9">لا توجد مذكرات مطابقة.</td></tr>
                     @endforelse
                 </tbody>
             </table>

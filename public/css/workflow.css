@@ -1,0 +1,53 @@
+/* DocumentArchive Workflow Approval */
+.workflow-card {
+    border: 1px solid rgba(59, 130, 246, .22);
+    background: linear-gradient(135deg, rgba(59,130,246,.06), rgba(15,23,42,.02));
+}
+.workflow-header {
+    display:flex;
+    align-items:flex-start;
+    justify-content:space-between;
+    gap:16px;
+    flex-wrap:wrap;
+}
+.workflow-title {
+    display:flex;
+    align-items:center;
+    gap:10px;
+    margin:0;
+    font-size:20px;
+    font-weight:950;
+}
+.workflow-status-badge {
+    display:inline-flex;
+    align-items:center;
+    justify-content:center;
+    padding:7px 12px;
+    border-radius:999px;
+    font-size:13px;
+    font-weight:950;
+    border:1px solid transparent;
+    white-space:nowrap;
+}
+.workflow-status-draft { background:#f8fafc; color:#334155; border-color:#cbd5e1; }
+.workflow-status-under_review { background:#fef3c7; color:#92400e; border-color:#fbbf24; }
+.workflow-status-approved { background:#dcfce7; color:#166534; border-color:#86efac; }
+.workflow-status-rejected { background:#fee2e2; color:#991b1b; border-color:#fca5a5; }
+.workflow-status-returned_for_edit { background:#ffedd5; color:#9a3412; border-color:#fdba74; }
+.workflow-status-final_archived { background:#dbeafe; color:#1e40af; border-color:#93c5fd; }
+html[data-theme="dark"] .workflow-status-draft { background:#1e293b; color:#e2e8f0; border-color:#475569; }
+.workflow-meta-grid { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:12px; margin-top:16px; }
+.workflow-meta-item { padding:12px; border:1px solid rgba(148,163,184,.22); border-radius:14px; background:rgba(255,255,255,.70); }
+html[data-theme="dark"] .workflow-meta-item { background:rgba(15,23,42,.58); }
+.workflow-meta-item span { display:block; color:var(--muted,#64748b); font-size:12px; margin-bottom:6px; font-weight:800; }
+.workflow-meta-item strong { display:block; font-size:14px; font-weight:900; }
+.workflow-actions { display:flex; flex-wrap:wrap; gap:8px; align-items:center; margin-top:16px; }
+.workflow-actions form { display:inline-flex; flex-wrap:wrap; gap:8px; align-items:center; }
+.workflow-actions input[name="note"] { min-width:260px; max-width:420px; }
+.workflow-history { margin-top:16px; border-top:1px dashed rgba(148,163,184,.35); padding-top:14px; }
+.workflow-history-list { display:grid; gap:8px; margin-top:10px; }
+.workflow-history-item { padding:10px 12px; border-radius:12px; background:rgba(148,163,184,.10); border:1px solid rgba(148,163,184,.16); }
+.workflow-history-item .small { color:var(--muted,#64748b); font-size:12px; }
+.workflow-lock-note { margin-top:12px; padding:10px 12px; border-radius:12px; background:#eff6ff; color:#1d4ed8; border:1px solid #bfdbfe; font-weight:850; }
+@media (max-width:900px){ .workflow-meta-grid { grid-template-columns:repeat(2,minmax(0,1fr)); } }
+@media (max-width:560px){ .workflow-meta-grid { grid-template-columns:1fr; } .workflow-actions input[name="note"] { min-width:100%; } }

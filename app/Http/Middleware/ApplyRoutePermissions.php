@@ -31,6 +31,13 @@ class ApplyRoutePermissions
         'documents.check-policy-duplicate' => 'documents.create',
         'documents.next-reference-number' => 'documents.create',
 
+        'documents.workflow.submit' => 'workflow.submit',
+        'documents.workflow.approve' => 'workflow.approve',
+        'documents.workflow.reject' => 'workflow.reject',
+        'documents.workflow.return' => 'workflow.reject',
+        'documents.workflow.finalize' => 'workflow.finalize',
+        'documents.workflow.reopen' => 'workflow.override',
+
         'memos.index' => 'memos.view',
         'memos.show' => 'memos.view',
         'memos.create' => 'memos.create',
@@ -42,6 +49,13 @@ class ApplyRoutePermissions
         'memos.attachments.data' => 'memos.attachments',
         'memos.attachments.inline' => 'memos.attachments',
         'memos.attachments.download' => 'memos.attachments',
+
+        'memos.workflow.submit' => 'workflow.submit',
+        'memos.workflow.approve' => 'workflow.approve',
+        'memos.workflow.reject' => 'workflow.reject',
+        'memos.workflow.return' => 'workflow.reject',
+        'memos.workflow.finalize' => 'workflow.finalize',
+        'memos.workflow.reopen' => 'workflow.override',
 
         'attachments.preview' => 'attachments.preview',
         'attachments.data' => 'attachments.preview',

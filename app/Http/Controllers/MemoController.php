@@ -114,6 +114,7 @@ class MemoController extends Controller
                 'sender' => $this->normalizeNullableText($validated['sender'] ?? null),
                 'receiver' => $this->normalizeNullableText($validated['receiver'] ?? null),
                 'status' => $validated['status'] ?? 'active',
+                'workflow_status' => 'draft',
                 'notes' => $this->normalizeNullableText($validated['notes'] ?? null),
                 'created_by' => Auth::id(),
                 'search_text' => $this->buildSearchText($validated),
@@ -131,7 +132,7 @@ class MemoController extends Controller
 
     public function show(Memo $memo)
     {
-        $memo->load(['department', 'creator', 'attachments.uploader']);
+        $memo->load(['department', 'creator', 'attachments.uploader', 'workflowActions.actor', 'workflowSubmitter', 'workflowReviewer', 'workflowFinalizer']);
 
         return view('memos.show', compact('memo'));
     }
@@ -189,6 +190,8 @@ class MemoController extends Controller
 
     public function edit(Memo $memo)
     {
+        $this->ensureMemoCanBeModified($memo);
+
         $departments = Department::query()->where('is_active', true)->orderBy('name')->get();
         $memo->load(['department', 'attachments']);
 
@@ -197,6 +200,8 @@ class MemoController extends Controller
 
     public function update(Request $request, Memo $memo)
     {
+        $this->ensureMemoCanBeModified($memo);
+
         $validated = $request->validate($this->rules(true), $this->messages());
 
         DB::transaction(function () use ($request, $memo, $validated) {
@@ -208,6 +213,7 @@ class MemoController extends Controller
                 'sender' => $this->normalizeNullableText($validated['sender'] ?? null),
                 'receiver' => $this->normalizeNullableText($validated['receiver'] ?? null),
                 'status' => $validated['status'] ?? 'active',
+                'workflow_status' => 'draft',
                 'notes' => $this->normalizeNullableText($validated['notes'] ?? null),
                 'search_text' => $this->buildSearchText($validated),
             ]);
@@ -222,6 +228,8 @@ class MemoController extends Controller
 
     public function destroy(Memo $memo)
     {
+        $this->ensureMemoCanBeModified($memo);
+
         ActivityLogger::log('memo.deleted', 'تم حذف المذكرة رقم ' . $memo->memo_number, $memo, ['memo_number' => $memo->memo_number]);
 
         $memo->delete();
@@ -300,6 +308,14 @@ class MemoController extends Controller
                 fclose($stream);
             }
         }, $fileName);
+    }
+
+
+    private function ensureMemoCanBeModified(Memo $memo): void
+    {
+        if (method_exists($memo, 'canBeModifiedBy') && ! $memo->canBeModifiedBy(Auth::user())) {
+            abort(403, 'هذه المذكرة مؤرشفة نهائيًا ولا يمكن تعديلها أو حذفها إلا بصلاحية عليا.');
+        }
     }
 
     private function rules(bool $updating = false): array
