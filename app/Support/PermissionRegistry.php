@@ -116,6 +116,15 @@ class PermissionRegistry
             ],
 
             [
+                'key' => 'internal_chat',
+                'label' => 'الدردشة الداخلية السريعة',
+                'permissions' => [
+                    'internal_chat.view' => 'عرض نافذة الدردشة الداخلية',
+                    'internal_chat.send' => 'إرسال رسائل دردشة داخلية',
+                ],
+            ],
+
+            [
                 'key' => 'internal_messages',
                 'label' => 'المراسلات الداخلية',
                 'permissions' => [
@@ -272,6 +281,8 @@ class PermissionRegistry
                 'contacts.view',
                 'message_templates.view',
                 'internal_messages.view',
+                'internal_chat.view',
+                'internal_chat.send',
                 'system_about.view',
                 'pdf_search.view',
             ];
@@ -305,6 +316,8 @@ class PermissionRegistry
             'whatsapp.send',
             'internal_messages.view',
             'internal_messages.send',
+            'internal_chat.view',
+            'internal_chat.send',
             'system_about.view',
             'pdf_search.view',
         ];

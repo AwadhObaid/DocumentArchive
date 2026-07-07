@@ -15,6 +15,7 @@ use App\Http\Controllers\MessageTemplateController;
 use App\Http\Controllers\MemoController;
 use App\Http\Controllers\LiteController;
 use App\Http\Controllers\InternalMessageController;
+use App\Http\Controllers\InternalChatController;
 use App\Http\Controllers\SessionActivityController;
 use App\Http\Controllers\WhatsappController;
 use App\Http\Controllers\SharedAttachmentLinkController;
@@ -72,6 +73,16 @@ Route::middleware(['auth', ApplyRoutePermissions::class])->group(function () {
     });
 
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
+
+
+    Route::prefix('internal-chat')->name('internal-chat.')->group(function () {
+        Route::get('/bootstrap', [InternalChatController::class, 'bootstrap'])->name('bootstrap');
+        Route::get('/users', [InternalChatController::class, 'users'])->name('users');
+        Route::get('/poll', [InternalChatController::class, 'poll'])->name('poll');
+        Route::get('/messages/{user}', [InternalChatController::class, 'messages'])->name('messages');
+        Route::post('/messages', [InternalChatController::class, 'send'])->name('send');
+        Route::post('/read/{user}', [InternalChatController::class, 'markRead'])->name('read');
+    });
 
     Route::get('/internal-messages', [InternalMessageController::class, 'index'])->name('internal-messages.index');
     Route::get('/internal-messages/create', [InternalMessageController::class, 'create'])->name('internal-messages.create');

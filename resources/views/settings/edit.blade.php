@@ -207,6 +207,7 @@
                 <span class="settings-polish-badge">🔤 الخط: {{ $printSummary['font'] }}</span>
                 <span class="settings-polish-badge">🔒 الخروج التلقائي: {{ $printSummary['auto_logout'] }}</span>
                 <span class="settings-polish-badge">🔎 بحث PDF/OCR: {{ $printSummary['pdf_search'] }}</span>
+                <span class="settings-polish-badge">💬 الدردشة الداخلية: {{ $printSummary['internal_chat'] }}</span>
             </div>
         </div>
 
@@ -297,6 +298,35 @@
 
                 <div class="settings-warning-box">
                     الخروج التلقائي يعمل من الخادم والواجهة معاً: حتى لو بقيت الصفحة مفتوحة، سيظهر تنبيه قبل الخروج، ثم يتم إنهاء الجلسة عند انتهاء المدة.
+                </div>
+
+                <hr style="margin: 25px 0; border: 0; border-top: 1px solid rgba(148,163,184,.35);">
+
+                <div class="settings-section-header">
+                    <div>
+                        <h2>إعدادات الدردشة الداخلية العائمة</h2>
+                        <p>تحكم في نافذة الدردشة السريعة بين مستخدمي النظام. هذه الدردشة للتنسيق الداخلي السريع ولا تعتبر اعتماداً رسمياً للمستندات.</p>
+                    </div>
+                </div>
+
+                <div class="form-grid">
+                    <div class="form-group full">
+                        <label style="display:flex; gap:8px; align-items:center;">
+                            <input type="checkbox" name="internal_chat_enabled" value="1" @checked(old('internal_chat_enabled', $settings['internal_chat_enabled']) == '1')>
+                            تفعيل نافذة الدردشة الداخلية العائمة
+                        </label>
+                        <small class="settings-small-note">عند التفعيل تظهر أيقونة دردشة صغيرة أسفل الشاشة للمستخدمين الذين لديهم صلاحية الدردشة.</small>
+                    </div>
+
+                    <div class="form-group">
+                        <label>تحديث الدردشة كل</label>
+                        <input type="number" name="internal_chat_poll_seconds" value="{{ old('internal_chat_poll_seconds', $settings['internal_chat_poll_seconds']) }}" min="3" max="120" required>
+                        <small class="settings-small-note">بالـثواني. القيمة المقترحة 5 ثوانٍ على الشبكة الداخلية.</small>
+                    </div>
+                </div>
+
+                <div class="settings-warning-box">
+                    الدردشة الداخلية تحفظ الرسائل في قاعدة البيانات وتظهر للمستخدم المستلم بعد التحديث التلقائي. للمراسلات الرسمية المرتبطة بالكتب والمذكرات استخدم صفحة المراسلات الداخلية.
                 </div>
 
                 <hr style="margin: 25px 0; border: 0; border-top: 1px solid rgba(148,163,184,.35);">

@@ -72,6 +72,13 @@ class ApplyRoutePermissions
 
         'activity-logs.*' => 'activity_logs.view',
 
+        'internal-chat.bootstrap' => 'internal_chat.view',
+        'internal-chat.users' => 'internal_chat.view',
+        'internal-chat.poll' => 'internal_chat.view',
+        'internal-chat.messages' => 'internal_chat.view',
+        'internal-chat.send' => 'internal_chat.send',
+        'internal-chat.read' => 'internal_chat.view',
+
 
         'internal-messages.index' => 'internal_messages.view',
         'internal-messages.create' => 'internal_messages.send',

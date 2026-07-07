@@ -54,6 +54,8 @@
     <link rel="stylesheet" href="{{ asset('css/shared-attachments.css') }}?v={{ filemtime(public_path('css/shared-attachments.css')) }}">
     {{-- DocumentArchive internal messages --}}
     <link rel="stylesheet" href="{{ asset('css/internal-messages.css') }}?v={{ filemtime(public_path('css/internal-messages.css')) }}">
+    {{-- DocumentArchive floating internal chat --}}
+    <link rel="stylesheet" href="{{ asset('css/internal-chat.css') }}?v={{ filemtime(public_path('css/internal-chat.css')) }}">
     {{-- DocumentArchive auto logout --}}
     <link rel="stylesheet" href="{{ asset('css/auto-logout.css') }}?v={{ filemtime(public_path('css/auto-logout.css')) }}">
     {{-- DocumentArchive system about and rights --}}
@@ -263,6 +265,8 @@
     </div>
 </div>
 
+@include('partials.internal-chat-widget')
+
 <script src="{{ asset('js/app.js') }}"></script>
     <script src="{{ asset('js/arabic-file-input.js') }}" defer></script>
 
@@ -283,5 +287,6 @@
     {{-- Arabic UI V4 final guard --}}
     <script src="{{ asset('js/arabic-text-mojibake-v4.js') }}?v={{ filemtime(public_path('js/arabic-text-mojibake-v4.js')) }}" defer></script>
     <script src="{{ asset('js/auto-logout.js') }}?v={{ filemtime(public_path('js/auto-logout.js')) }}" defer></script>
+    <script src="{{ asset('js/internal-chat.js') }}?v={{ filemtime(public_path('js/internal-chat.js')) }}" defer></script>
 </body>
 </html>
