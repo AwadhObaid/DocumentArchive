@@ -22,6 +22,7 @@ use App\Http\Controllers\FormLinkController;
 use App\Http\Controllers\SettingsController;
 use App\Http\Controllers\SystemAboutController;
 use App\Http\Controllers\WorkflowController;
+use App\Http\Controllers\PdfSearchController;
 use App\Http\Controllers\SystemHealthController;
 use App\Http\Controllers\DataQualityController;
 use App\Http\Controllers\UserController;
@@ -85,6 +86,14 @@ Route::middleware(['auth', ApplyRoutePermissions::class])->group(function () {
     Route::get('/memos/{memo}/internal-send', [InternalMessageController::class, 'createForMemo'])->name('memos.internal-message.create');
     Route::get('/system-health', [SystemHealthController::class, 'index'])
         ->name('system-health.index');
+
+
+    Route::get('/pdf-search', [PdfSearchController::class, 'index'])
+        ->name('pdf-search.index');
+    Route::post('/pdf-search/run', [PdfSearchController::class, 'run'])
+        ->name('pdf-search.run');
+    Route::post('/pdf-search/indexes/{attachmentTextIndex}/reindex', [PdfSearchController::class, 'reindex'])
+        ->name('pdf-search.reindex');
 
     Route::get('/system-rights', [SystemAboutController::class, 'index'])
         ->name('system-rights.index');

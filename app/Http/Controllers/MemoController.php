@@ -132,7 +132,7 @@ class MemoController extends Controller
 
     public function show(Memo $memo)
     {
-        $memo->load(['department', 'creator', 'attachments.uploader', 'workflowActions.actor', 'workflowSubmitter', 'workflowReviewer', 'workflowFinalizer']);
+        $memo->load(['department', 'creator', 'attachments.uploader', 'attachments.textIndex', 'workflowActions.actor', 'workflowSubmitter', 'workflowReviewer', 'workflowFinalizer']);
 
         return view('memos.show', compact('memo'));
     }

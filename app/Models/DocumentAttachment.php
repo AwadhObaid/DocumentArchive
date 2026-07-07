@@ -64,6 +64,12 @@ class DocumentAttachment extends Model
         return $bytes . ' Bytes';
     }
 
+    public function textIndex()
+    {
+        return $this->hasOne(AttachmentTextIndex::class, 'attachment_id')
+            ->where('source_type', 'document');
+    }
+
     public function existsOnDisk(): bool
     {
         return Storage::disk($this->disk)->exists($this->file_path);

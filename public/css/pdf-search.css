@@ -1,0 +1,44 @@
+.pdf-search-page { display: flex; flex-direction: column; gap: 16px; min-width: 0; }
+.pdf-search-hero { display: grid; grid-template-columns: 1.4fr .8fr; gap: 14px; align-items: stretch; }
+.pdf-search-card { background: rgba(15,23,42,.74); border: 1px solid rgba(148,163,184,.20); border-radius: 20px; padding: 18px; box-shadow: 0 18px 45px rgba(15,23,42,.18); }
+.pdf-search-card h1, .pdf-search-card h2, .pdf-search-card h3 { margin: 0; color: #fff; font-weight: 950; }
+.pdf-search-card p { color: #94a3b8; line-height: 1.8; font-weight: 750; margin: 8px 0 0; }
+.pdf-search-stats { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 10px; }
+.pdf-search-stat { border-radius: 16px; background: rgba(30,41,59,.70); border: 1px solid rgba(148,163,184,.18); padding: 14px; }
+.pdf-search-stat span { display: block; color: #94a3b8; font-size: 12px; font-weight: 900; margin-bottom: 6px; }
+.pdf-search-stat strong { display: block; color: #fff; font-size: 24px; font-weight: 950; }
+.pdf-search-filter { display: grid; grid-template-columns: 2fr .8fr .8fr auto; gap: 10px; align-items: end; }
+.pdf-search-filter .form-group { margin-bottom: 0; }
+.pdf-search-filter input, .pdf-search-filter select { width: 100%; }
+.pdf-search-tools { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; margin-top: 12px; }
+.pdf-tool-chip { border: 1px solid rgba(148,163,184,.20); background: rgba(15,23,42,.55); border-radius: 14px; padding: 11px; min-width: 0; }
+.pdf-tool-chip strong { color: #e5e7eb; font-weight: 950; display: block; margin-bottom: 4px; }
+.pdf-tool-chip small { color: #94a3b8; line-height: 1.6; word-break: break-word; }
+.pdf-tool-chip.available { border-color: rgba(34,197,94,.35); }
+.pdf-tool-chip.missing { border-color: rgba(239,68,68,.35); }
+.pdf-search-run-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 10px; align-items: end; }
+.pdf-search-results { overflow: hidden; }
+.pdf-search-table-wrap { overflow-x: auto; }
+.pdf-search-table { width: 100%; min-width: 1100px; border-collapse: collapse; }
+.pdf-search-table th, .pdf-search-table td { padding: 12px 10px; border-bottom: 1px solid rgba(148,163,184,.16); text-align: right; vertical-align: top; }
+.pdf-search-table th { color: #94a3b8; font-size: 12px; font-weight: 950; white-space: nowrap; }
+.pdf-search-table td { color: #f8fafc; font-weight: 750; line-height: 1.7; }
+.pdf-source-number { direction: ltr; display: inline-block; font-weight: 950; color: #dbeafe; }
+.pdf-file-name { max-width: 260px; word-break: break-word; }
+.pdf-snippet { color: #cbd5e1; font-weight: 750; line-height: 1.9; max-width: 480px; white-space: normal; }
+.pdf-status-pill { display: inline-flex; align-items: center; justify-content: center; padding: 5px 9px; border-radius: 999px; font-size: 12px; font-weight: 950; white-space: nowrap; }
+.pdf-status-success { background: rgba(34,197,94,.15); color: #bbf7d0; border: 1px solid rgba(34,197,94,.30); }
+.pdf-status-warning { background: rgba(245,158,11,.15); color: #fde68a; border: 1px solid rgba(245,158,11,.30); }
+.pdf-status-danger { background: rgba(239,68,68,.15); color: #fecaca; border: 1px solid rgba(239,68,68,.30); }
+.pdf-status-info { background: rgba(59,130,246,.15); color: #dbeafe; border: 1px solid rgba(59,130,246,.30); }
+.pdf-status-muted { background: rgba(148,163,184,.13); color: #cbd5e1; border: 1px solid rgba(148,163,184,.24); }
+.pdf-error-box { color: #fecaca; font-size: 12px; line-height: 1.7; margin-top: 6px; max-width: 420px; }
+.pdf-inline-form { display: inline-flex; gap: 6px; align-items: center; flex-wrap: wrap; }
+.pdf-note { background: rgba(59,130,246,.10); border: 1px solid rgba(59,130,246,.25); color: #dbeafe; border-radius: 14px; padding: 12px; line-height: 1.8; font-weight: 800; }
+@media (max-width: 980px) {
+    .pdf-search-hero, .pdf-search-filter, .pdf-search-run-grid { grid-template-columns: 1fr; }
+    .pdf-search-stats, .pdf-search-tools { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+@media (max-width: 640px) {
+    .pdf-search-stats, .pdf-search-tools { grid-template-columns: 1fr; }
+}

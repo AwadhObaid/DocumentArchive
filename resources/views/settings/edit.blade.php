@@ -206,6 +206,7 @@
                 <span class="settings-polish-badge">🖨️ موضع الطباعة: {{ $printSummary['position'] }}</span>
                 <span class="settings-polish-badge">🔤 الخط: {{ $printSummary['font'] }}</span>
                 <span class="settings-polish-badge">🔒 الخروج التلقائي: {{ $printSummary['auto_logout'] }}</span>
+                <span class="settings-polish-badge">🔎 بحث PDF/OCR: {{ $printSummary['pdf_search'] }}</span>
             </div>
         </div>
 
@@ -296,6 +297,59 @@
 
                 <div class="settings-warning-box">
                     الخروج التلقائي يعمل من الخادم والواجهة معاً: حتى لو بقيت الصفحة مفتوحة، سيظهر تنبيه قبل الخروج، ثم يتم إنهاء الجلسة عند انتهاء المدة.
+                </div>
+
+                <hr style="margin: 25px 0; border: 0; border-top: 1px solid rgba(148,163,184,.35);">
+
+                <div class="settings-section-header">
+                    <div>
+                        <h2>إعدادات بحث PDF و OCR</h2>
+                        <p>حدد مسارات أدوات استخراج النصوص. اترك القيم كما هي إذا كانت الأدوات مضافة إلى PATH في Windows.</p>
+                    </div>
+                </div>
+
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label>مسار pdftotext</label>
+                        <input type="text" name="pdf_search_pdftotext_path" value="{{ old('pdf_search_pdftotext_path', $settings['pdf_search_pdftotext_path']) }}" maxlength="500" placeholder="pdftotext">
+                        <small class="settings-small-note">يستخدم لاستخراج النص من PDF النصي. مثال: C:\Tools\poppler\Library\bin\pdftotext.exe</small>
+                    </div>
+
+                    <div class="form-group">
+                        <label>مسار pdftoppm</label>
+                        <input type="text" name="pdf_search_pdftoppm_path" value="{{ old('pdf_search_pdftoppm_path', $settings['pdf_search_pdftoppm_path']) }}" maxlength="500" placeholder="pdftoppm">
+                        <small class="settings-small-note">يستخدم لتحويل PDF السكانر إلى صور قبل OCR.</small>
+                    </div>
+
+                    <div class="form-group">
+                        <label>مسار Tesseract</label>
+                        <input type="text" name="pdf_search_tesseract_path" value="{{ old('pdf_search_tesseract_path', $settings['pdf_search_tesseract_path']) }}" maxlength="500" placeholder="tesseract">
+                        <small class="settings-small-note">مثال: C:\Program Files\Tesseract-OCR\tesseract.exe</small>
+                    </div>
+
+                    <div class="form-group">
+                        <label>لغات OCR</label>
+                        <input type="text" name="pdf_search_ocr_languages" value="{{ old('pdf_search_ocr_languages', $settings['pdf_search_ocr_languages']) }}" maxlength="80" required>
+                        <small class="settings-small-note">للعربية والإنجليزية استخدم: ara+eng.</small>
+                    </div>
+
+                    <div class="form-group">
+                        <label>حد صفحات OCR لكل ملف</label>
+                        <input type="number" name="pdf_search_pages_limit" value="{{ old('pdf_search_pages_limit', $settings['pdf_search_pages_limit']) }}" min="1" max="200" required>
+                        <small class="settings-small-note">لحماية الأداء. ابدأ بـ 20 صفحة ثم ارفعها عند الحاجة.</small>
+                    </div>
+
+                    <div class="form-group full">
+                        <label style="display:flex; gap:8px; align-items:center;">
+                            <input type="checkbox" name="pdf_search_enable_ocr" value="1" @checked(old('pdf_search_enable_ocr', $settings['pdf_search_enable_ocr']) == '1')>
+                            تفعيل OCR عند الفهرسة
+                        </label>
+                        <small class="settings-small-note">إذا كان غير مفعل سيكتفي النظام باستخراج النص من PDF النصي، ويعلّم ملفات السكانر بأنها تحتاج OCR.</small>
+                    </div>
+                </div>
+
+                <div class="settings-warning-box">
+                    فهرسة OCR قد تستغرق وقتاً مع الملفات الكبيرة. يفضّل تشغيلها على دفعات صغيرة من صفحة بحث PDF/OCR أو من أمر Artisan.
                 </div>
 
                 <hr style="margin: 25px 0; border: 0; border-top: 1px solid rgba(148,163,184,.35);">

@@ -51,6 +51,22 @@
         return $bytes . ' Bytes';
     };
 
+
+
+    $attachmentIndexBadge = function ($attachment): string {
+        $index = data_get($attachment, 'textIndex');
+        if (! $index) {
+            return '<span class="pdf-status-pill pdf-status-muted">غير مفهرس</span>';
+        }
+
+        $class = e(data_get($index, 'status_class', 'muted'));
+        $name = e(data_get($index, 'status_name', 'غير مفهرس'));
+        $length = (int) data_get($index, 'text_length', 0);
+        $extra = $length > 0 ? '<div style="color:#94a3b8;font-size:12px;margin-top:5px;">' . number_format($length) . ' حرف</div>' : '';
+
+        return '<span class="pdf-status-pill pdf-status-' . $class . '">' . $name . '</span>' . $extra;
+    };
+
     $attachmentTypeLabel = function ($attachment): string {
         $extension = strtolower((string) (data_get($attachment, 'extension') ?: pathinfo((string) data_get($attachment, 'original_name', ''), PATHINFO_EXTENSION)));
         $mime = strtolower((string) data_get($attachment, 'mime_type', ''));
@@ -158,6 +174,7 @@
                         <th>النوع</th>
                         <th>الحجم</th>
                         <th>حالة التخزين</th>
+                        <th>فهرسة PDF</th>
                         <th class="no-print">إجراءات</th>
                     </tr>
                 </thead>
@@ -178,6 +195,7 @@
                                     <span class="badge" style="background:#fee2e2;color:#991b1b;border:1px solid #fecaca;">مفقود</span>
                                 @endif
                             </td>
+                            <td>{!! $attachmentIndexBadge($attachment) !!}</td>
                             <td class="no-print">
                                 <div style="display:flex;gap:6px;flex-wrap:wrap;align-items:center;">
                                     @if($exists && $canUseMemoAttachments)

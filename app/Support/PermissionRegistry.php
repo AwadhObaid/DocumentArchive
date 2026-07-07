@@ -91,6 +91,14 @@ class PermissionRegistry
                 ],
             ],
             [
+                'key' => 'pdf_search',
+                'label' => 'PDF / OCR',
+                'permissions' => [
+                    'pdf_search.view' => 'عرض بحث محتوى PDF ونتائج OCR',
+                    'pdf_search.index' => 'تشغيل فهرسة PDF وإعادة الفهرسة',
+                ],
+            ],
+            [
                 'key' => 'contacts',
                 'label' => 'جهات الاتصال',
                 'permissions' => [
@@ -265,6 +273,7 @@ class PermissionRegistry
                 'message_templates.view',
                 'internal_messages.view',
                 'system_about.view',
+                'pdf_search.view',
             ];
         }
 
@@ -297,6 +306,7 @@ class PermissionRegistry
             'internal_messages.view',
             'internal_messages.send',
             'system_about.view',
+            'pdf_search.view',
         ];
     }
 }

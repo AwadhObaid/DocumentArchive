@@ -58,6 +58,8 @@
     <link rel="stylesheet" href="{{ asset('css/auto-logout.css') }}?v={{ filemtime(public_path('css/auto-logout.css')) }}">
     {{-- DocumentArchive system about and rights --}}
     <link rel="stylesheet" href="{{ asset('css/system-about.css') }}?v={{ filemtime(public_path('css/system-about.css')) }}">
+    {{-- DocumentArchive PDF/OCR search --}}
+    <link rel="stylesheet" href="{{ asset('css/pdf-search.css') }}?v={{ filemtime(public_path('css/pdf-search.css')) }}">
 </head>
 <body
     data-auto-logout-enabled="{{ $daAutoLogoutEnabled ? '1' : '0' }}"
@@ -161,6 +163,10 @@
 
             @if(auth()->user()?->hasPermission('attachment_shares.view'))
                 <a href="{{ route('shared-attachment-links.index') }}" class="{{ request()->routeIs('shared-attachment-links.*') || request()->routeIs('documents.shared-attachments.create') ? 'active' : '' }}">🔗 مشاركة المرفقات</a>
+            @endif
+
+            @if(auth()->user()?->hasPermission('pdf_search.view'))
+                <a href="{{ route('pdf-search.index') }}" class="{{ request()->routeIs('pdf-search.*') ? 'active' : '' }}">🔎 بحث PDF/OCR</a>
             @endif
 
             @if(auth()->user()?->hasPermission('settings.manage'))

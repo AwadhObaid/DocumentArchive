@@ -134,6 +134,9 @@ class ApplyRoutePermissions
         'settings.*' => 'settings.manage',
         'system-health.*' => 'system_health.view',
         'system-rights.*' => 'system_about.view',
+        'pdf-search.index' => 'pdf_search.view',
+        'pdf-search.run' => 'pdf_search.index',
+        'pdf-search.reindex' => 'pdf_search.index',
 
         'users.*' => 'users.manage',
 

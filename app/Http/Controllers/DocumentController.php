@@ -509,7 +509,7 @@ class DocumentController extends Controller
 
     public function show(Document $document)
     {
-        $document->load(['department', 'documentType', 'bookSubject', 'attachments', 'workflowActions.actor', 'workflowSubmitter', 'workflowReviewer', 'workflowFinalizer']);
+        $document->load(['department', 'documentType', 'bookSubject', 'attachments.textIndex', 'workflowActions.actor', 'workflowSubmitter', 'workflowReviewer', 'workflowFinalizer']);
 
         return view('documents.show', compact('document'));
     }
@@ -539,7 +539,7 @@ class DocumentController extends Controller
             ->orderBy('name')
             ->get();
 
-        $document->load(['department', 'documentType', 'bookSubject', 'attachments']);
+        $document->load(['department', 'documentType', 'bookSubject', 'attachments.textIndex']);
 
         return view('documents.edit', compact('document', 'departments', 'documentTypes', 'bookSubjects'));
     }

@@ -29,6 +29,12 @@ class SettingsController extends Controller
         'auto_logout_minutes' => '30',
         'auto_logout_warning_seconds' => '60',
         'lite_notification_poll_seconds' => '30',
+        'pdf_search_pdftotext_path' => 'pdftotext',
+        'pdf_search_pdftoppm_path' => 'pdftoppm',
+        'pdf_search_tesseract_path' => 'tesseract',
+        'pdf_search_ocr_languages' => 'ara+eng',
+        'pdf_search_enable_ocr' => '0',
+        'pdf_search_pages_limit' => '20',
         'reference_start_number' => '251230000',
         'print_department_title' => 'الشحن والتأمين',
         'print_font_family' => 'Cairo',
@@ -53,6 +59,7 @@ class SettingsController extends Controller
             'font' => $settings['print_font_family'] . ' - ' . $settings['print_font_size_pt'] . ' pt',
             'reference_start' => $settings['reference_start_number'],
             'auto_logout' => ((string) $settings['auto_logout_enabled'] === '1') ? ($settings['auto_logout_minutes'] . ' دقيقة') : 'غير مفعل',
+            'pdf_search' => ((string) $settings['pdf_search_enable_ocr'] === '1') ? ('OCR مفعل - ' . $settings['pdf_search_ocr_languages']) : 'PDF نصي فقط',
         ];
 
         return view('settings.edit', compact('settings', 'printFontOptions', 'printSummary'));
@@ -70,6 +77,12 @@ class SettingsController extends Controller
             'auto_logout_minutes' => ['required', 'integer', 'min:1', 'max:1440'],
             'auto_logout_warning_seconds' => ['required', 'integer', 'min:10', 'max:600'],
             'lite_notification_poll_seconds' => ['required', 'integer', 'min:10', 'max:300'],
+            'pdf_search_pdftotext_path' => ['nullable', 'string', 'max:500'],
+            'pdf_search_pdftoppm_path' => ['nullable', 'string', 'max:500'],
+            'pdf_search_tesseract_path' => ['nullable', 'string', 'max:500'],
+            'pdf_search_ocr_languages' => ['required', 'string', 'max:80'],
+            'pdf_search_enable_ocr' => ['nullable', 'boolean'],
+            'pdf_search_pages_limit' => ['required', 'integer', 'min:1', 'max:200'],
             'reference_start_number' => ['required', 'integer', 'min:1', 'max:999999999999'],
             'print_department_title' => ['required', 'string', 'max:255'],
             'print_font_family' => ['required', 'string', Rule::in(array_keys(self::PRINT_FONT_OPTIONS))],
@@ -94,12 +107,18 @@ class SettingsController extends Controller
             'auto_logout_minutes.min' => 'مدة الخمول يجب ألا تقل عن دقيقة واحدة.',
             'auto_logout_warning_seconds.required' => 'مدة التنبيه قبل الخروج مطلوبة.',
             'lite_notification_poll_seconds.required' => 'مدة تحديث إشعارات نسخة الهاتف مطلوبة.',
+            'pdf_search_ocr_languages.required' => 'لغات OCR مطلوبة، مثال: ara+eng.',
+            'pdf_search_pages_limit.required' => 'حد صفحات OCR مطلوب.',
             'reference_start_number.integer' => 'رقم بداية الكتاب يجب أن يكون رقماً صحيحاً.',
             'print_department_title.required' => 'عنوان الطباعة مطلوب.',
             'print_font_family.in' => 'نوع الخط المختار غير مدعوم.',
         ]);
 
         $validated['auto_logout_enabled'] = $request->boolean('auto_logout_enabled') ? '1' : '0';
+        $validated['pdf_search_enable_ocr'] = $request->boolean('pdf_search_enable_ocr') ? '1' : '0';
+        foreach (['pdf_search_pdftotext_path', 'pdf_search_pdftoppm_path', 'pdf_search_tesseract_path'] as $toolPathKey) {
+            $validated[$toolPathKey] = trim((string) ($validated[$toolPathKey] ?? ''));
+        }
 
         if (((int) $validated['auto_logout_warning_seconds']) >= (((int) $validated['auto_logout_minutes']) * 60)) {
             return back()
@@ -119,6 +138,12 @@ class SettingsController extends Controller
             'auto_logout_minutes' => ['security', 'number', 'مدة الخمول بالدقائق قبل تسجيل الخروج التلقائي'],
             'auto_logout_warning_seconds' => ['security', 'number', 'مدة ظهور تنبيه الخروج قبل انتهاء الجلسة بالثواني'],
             'lite_notification_poll_seconds' => ['lite', 'number', 'مدة تحديث إشعارات نسخة الهاتف لايت بالثواني'],
+            'pdf_search_pdftotext_path' => ['pdf_search', 'text', 'مسار أداة pdftotext لاستخراج نصوص PDF النصية'],
+            'pdf_search_pdftoppm_path' => ['pdf_search', 'text', 'مسار أداة pdftoppm لتحويل PDF إلى صور قبل OCR'],
+            'pdf_search_tesseract_path' => ['pdf_search', 'text', 'مسار أداة Tesseract OCR'],
+            'pdf_search_ocr_languages' => ['pdf_search', 'text', 'لغات OCR المستخدمة مثل ara+eng'],
+            'pdf_search_enable_ocr' => ['pdf_search', 'boolean', 'تفعيل OCR عند فهرسة ملفات PDF الممسوحة ضوئياً'],
+            'pdf_search_pages_limit' => ['pdf_search', 'number', 'أقصى عدد صفحات تتم معالجتها OCR في الملف الواحد'],
             'reference_start_number' => ['references', 'number', 'رقم بداية الكتاب في بداية كل سنة'],
             'print_department_title' => ['printing', 'text', 'العنوان الثابت الذي يظهر أعلى رقم الكتاب'],
             'print_font_family' => ['printing', 'text', 'نوع خط صفحة طباعة رقم الكتاب'],
