@@ -85,6 +85,12 @@ class AuthController extends Controller
         return redirect()->intended(route('dashboard'));
     }
 
+    public function logoutNotice(Request $request)
+    {
+        return response()
+            ->view('auth.logout-notice')
+            ->header('Cache-Control', 'no-store, no-cache, must-revalidate, max-age=0');
+    }
     public function logout(Request $request)
     {
         Auth::logout();
