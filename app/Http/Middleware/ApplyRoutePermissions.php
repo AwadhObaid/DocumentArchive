@@ -119,6 +119,7 @@ class ApplyRoutePermissions
 
         'settings.*' => 'settings.manage',
         'system-health.*' => 'system_health.view',
+        'system-rights.*' => 'system_about.view',
 
         'users.*' => 'users.manage',
 

@@ -127,6 +127,7 @@ class PermissionRegistry
                 'permissions' => [
                     'settings.manage' => 'إدارة الإعدادات',
                     'system_health.view' => 'فحص النظام',
+                    'system_about.view' => 'عرض صفحة حقوق النظام والمطور',
                     'users.manage' => 'إدارة المستخدمين',
                 ],
             ],
@@ -252,6 +253,7 @@ class PermissionRegistry
                 'contacts.view',
                 'message_templates.view',
                 'internal_messages.view',
+                'system_about.view',
             ];
         }
 
@@ -279,6 +281,7 @@ class PermissionRegistry
             'whatsapp.send',
             'internal_messages.view',
             'internal_messages.send',
+            'system_about.view',
         ];
     }
 }

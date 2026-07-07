@@ -56,6 +56,8 @@
     <link rel="stylesheet" href="{{ asset('css/internal-messages.css') }}?v={{ filemtime(public_path('css/internal-messages.css')) }}">
     {{-- DocumentArchive auto logout --}}
     <link rel="stylesheet" href="{{ asset('css/auto-logout.css') }}?v={{ filemtime(public_path('css/auto-logout.css')) }}">
+    {{-- DocumentArchive system about and rights --}}
+    <link rel="stylesheet" href="{{ asset('css/system-about.css') }}?v={{ filemtime(public_path('css/system-about.css')) }}">
 </head>
 <body
     data-auto-logout-enabled="{{ $daAutoLogoutEnabled ? '1' : '0' }}"
@@ -167,6 +169,11 @@
 
             @if(auth()->user()?->hasPermission('system_health.view'))
                 <a href="{{ route('system-health.index') }}" class="{{ request()->routeIs('system-health.*') ? 'active' : '' }}">🩺 فحص النظام</a>
+            @endif
+
+
+            @if(auth()->user()?->hasPermission('system_about.view'))
+                <a href="{{ route('system-rights.index') }}" class="{{ request()->routeIs('system-rights.*') ? 'active' : '' }}">🛡️ حقوق النظام</a>
             @endif
 
             @if(auth()->user()?->hasPermission('data_quality.view'))

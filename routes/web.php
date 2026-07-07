@@ -20,6 +20,7 @@ use App\Http\Controllers\WhatsappController;
 use App\Http\Controllers\SharedAttachmentLinkController;
 use App\Http\Controllers\FormLinkController;
 use App\Http\Controllers\SettingsController;
+use App\Http\Controllers\SystemAboutController;
 use App\Http\Controllers\SystemHealthController;
 use App\Http\Controllers\DataQualityController;
 use App\Http\Controllers\UserController;
@@ -81,6 +82,9 @@ Route::middleware(['auth', ApplyRoutePermissions::class])->group(function () {
     Route::get('/memos/{memo}/internal-send', [InternalMessageController::class, 'createForMemo'])->name('memos.internal-message.create');
     Route::get('/system-health', [SystemHealthController::class, 'index'])
         ->name('system-health.index');
+
+    Route::get('/system-rights', [SystemAboutController::class, 'index'])
+        ->name('system-rights.index');
     Route::get('/data-quality', [DataQualityController::class, 'index'])
         ->name('data-quality.index');
     Route::get('/profile', [ProfileController::class, 'edit'])
