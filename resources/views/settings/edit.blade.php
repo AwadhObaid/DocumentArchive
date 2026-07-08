@@ -318,6 +318,42 @@
                         <small class="settings-small-note">عند التفعيل تظهر أيقونة دردشة صغيرة أسفل الشاشة للمستخدمين الذين لديهم صلاحية الدردشة.</small>
                     </div>
 
+                    <div class="form-group full">
+                        <label style="display:flex; gap:8px; align-items:center;">
+                            <input type="checkbox" name="internal_chat_sound_enabled" value="1" @checked(old('internal_chat_sound_enabled', $settings['internal_chat_sound_enabled'] ?? '1') == '1')>
+                            تفعيل التنبيه الصوتي عند وصول رسالة دردشة جديدة
+                        </label>
+                        <small class="settings-small-note">يعمل الصوت بعد أول تفاعل من المستخدم مع الصفحة، ويمكن كتمه مؤقتاً من زر الصوت داخل نافذة الدردشة.</small>
+                    </div>
+
+                    <div class="form-group">
+                        <label>مستوى صوت تنبيه الدردشة</label>
+                        @php($internalChatSoundVolume = (int) old('internal_chat_sound_volume', $settings['internal_chat_sound_volume'] ?? 85))
+                        <div style="display:flex; gap:10px; align-items:center;">
+                            <input
+                                type="range"
+                                min="0"
+                                max="100"
+                                value="{{ $internalChatSoundVolume }}"
+                                style="flex:1;"
+                                oninput="document.getElementById('internal_chat_sound_volume_number').value = this.value"
+                            >
+                            <input
+                                id="internal_chat_sound_volume_number"
+                                type="number"
+                                name="internal_chat_sound_volume"
+                                value="{{ $internalChatSoundVolume }}"
+                                min="0"
+                                max="100"
+                                required
+                                style="width:90px;"
+                                oninput="this.parentElement.querySelector('input[type=range]').value = this.value"
+                            >
+                            <span>%</span>
+                        </div>
+                        <small class="settings-small-note">ارفع القيمة إذا كانت نغمة التنبيه غير مسموعة. القيمة المقترحة 85% إلى 100%.</small>
+                    </div>
+
                     <div class="form-group">
                         <label>تحديث الدردشة كل</label>
                         <input type="number" name="internal_chat_poll_seconds" value="{{ old('internal_chat_poll_seconds', $settings['internal_chat_poll_seconds']) }}" min="3" max="120" required>

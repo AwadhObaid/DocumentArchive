@@ -299,7 +299,10 @@ class InternalChatController extends Controller
             'receiver_name' => $message->receiver?->name,
             'read' => (bool) $message->read_at,
             'created_at' => $message->created_at?->format('Y-m-d H:i'),
+            'created_at_timestamp' => $message->created_at?->getTimestamp() ?? 0,
+            'date_label' => $message->created_at?->format('Y-m-d'),
             'time' => $message->created_at?->format('H:i'),
+            'full_time' => $message->created_at?->format('Y-m-d H:i'),
         ];
     }
 

@@ -9,6 +9,9 @@
         const ready = widget.dataset.ready === '1';
         const canSend = widget.dataset.canSend === '1';
         const pollSeconds = Math.max(3, parseInt(widget.dataset.pollSeconds || '5', 10));
+        const soundEnabled = widget.dataset.soundEnabled === '1';
+        const soundVolume = Math.max(0, Math.min(100, parseInt(widget.dataset.soundVolume || '85', 10))) / 100;
+        const soundStorageKey = 'documentarchive.internalChat.soundMuted';
         const urls = {
             bootstrap: widget.dataset.bootstrapUrl,
             users: widget.dataset.usersUrl,
@@ -21,6 +24,7 @@
         const launcher = widget.querySelector('[data-chat-open]');
         const panel = widget.querySelector('[data-chat-panel]');
         const closeButton = widget.querySelector('[data-chat-close]');
+        const soundToggleButton = widget.querySelector('[data-chat-sound-toggle]');
         const totalBadge = widget.querySelector('[data-chat-total]');
         const alertBox = widget.querySelector('[data-chat-alert]');
         const usersBox = widget.querySelector('[data-chat-users]');
@@ -38,7 +42,13 @@
             activeUserName: '',
             lastMessageId: 0,
             loadingMessages: false,
-            pollTimer: null
+            pollTimer: null,
+            lastUnreadTotal: null,
+            audioUnlocked: false,
+            soundMuted: window.localStorage.getItem(soundStorageKey) === '1',
+            audioContext: null,
+            soundVolume: soundVolume,
+            messages: new Map()
         };
 
         function urlFor(template, userId) {
@@ -54,6 +64,88 @@
             }
             alertBox.hidden = false;
             alertBox.textContent = message;
+        }
+
+
+        function updateSoundButton() {
+            if (!soundToggleButton) return;
+            if (!soundEnabled) {
+                soundToggleButton.hidden = true;
+                return;
+            }
+
+            soundToggleButton.textContent = state.soundMuted ? '🔇' : '🔊';
+            soundToggleButton.classList.toggle('muted', state.soundMuted);
+            soundToggleButton.setAttribute('aria-pressed', state.soundMuted ? 'true' : 'false');
+            soundToggleButton.title = state.soundMuted ? 'تشغيل صوت الدردشة' : ('كتم صوت الدردشة - مستوى الصوت ' + Math.round(state.soundVolume * 100) + '%');
+        }
+
+        function unlockAudio() {
+            if (!soundEnabled || state.audioUnlocked) return;
+            const AudioContextClass = window.AudioContext || window.webkitAudioContext;
+            if (!AudioContextClass) return;
+
+            try {
+                state.audioContext = state.audioContext || new AudioContextClass();
+                if (state.audioContext.state === 'suspended') {
+                    state.audioContext.resume().catch(function () {});
+                }
+                state.audioUnlocked = true;
+            } catch (error) {
+                state.audioUnlocked = false;
+            }
+        }
+
+        function playNotificationSound() {
+            if (!soundEnabled || state.soundMuted || state.soundVolume <= 0) return;
+            unlockAudio();
+            if (!state.audioContext || !state.audioUnlocked) return;
+
+            try {
+                const context = state.audioContext;
+                const masterGain = context.createGain();
+                const now = context.currentTime;
+                const peakVolume = Math.max(0.02, Math.min(1, state.soundVolume));
+                const peakGain = 0.75 * peakVolume;
+
+                // v36: controllable and clearer alert tone. Volume comes from system settings.
+                masterGain.gain.setValueAtTime(0.0001, now);
+                masterGain.gain.exponentialRampToValueAtTime(Math.max(0.0001, peakGain), now + 0.018);
+                masterGain.gain.exponentialRampToValueAtTime(0.0001, now + 0.58);
+                masterGain.connect(context.destination);
+
+                function tone(startOffset, startFrequency, endFrequency, duration, type) {
+                    const oscillator = context.createOscillator();
+                    const gain = context.createGain();
+                    const start = now + startOffset;
+
+                    oscillator.type = type || 'triangle';
+                    oscillator.frequency.setValueAtTime(startFrequency, start);
+                    oscillator.frequency.exponentialRampToValueAtTime(endFrequency, start + duration);
+
+                    gain.gain.setValueAtTime(0.0001, start);
+                    gain.gain.exponentialRampToValueAtTime(1.0, start + 0.014);
+                    gain.gain.exponentialRampToValueAtTime(0.0001, start + duration);
+
+                    oscillator.connect(gain);
+                    gain.connect(masterGain);
+                    oscillator.start(start);
+                    oscillator.stop(start + duration + 0.03);
+                }
+
+                tone(0, 1040, 1320, 0.16, 'triangle');
+                tone(0.17, 820, 1100, 0.17, 'triangle');
+                tone(0.36, 1220, 1460, 0.12, 'sine');
+            } catch (error) {
+                // Keep chat silent if the browser blocks audio.
+            }
+        }
+
+        function setSoundMuted(muted) {
+            state.soundMuted = !!muted;
+            window.localStorage.setItem(soundStorageKey, state.soundMuted ? '1' : '0');
+            if (!state.soundMuted) unlockAudio();
+            updateSoundButton();
         }
 
         async function requestJson(url, options) {
@@ -137,6 +229,7 @@
                 avatar.textContent = initials(user.name);
 
                 const text = document.createElement('span');
+                text.className = 'internal-chat-user-text';
                 const name = document.createElement('span');
                 name.className = 'internal-chat-user-name';
                 name.textContent = user.name || ('مستخدم #' + user.id);
@@ -174,16 +267,30 @@
             }
         }
 
-        function messageExists(id) {
-            return !!messagesBox?.querySelector('[data-message-id="' + id + '"]');
+        function messageSortKey(message) {
+            const timestamp = parseInt(message?.created_at_timestamp || '0', 10);
+            const id = parseInt(message?.id || '0', 10);
+            return { timestamp: Number.isFinite(timestamp) ? timestamp : 0, id: Number.isFinite(id) ? id : 0 };
         }
 
-        function appendMessage(message) {
-            if (!messagesBox || !message || !message.id || messageExists(message.id)) return;
+        function todayIso(offsetDays) {
+            const d = new Date();
+            d.setDate(d.getDate() + (offsetDays || 0));
+            const year = d.getFullYear();
+            const month = String(d.getMonth() + 1).padStart(2, '0');
+            const day = String(d.getDate()).padStart(2, '0');
+            return year + '-' + month + '-' + day;
+        }
 
-            const empty = messagesBox.querySelector('.internal-chat-empty');
-            if (empty) empty.remove();
+        function friendlyDateLabel(dateLabel) {
+            const value = String(dateLabel || '').trim();
+            if (!value) return '';
+            if (value === todayIso(0)) return 'اليوم';
+            if (value === todayIso(-1)) return 'أمس';
+            return value;
+        }
 
+        function createMessageElement(message) {
             const wrapper = document.createElement('div');
             wrapper.className = 'internal-chat-message ' + (message.direction === 'outgoing' ? 'outgoing' : 'incoming');
             wrapper.dataset.messageId = message.id;
@@ -197,33 +304,80 @@
             const meta = document.createElement('div');
             meta.className = 'internal-chat-meta';
             meta.textContent = (message.time || '') + (message.direction === 'outgoing' ? (message.read ? ' · تمت القراءة' : ' · مرسلة') : '');
+            if (message.full_time || message.created_at) {
+                meta.title = message.full_time || message.created_at;
+            }
 
             bubble.appendChild(body);
             bubble.appendChild(meta);
             wrapper.appendChild(bubble);
-            messagesBox.appendChild(wrapper);
-            state.lastMessageId = Math.max(state.lastMessageId, parseInt(message.id, 10));
-            messagesBox.scrollTop = messagesBox.scrollHeight;
+            return wrapper;
         }
 
-        function renderMessages(messages, reset) {
+        function renderConversationMessages() {
             if (!messagesBox) return;
-            if (reset) {
-                messagesBox.innerHTML = '';
-                state.lastMessageId = 0;
-            }
 
-            if (!Array.isArray(messages) || !messages.length) {
-                if (reset) {
-                    const empty = document.createElement('div');
-                    empty.className = 'internal-chat-empty internal-chat-empty-large';
-                    empty.textContent = 'لا توجد رسائل بعد. ابدأ المحادثة برسالة قصيرة.';
-                    messagesBox.appendChild(empty);
-                }
+            const messages = Array.from(state.messages.values()).sort(function (a, b) {
+                const ak = messageSortKey(a);
+                const bk = messageSortKey(b);
+                if (ak.timestamp !== bk.timestamp) return ak.timestamp - bk.timestamp;
+                return ak.id - bk.id;
+            });
+
+            messagesBox.innerHTML = '';
+
+            if (!messages.length) {
+                const empty = document.createElement('div');
+                empty.className = 'internal-chat-empty internal-chat-empty-large';
+                empty.textContent = 'لا توجد رسائل بعد. ابدأ المحادثة برسالة قصيرة.';
+                messagesBox.appendChild(empty);
+                state.lastMessageId = 0;
                 return;
             }
 
-            messages.forEach(appendMessage);
+            let lastDate = null;
+            let maxId = 0;
+
+            messages.forEach(function (message) {
+                const dateLabel = String(message.date_label || '').trim();
+                if (dateLabel && dateLabel !== lastDate) {
+                    const separator = document.createElement('div');
+                    separator.className = 'internal-chat-date-separator';
+                    const span = document.createElement('span');
+                    span.textContent = friendlyDateLabel(dateLabel);
+                    separator.appendChild(span);
+                    messagesBox.appendChild(separator);
+                    lastDate = dateLabel;
+                }
+
+                messagesBox.appendChild(createMessageElement(message));
+                maxId = Math.max(maxId, parseInt(message.id || '0', 10));
+            });
+
+            state.lastMessageId = maxId;
+            messagesBox.scrollTop = messagesBox.scrollHeight;
+        }
+
+        function upsertMessages(messages, reset) {
+            if (!messagesBox) return;
+            if (reset) {
+                state.messages.clear();
+                state.lastMessageId = 0;
+            }
+
+            if (Array.isArray(messages)) {
+                messages.forEach(function (message) {
+                    if (message && message.id) {
+                        state.messages.set(String(message.id), message);
+                    }
+                });
+            }
+
+            renderConversationMessages();
+        }
+
+        function renderMessages(messages, reset) {
+            upsertMessages(messages, reset);
         }
 
         async function loadBootstrap() {
@@ -235,7 +389,8 @@
             try {
                 const data = await requestJson(urls.bootstrap);
                 showAlert('');
-                setUnreadTotal(data.unread_total || 0);
+                state.lastUnreadTotal = parseInt(data.unread_total || 0, 10);
+                setUnreadTotal(state.lastUnreadTotal);
                 updateUsers(data.users || []);
             } catch (error) {
                 showAlert(error.message);
@@ -258,7 +413,8 @@
             try {
                 const data = await requestJson(urlFor(urls.messagesTemplate, userId));
                 renderMessages(data.messages || [], true);
-                setUnreadTotal(data.unread_total || 0);
+                state.lastUnreadTotal = parseInt(data.unread_total || 0, 10);
+                setUnreadTotal(state.lastUnreadTotal);
                 updateUsers(data.users || []);
             } catch (error) {
                 showAlert(error.message);
@@ -286,8 +442,9 @@
             try {
                 const data = await postJson(urls.send, { receiver_id: state.activeUserId, body: body });
                 input.value = '';
-                appendMessage(data.message);
-                setUnreadTotal(data.unread_total || 0);
+                renderMessages([data.message], false);
+                state.lastUnreadTotal = parseInt(data.unread_total || 0, 10);
+                setUnreadTotal(state.lastUnreadTotal);
                 updateUsers(data.users || []);
                 showAlert('');
             } catch (error) {
@@ -301,18 +458,33 @@
         async function poll() {
             if (!ready) return;
             const params = new URLSearchParams();
-            if (state.activeUserId) {
+            const shouldFetchActiveConversation = state.open && !!state.activeUserId;
+
+            // v35: do not poll the active conversation while the chat panel is closed.
+            // Otherwise incoming messages are marked as read immediately and the unread badge stays zero.
+            if (shouldFetchActiveConversation) {
                 params.set('with_user_id', String(state.activeUserId));
                 params.set('after_id', String(state.lastMessageId || 0));
             }
 
             try {
                 const data = await requestJson(urls.poll + (params.toString() ? ('?' + params.toString()) : ''));
-                setUnreadTotal(data.unread_total || 0);
+                const nextUnreadTotal = parseInt(data.unread_total || 0, 10);
+                const previousUnreadTotal = state.lastUnreadTotal;
+                const incomingMessages = shouldFetchActiveConversation && Array.isArray(data.messages)
+                    ? data.messages.some(function (message) { return message && message.direction === 'incoming'; })
+                    : false;
+
+                setUnreadTotal(nextUnreadTotal);
                 updateUsers(data.users || []);
-                if (state.activeUserId && Array.isArray(data.messages) && data.messages.length) {
+                if (shouldFetchActiveConversation && Array.isArray(data.messages) && data.messages.length) {
                     renderMessages(data.messages, false);
                 }
+
+                if ((previousUnreadTotal !== null && nextUnreadTotal > previousUnreadTotal) || incomingMessages) {
+                    playNotificationSound();
+                }
+                state.lastUnreadTotal = nextUnreadTotal;
                 showAlert('');
             } catch (error) {
                 // Keep the widget quiet on transient polling errors, but show clear auth/permission errors.
@@ -325,7 +497,11 @@
         function openPanel() {
             state.open = true;
             if (panel) panel.hidden = false;
+            updateSoundButton();
             loadBootstrap();
+            if (state.activeUserId) {
+                window.setTimeout(poll, 150);
+            }
             if (searchInput) searchInput.focus();
         }
 
@@ -341,6 +517,14 @@
         }
 
         if (closeButton) closeButton.addEventListener('click', closePanel);
+        if (soundToggleButton) {
+            soundToggleButton.addEventListener('click', function () {
+                setSoundMuted(!state.soundMuted);
+            });
+        }
+        ['click', 'keydown', 'pointerdown', 'touchstart'].forEach(function (eventName) {
+            document.addEventListener(eventName, unlockAudio, { once: true, passive: true });
+        });
         if (searchInput) searchInput.addEventListener('input', renderUsers);
         if (form) form.addEventListener('submit', sendMessage);
         if (input) {
@@ -352,6 +536,7 @@
             });
         }
 
+        updateSoundButton();
         loadBootstrap();
         state.pollTimer = window.setInterval(poll, pollSeconds * 1000);
     });

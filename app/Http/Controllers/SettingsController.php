@@ -31,6 +31,8 @@ class SettingsController extends Controller
         'lite_notification_poll_seconds' => '30',
         'internal_chat_enabled' => '1',
         'internal_chat_poll_seconds' => '5',
+        'internal_chat_sound_enabled' => '1',
+        'internal_chat_sound_volume' => '85',
         'pdf_search_pdftotext_path' => 'pdftotext',
         'pdf_search_pdftoppm_path' => 'pdftoppm',
         'pdf_search_tesseract_path' => 'tesseract',
@@ -62,7 +64,9 @@ class SettingsController extends Controller
             'reference_start' => $settings['reference_start_number'],
             'auto_logout' => ((string) $settings['auto_logout_enabled'] === '1') ? ($settings['auto_logout_minutes'] . ' دقيقة') : 'غير مفعل',
             'pdf_search' => ((string) $settings['pdf_search_enable_ocr'] === '1') ? ('OCR مفعل - ' . $settings['pdf_search_ocr_languages']) : 'PDF نصي فقط',
-            'internal_chat' => ((string) $settings['internal_chat_enabled'] === '1') ? ('مفعلة - كل ' . $settings['internal_chat_poll_seconds'] . ' ثواني') : 'غير مفعلة',
+            'internal_chat' => ((string) $settings['internal_chat_enabled'] === '1')
+                ? ('مفعلة - كل ' . $settings['internal_chat_poll_seconds'] . ' ثواني' . (((string) ($settings['internal_chat_sound_enabled'] ?? '1') === '1') ? (' - صوت مفعل ' . ($settings['internal_chat_sound_volume'] ?? '85') . '%') : ' - صوت مكتوم من الإعدادات'))
+                : 'غير مفعلة',
         ];
 
         return view('settings.edit', compact('settings', 'printFontOptions', 'printSummary'));
@@ -81,6 +85,8 @@ class SettingsController extends Controller
             'auto_logout_warning_seconds' => ['required', 'integer', 'min:10', 'max:600'],
             'lite_notification_poll_seconds' => ['required', 'integer', 'min:10', 'max:300'],
             'internal_chat_enabled' => ['nullable', 'boolean'],
+            'internal_chat_sound_enabled' => ['nullable', 'boolean'],
+            'internal_chat_sound_volume' => ['required', 'integer', 'min:0', 'max:100'],
             'internal_chat_poll_seconds' => ['required', 'integer', 'min:3', 'max:120'],
             'pdf_search_pdftotext_path' => ['nullable', 'string', 'max:500'],
             'pdf_search_pdftoppm_path' => ['nullable', 'string', 'max:500'],
@@ -113,6 +119,9 @@ class SettingsController extends Controller
             'auto_logout_warning_seconds.required' => 'مدة التنبيه قبل الخروج مطلوبة.',
             'lite_notification_poll_seconds.required' => 'مدة تحديث إشعارات نسخة الهاتف مطلوبة.',
             'internal_chat_poll_seconds.required' => 'مدة تحديث الدردشة الداخلية مطلوبة.',
+            'internal_chat_sound_volume.required' => 'مستوى صوت تنبيه الدردشة مطلوب.',
+            'internal_chat_sound_volume.min' => 'مستوى الصوت يجب ألا يقل عن 0%.',
+            'internal_chat_sound_volume.max' => 'مستوى الصوت يجب ألا يزيد عن 100%.',
             'pdf_search_ocr_languages.required' => 'لغات OCR مطلوبة، مثال: ara+eng.',
             'pdf_search_pages_limit.required' => 'حد صفحات OCR مطلوب.',
             'reference_start_number.integer' => 'رقم بداية الكتاب يجب أن يكون رقماً صحيحاً.',
@@ -122,6 +131,8 @@ class SettingsController extends Controller
 
         $validated['auto_logout_enabled'] = $request->boolean('auto_logout_enabled') ? '1' : '0';
         $validated['internal_chat_enabled'] = $request->boolean('internal_chat_enabled') ? '1' : '0';
+        $validated['internal_chat_sound_enabled'] = $request->boolean('internal_chat_sound_enabled') ? '1' : '0';
+        $validated['internal_chat_sound_volume'] = (string) max(0, min(100, (int) ($validated['internal_chat_sound_volume'] ?? 85)));
         $validated['pdf_search_enable_ocr'] = $request->boolean('pdf_search_enable_ocr') ? '1' : '0';
         foreach (['pdf_search_pdftotext_path', 'pdf_search_pdftoppm_path', 'pdf_search_tesseract_path'] as $toolPathKey) {
             $validated[$toolPathKey] = trim((string) ($validated[$toolPathKey] ?? ''));
@@ -146,6 +157,8 @@ class SettingsController extends Controller
             'auto_logout_warning_seconds' => ['security', 'number', 'مدة ظهور تنبيه الخروج قبل انتهاء الجلسة بالثواني'],
             'lite_notification_poll_seconds' => ['lite', 'number', 'مدة تحديث إشعارات نسخة الهاتف لايت بالثواني'],
             'internal_chat_enabled' => ['internal_chat', 'boolean', 'تفعيل نافذة الدردشة الداخلية العائمة'],
+            'internal_chat_sound_enabled' => ['internal_chat', 'boolean', 'تفعيل التنبيه الصوتي عند وصول رسائل دردشة جديدة'],
+            'internal_chat_sound_volume' => ['internal_chat', 'number', 'مستوى صوت تنبيه الدردشة الداخلية بالنسبة المئوية'],
             'internal_chat_poll_seconds' => ['internal_chat', 'number', 'مدة تحديث الدردشة الداخلية بالثواني'],
             'pdf_search_pdftotext_path' => ['pdf_search', 'text', 'مسار أداة pdftotext لاستخراج نصوص PDF النصية'],
             'pdf_search_pdftoppm_path' => ['pdf_search', 'text', 'مسار أداة pdftoppm لتحويل PDF إلى صور قبل OCR'],

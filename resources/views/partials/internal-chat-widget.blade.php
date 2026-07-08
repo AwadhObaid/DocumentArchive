@@ -5,6 +5,7 @@
     try {
         $daInternalChatEnabled = (string) \App\Models\Setting::getValue('internal_chat_enabled', '1') === '1';
         $daInternalChatReady = \Illuminate\Support\Facades\Schema::hasTable('internal_chat_messages');
+        $daInternalChatSoundEnabled = (string) \App\Models\Setting::getValue('internal_chat_sound_enabled', '1') === '1';
     } catch (\Throwable $exception) {
         $daInternalChatEnabled = false;
         $daInternalChatReady = false;
@@ -25,6 +26,8 @@
         data-read-url-template="{{ route('internal-chat.read', ['user' => '__USER__']) }}"
         data-can-send="{{ auth()->user()?->hasPermission('internal_chat.send') ? '1' : '0' }}"
         data-poll-seconds="{{ max(3, min(120, (int) \App\Models\Setting::getValue('internal_chat_poll_seconds', 5))) }}"
+        data-sound-enabled="{{ ($daInternalChatSoundEnabled ?? true) ? '1' : '0' }}"
+        data-sound-volume="{{ max(0, min(100, (int) \App\Models\Setting::getValue('internal_chat_sound_volume', 85))) }}"
         aria-live="polite"
     >
         <button class="internal-chat-launcher" type="button" data-chat-open aria-label="فتح الدردشة الداخلية">
@@ -39,7 +42,12 @@
                     <strong>الدردشة الداخلية</strong>
                     <small>تواصل سريع بين مستخدمي النظام</small>
                 </div>
-                <button type="button" class="internal-chat-close" data-chat-close aria-label="إغلاق">×</button>
+                <div class="internal-chat-header-actions">
+                    @if($daInternalChatSoundEnabled ?? true)
+                        <button type="button" class="internal-chat-sound-toggle" data-chat-sound-toggle aria-label="كتم أو تشغيل صوت الدردشة">🔊</button>
+                    @endif
+                    <button type="button" class="internal-chat-close" data-chat-close aria-label="إغلاق">×</button>
+                </div>
             </header>
 
             <div class="internal-chat-alert" data-chat-alert hidden></div>
