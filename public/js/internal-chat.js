@@ -12,13 +12,23 @@
         const soundEnabled = widget.dataset.soundEnabled === '1';
         const soundVolume = Math.max(0, Math.min(100, parseInt(widget.dataset.soundVolume || '85', 10))) / 100;
         const soundStorageKey = 'documentarchive.internalChat.soundMuted';
+
         const urls = {
             bootstrap: widget.dataset.bootstrapUrl,
             users: widget.dataset.usersUrl,
             poll: widget.dataset.pollUrl,
             messagesTemplate: widget.dataset.messagesUrlTemplate,
+            conversationMessagesTemplate: widget.dataset.conversationMessagesUrlTemplate,
             send: widget.dataset.sendUrl,
-            readTemplate: widget.dataset.readUrlTemplate
+            readTemplate: widget.dataset.readUrlTemplate,
+            groupStore: widget.dataset.groupStoreUrl,
+            archived: widget.dataset.archivedUrl,
+            archiveTemplate: widget.dataset.archiveUrlTemplate,
+            restoreTemplate: widget.dataset.restoreUrlTemplate,
+            deleteTemplate: widget.dataset.deleteUrlTemplate,
+            search: widget.dataset.searchUrl,
+            documentLookup: widget.dataset.documentLookupUrl,
+            memoLookup: widget.dataset.memoLookupUrl
         };
 
         const launcher = widget.querySelector('[data-chat-open]');
@@ -29,17 +39,43 @@
         const alertBox = widget.querySelector('[data-chat-alert]');
         const usersBox = widget.querySelector('[data-chat-users]');
         const searchInput = widget.querySelector('[data-chat-user-search]');
+        const messageSearchInput = widget.querySelector('[data-chat-message-search]');
+        const searchClearButton = widget.querySelector('[data-chat-search-clear]');
         const messagesBox = widget.querySelector('[data-chat-messages]');
         const activeName = widget.querySelector('[data-chat-active-name]');
         const activeSubtitle = widget.querySelector('[data-chat-active-subtitle]');
+        const archiveButton = widget.querySelector('[data-chat-archive]');
+        const restoreButton = widget.querySelector('[data-chat-restore]');
+        const deleteButton = widget.querySelector('[data-chat-delete]');
+        const archivedToggleButton = widget.querySelector('[data-chat-archives-toggle]');
+        const groupToggleButton = widget.querySelector('[data-chat-group-toggle]');
+        const groupForm = widget.querySelector('[data-chat-group-form]');
+        const groupTitleInput = widget.querySelector('[data-chat-group-title]');
+        const groupUsersBox = widget.querySelector('[data-chat-group-users]');
+        const groupCancelButton = widget.querySelector('[data-chat-group-cancel]');
         const form = widget.querySelector('[data-chat-form]');
         const input = widget.querySelector('[data-chat-input]');
+        const attachToggle = widget.querySelector('[data-chat-attach-toggle]');
+        const attachmentPanel = widget.querySelector('[data-chat-attachment-panel]');
+        const documentSearchInput = widget.querySelector('[data-chat-document-search]');
+        const memoSearchInput = widget.querySelector('[data-chat-memo-search]');
+        const documentLookupButton = widget.querySelector('[data-chat-document-lookup]');
+        const memoLookupButton = widget.querySelector('[data-chat-memo-lookup]');
+        const lookupResultsBox = widget.querySelector('[data-chat-lookup-results]');
+        const selectedReferenceBox = widget.querySelector('[data-chat-selected-reference]');
+        const clearReferenceButton = widget.querySelector('[data-chat-clear-reference]');
 
         const state = {
             open: false,
             users: [],
+            conversations: [],
+            archivedConversations: [],
+            showArchived: false,
+            activeArchived: false,
+            activeKind: null,
             activeUserId: null,
-            activeUserName: '',
+            activeConversationId: null,
+            activeName: '',
             lastMessageId: 0,
             loadingMessages: false,
             pollTimer: null,
@@ -48,11 +84,17 @@
             soundMuted: window.localStorage.getItem(soundStorageKey) === '1',
             audioContext: null,
             soundVolume: soundVolume,
-            messages: new Map()
+            messages: new Map(),
+            searchTimer: null,
+            selectedReference: null
         };
 
-        function urlFor(template, userId) {
-            return (template || '').replace('__USER__', encodeURIComponent(String(userId)));
+        function urlFor(template, value, token) {
+            return (template || '').replace(token || '__USER__', encodeURIComponent(String(value)));
+        }
+
+        function conversationUrl(template, conversationId) {
+            return urlFor(template, conversationId, '__CONVERSATION__');
         }
 
         function showAlert(message) {
@@ -65,7 +107,6 @@
             alertBox.hidden = false;
             alertBox.textContent = message;
         }
-
 
         function updateSoundButton() {
             if (!soundToggleButton) return;
@@ -108,7 +149,6 @@
                 const peakVolume = Math.max(0.02, Math.min(1, state.soundVolume));
                 const peakGain = 0.75 * peakVolume;
 
-                // v36: controllable and clearer alert tone. Volume comes from system settings.
                 masterGain.gain.setValueAtTime(0.0001, now);
                 masterGain.gain.exponentialRampToValueAtTime(Math.max(0.0001, peakGain), now + 0.018);
                 masterGain.gain.exponentialRampToValueAtTime(0.0001, now + 0.58);
@@ -201,11 +241,63 @@
             return value ? value.slice(0, 1) : 'م';
         }
 
+        function threadKey(thread) {
+            if (!thread) return '';
+            if (thread.kind === 'group' || thread.kind === 'direct_conversation') {
+                return 'conversation:' + thread.conversation_id;
+            }
+            return 'direct:' + thread.user_id;
+        }
+
+        function currentThreadKey() {
+            if (state.activeConversationId) return 'conversation:' + state.activeConversationId;
+            if (state.activeUserId) return 'direct:' + state.activeUserId;
+            return '';
+        }
+
+        function mergedThreads() {
+            const map = new Map();
+
+            if (state.showArchived) {
+                (state.archivedConversations || []).forEach(function (conversation) {
+                    if (!conversation || conversation.deleted || !conversation.archived) return;
+                    map.set('conversation:' + conversation.conversation_id, conversation);
+                });
+            } else {
+                (state.conversations || []).forEach(function (conversation) {
+                    if (!conversation || conversation.deleted || conversation.archived) return;
+                    map.set('conversation:' + conversation.conversation_id, conversation);
+                });
+
+                (state.users || []).forEach(function (user) {
+                    if (!user || user.archived || user.deleted) return;
+                    const existingKey = user.conversation_id ? ('conversation:' + user.conversation_id) : null;
+                    if (existingKey && map.has(existingKey)) return;
+                    map.set('direct:' + user.user_id, user);
+                });
+            }
+
+            return Array.from(map.values()).sort(function (a, b) {
+                const au = parseInt(a.unread_count || 0, 10);
+                const bu = parseInt(b.unread_count || 0, 10);
+                if (au !== bu) return bu - au;
+                const ai = parseInt(a.latest_message_id || 0, 10);
+                const bi = parseInt(b.latest_message_id || 0, 10);
+                return bi - ai;
+            });
+        }
+
         function renderUsers() {
             if (!usersBox) return;
+            if (archivedToggleButton) {
+                archivedToggleButton.classList.toggle('active', state.showArchived);
+                archivedToggleButton.textContent = state.showArchived ? 'الرئيسية' : 'المؤرشفة';
+                archivedToggleButton.title = state.showArchived ? 'العودة إلى المحادثات الرئيسية' : 'عرض المحادثات المؤرشفة';
+            }
+
             const filter = String(searchInput?.value || '').trim().toLowerCase();
-            const filtered = state.users.filter(function (user) {
-                const haystack = ((user.name || '') + ' ' + (user.username || '')).toLowerCase();
+            const filtered = mergedThreads().filter(function (thread) {
+                const haystack = ((thread.name || '') + ' ' + (thread.title || '') + ' ' + (thread.username || '') + ' ' + (thread.participants_label || '')).toLowerCase();
                 return !filter || haystack.includes(filter);
             });
 
@@ -213,39 +305,52 @@
             if (!filtered.length) {
                 const empty = document.createElement('div');
                 empty.className = 'internal-chat-empty';
-                empty.textContent = 'لا يوجد مستخدمون متاحون.';
+                empty.textContent = state.showArchived ? 'لا توجد محادثات مؤرشفة مطابقة.' : 'لا توجد محادثات أو مستخدمون مطابقون.';
                 usersBox.appendChild(empty);
+                renderGroupUsers();
                 return;
             }
 
-            filtered.forEach(function (user) {
+            filtered.forEach(function (thread) {
                 const button = document.createElement('button');
                 button.type = 'button';
-                button.className = 'internal-chat-user' + (String(state.activeUserId) === String(user.id) ? ' active' : '');
-                button.dataset.userId = user.id;
+                button.className = 'internal-chat-user'
+                    + (currentThreadKey() === threadKey(thread) ? ' active' : '')
+                    + (thread.archived ? ' archived' : '');
+                button.dataset.threadKind = thread.kind || 'direct';
+                button.dataset.userId = thread.user_id || '';
+                button.dataset.conversationId = thread.conversation_id || '';
 
                 const avatar = document.createElement('span');
-                avatar.className = 'internal-chat-avatar';
-                avatar.textContent = initials(user.name);
+                avatar.className = 'internal-chat-avatar ' + ((thread.status === 'online') ? 'online' : (thread.kind === 'group' ? 'group' : 'offline'));
+                avatar.textContent = (thread.kind === 'group') ? '👥' : initials(thread.name);
 
                 const text = document.createElement('span');
                 text.className = 'internal-chat-user-text';
+
                 const name = document.createElement('span');
                 name.className = 'internal-chat-user-name';
-                name.textContent = user.name || ('مستخدم #' + user.id);
+                name.textContent = thread.name || thread.title || ('مستخدم #' + (thread.user_id || thread.id));
+
                 const preview = document.createElement('span');
                 preview.className = 'internal-chat-user-preview';
-                preview.textContent = user.latest_preview || user.role_name || 'مستخدم نشط';
+                preview.textContent = (thread.archived ? '📦 مؤرشفة · ' : '') + (thread.latest_preview || thread.status_label || thread.role_name || 'مستخدم نشط');
+
+                const status = document.createElement('span');
+                status.className = 'internal-chat-user-status ' + ((thread.status === 'online') ? 'online' : (thread.kind === 'group' ? 'group' : 'offline'));
+                status.textContent = thread.status_label || '';
+
                 text.appendChild(name);
                 text.appendChild(preview);
+                text.appendChild(status);
 
                 button.appendChild(avatar);
                 button.appendChild(text);
 
-                if (parseInt(user.unread_count || 0, 10) > 0) {
+                if (parseInt(thread.unread_count || 0, 10) > 0) {
                     const badge = document.createElement('span');
                     badge.className = 'internal-chat-user-unread';
-                    badge.textContent = user.unread_count > 99 ? '99+' : String(user.unread_count);
+                    badge.textContent = thread.unread_count > 99 ? '99+' : String(thread.unread_count);
                     button.appendChild(badge);
                 } else {
                     const spacer = document.createElement('span');
@@ -253,18 +358,24 @@
                 }
 
                 button.addEventListener('click', function () {
-                    selectUser(user.id, user.name || ('مستخدم #' + user.id));
+                    selectThread(thread);
                 });
 
                 usersBox.appendChild(button);
             });
+
+            renderGroupUsers();
         }
 
-        function updateUsers(users) {
-            if (Array.isArray(users)) {
-                state.users = users;
-                renderUsers();
+        function updatePayload(data) {
+            if (Array.isArray(data.users)) state.users = data.users;
+            if (Array.isArray(data.conversations)) state.conversations = data.conversations;
+            if (Array.isArray(data.archived_conversations)) state.archivedConversations = data.archived_conversations;
+            if (typeof data.unread_total !== 'undefined') {
+                state.lastUnreadTotal = parseInt(data.unread_total || 0, 10);
+                setUnreadTotal(state.lastUnreadTotal);
             }
+            renderUsers();
         }
 
         function messageSortKey(message) {
@@ -283,11 +394,23 @@
         }
 
         function friendlyDateLabel(dateLabel) {
-            const value = String(dateLabel || '').trim();
-            if (!value) return '';
-            if (value === todayIso(0)) return 'اليوم';
-            if (value === todayIso(-1)) return 'أمس';
-            return value;
+            if (!dateLabel) return '';
+            if (dateLabel === todayIso(0)) return 'اليوم';
+            if (dateLabel === todayIso(-1)) return 'أمس';
+            return dateLabel;
+        }
+
+        function createReferenceElement(type, reference) {
+            if (!reference) return null;
+            const element = document.createElement(reference.url ? 'a' : 'div');
+            element.className = 'internal-chat-reference ' + type;
+            element.textContent = (type === 'document' ? '📘 ' : '📝 ') + (reference.label || 'مرفق');
+            if (reference.url) {
+                element.href = reference.url;
+                element.target = '_blank';
+                element.rel = 'noopener';
+            }
+            return element;
         }
 
         function createMessageElement(message) {
@@ -300,6 +423,16 @@
 
             const body = document.createElement('div');
             body.textContent = message.body || '';
+            if (!message.body && (message.document || message.memo)) {
+                body.textContent = 'تم إرسال مرفق.';
+            }
+
+            bubble.appendChild(body);
+
+            const documentReference = createReferenceElement('document', message.document);
+            const memoReference = createReferenceElement('memo', message.memo);
+            if (documentReference) bubble.appendChild(documentReference);
+            if (memoReference) bubble.appendChild(memoReference);
 
             const meta = document.createElement('div');
             meta.className = 'internal-chat-meta';
@@ -308,13 +441,12 @@
                 meta.title = message.full_time || message.created_at;
             }
 
-            bubble.appendChild(body);
             bubble.appendChild(meta);
             wrapper.appendChild(bubble);
             return wrapper;
         }
 
-        function renderConversationMessages() {
+        function renderConversationMessages(searchMode) {
             if (!messagesBox) return;
 
             const messages = Array.from(state.messages.values()).sort(function (a, b) {
@@ -329,9 +461,9 @@
             if (!messages.length) {
                 const empty = document.createElement('div');
                 empty.className = 'internal-chat-empty internal-chat-empty-large';
-                empty.textContent = 'لا توجد رسائل بعد. ابدأ المحادثة برسالة قصيرة.';
+                empty.textContent = searchMode ? 'لا توجد نتائج مطابقة داخل هذه المحادثة.' : 'لا توجد رسائل بعد. ابدأ المحادثة برسالة قصيرة.';
                 messagesBox.appendChild(empty);
-                state.lastMessageId = 0;
+                if (!searchMode) state.lastMessageId = 0;
                 return;
             }
 
@@ -354,11 +486,13 @@
                 maxId = Math.max(maxId, parseInt(message.id || '0', 10));
             });
 
-            state.lastMessageId = maxId;
-            messagesBox.scrollTop = messagesBox.scrollHeight;
+            if (!searchMode) {
+                state.lastMessageId = maxId;
+                messagesBox.scrollTop = messagesBox.scrollHeight;
+            }
         }
 
-        function upsertMessages(messages, reset) {
+        function renderMessages(messages, reset) {
             if (!messagesBox) return;
             if (reset) {
                 state.messages.clear();
@@ -373,49 +507,86 @@
                 });
             }
 
-            renderConversationMessages();
-        }
-
-        function renderMessages(messages, reset) {
-            upsertMessages(messages, reset);
+            renderConversationMessages(false);
         }
 
         async function loadBootstrap() {
             if (!ready) {
-                showAlert('جدول الدردشة غير موجود بعد. نفّذ php artisan migrate ثم حدّث الصفحة.');
+                showAlert('تحديث الدردشة المتقدمة غير مكتمل. نفّذ php artisan migrate ثم حدّث الصفحة.');
                 return;
             }
 
             try {
                 const data = await requestJson(urls.bootstrap);
                 showAlert('');
-                state.lastUnreadTotal = parseInt(data.unread_total || 0, 10);
-                setUnreadTotal(state.lastUnreadTotal);
-                updateUsers(data.users || []);
+                updatePayload(data);
             } catch (error) {
                 showAlert(error.message);
             }
         }
 
-        async function selectUser(userId, userName) {
-            if (!userId || state.loadingMessages) return;
-            state.activeUserId = userId;
-            state.activeUserName = userName || '';
+        function resetActiveSearch() {
+            if (messageSearchInput) {
+                messageSearchInput.value = '';
+                messageSearchInput.hidden = !state.activeConversationId && !state.activeUserId;
+            }
+            if (searchClearButton) searchClearButton.hidden = true;
+        }
+
+        function setComposeDisabled(disabled) {
+            const value = !!disabled;
+            const submitButton = form ? form.querySelector('button[type="submit"]') : null;
+            if (input) {
+                input.disabled = value;
+                input.placeholder = state.activeArchived
+                    ? 'استعد المحادثة المؤرشفة قبل إرسال رسالة جديدة...'
+                    : 'اكتب رسالتك هنا...';
+            }
+            if (submitButton) submitButton.disabled = value;
+            if (attachToggle) attachToggle.disabled = value;
+        }
+
+        function updateHeaderActions() {
+            const hasConversation = !!state.activeConversationId;
+            if (restoreButton) restoreButton.hidden = !hasConversation || !state.activeArchived;
+            if (archiveButton) archiveButton.hidden = !hasConversation || state.activeArchived;
+            if (deleteButton) deleteButton.hidden = !hasConversation || state.activeArchived;
+            if (messageSearchInput) messageSearchInput.hidden = !hasConversation && !state.activeUserId;
+            setComposeDisabled(!canSend || state.activeArchived || (!state.activeConversationId && !state.activeUserId));
+        }
+
+        async function selectThread(thread) {
+            if (!thread || state.loadingMessages) return;
             state.loadingMessages = true;
+            state.activeKind = thread.kind || 'direct';
+            state.activeArchived = !!thread.archived;
+            state.activeUserId = thread.user_id || null;
+            state.activeConversationId = thread.conversation_id || null;
+            state.activeName = thread.name || thread.title || '';
             renderUsers();
-            if (activeName) activeName.textContent = state.activeUserName || 'محادثة';
-            if (activeSubtitle) activeSubtitle.textContent = 'محادثة مباشرة محفوظة داخل النظام';
-            if (input && canSend) {
+            resetActiveSearch();
+            updateHeaderActions();
+
+            if (activeName) activeName.textContent = state.activeName || 'محادثة';
+            if (activeSubtitle) activeSubtitle.textContent = thread.status_label || thread.participants_label || 'محادثة محفوظة داخل النظام';
+            updateHeaderActions();
+            if (input && canSend && !state.activeArchived) {
                 input.disabled = false;
                 input.focus();
             }
 
             try {
-                const data = await requestJson(urlFor(urls.messagesTemplate, userId));
+                const loadUrl = state.activeConversationId
+                    ? conversationUrl(urls.conversationMessagesTemplate, state.activeConversationId)
+                    : urlFor(urls.messagesTemplate, state.activeUserId);
+                const data = await requestJson(loadUrl);
+                if (data.conversation && data.conversation.conversation_id) {
+                    state.activeConversationId = data.conversation.conversation_id;
+                }
                 renderMessages(data.messages || [], true);
-                state.lastUnreadTotal = parseInt(data.unread_total || 0, 10);
-                setUnreadTotal(state.lastUnreadTotal);
-                updateUsers(data.users || []);
+                updatePayload(data);
+                updateHeaderActions();
+                showAlert('');
             } catch (error) {
                 showAlert(error.message);
             } finally {
@@ -429,23 +600,33 @@
                 showAlert('ليست لديك صلاحية إرسال رسائل الدردشة.');
                 return;
             }
-            if (!state.activeUserId) {
-                showAlert('اختر مستخدمًا قبل إرسال الرسالة.');
+            if (!state.activeUserId && !state.activeConversationId) {
+                showAlert('اختر مستخدمًا أو مجموعة قبل إرسال الرسالة.');
                 return;
             }
             const body = String(input?.value || '').trim();
-            if (!body) return;
+            const reference = state.selectedReference;
+            if (!body && !reference) return;
 
             const submitButton = form?.querySelector('button[type="submit"]');
             if (submitButton) submitButton.disabled = true;
 
+            const payload = { body: body };
+            if (state.activeConversationId) payload.conversation_id = state.activeConversationId;
+            else payload.receiver_id = state.activeUserId;
+            if (reference && reference.type === 'document') payload.document_id = reference.id;
+            if (reference && reference.type === 'memo') payload.memo_id = reference.id;
+
             try {
-                const data = await postJson(urls.send, { receiver_id: state.activeUserId, body: body });
+                const data = await postJson(urls.send, payload);
                 input.value = '';
+                clearSelectedReference();
+                if (data.conversation && data.conversation.conversation_id) {
+                    state.activeConversationId = data.conversation.conversation_id;
+                }
                 renderMessages([data.message], false);
-                state.lastUnreadTotal = parseInt(data.unread_total || 0, 10);
-                setUnreadTotal(state.lastUnreadTotal);
-                updateUsers(data.users || []);
+                updatePayload(data);
+                updateHeaderActions();
                 showAlert('');
             } catch (error) {
                 showAlert(error.message);
@@ -458,12 +639,11 @@
         async function poll() {
             if (!ready) return;
             const params = new URLSearchParams();
-            const shouldFetchActiveConversation = state.open && !!state.activeUserId;
+            const shouldFetchActiveConversation = state.open && (!!state.activeConversationId || !!state.activeUserId);
 
-            // v35: do not poll the active conversation while the chat panel is closed.
-            // Otherwise incoming messages are marked as read immediately and the unread badge stays zero.
             if (shouldFetchActiveConversation) {
-                params.set('with_user_id', String(state.activeUserId));
+                if (state.activeConversationId) params.set('conversation_id', String(state.activeConversationId));
+                else params.set('with_user_id', String(state.activeUserId));
                 params.set('after_id', String(state.lastMessageId || 0));
             }
 
@@ -475,8 +655,7 @@
                     ? data.messages.some(function (message) { return message && message.direction === 'incoming'; })
                     : false;
 
-                setUnreadTotal(nextUnreadTotal);
-                updateUsers(data.users || []);
+                updatePayload(data);
                 if (shouldFetchActiveConversation && Array.isArray(data.messages) && data.messages.length) {
                     renderMessages(data.messages, false);
                 }
@@ -487,11 +666,269 @@
                 state.lastUnreadTotal = nextUnreadTotal;
                 showAlert('');
             } catch (error) {
-                // Keep the widget quiet on transient polling errors, but show clear auth/permission errors.
-                if (/صلاحية|غير مفعلة|migrate|جلسة|login/i.test(error.message)) {
+                if (/صلاحية|غير مفعلة|migrate|جلسة|login|تحديث الدردشة/i.test(error.message)) {
                     showAlert(error.message);
                 }
             }
+        }
+
+        async function searchMessages() {
+            const q = String(messageSearchInput?.value || '').trim();
+            if (!q) {
+                renderConversationMessages(false);
+                if (searchClearButton) searchClearButton.hidden = true;
+                return;
+            }
+            if (q.length < 2 || (!state.activeConversationId && !state.activeUserId)) return;
+
+            const params = new URLSearchParams();
+            params.set('q', q);
+            if (state.activeConversationId) params.set('conversation_id', String(state.activeConversationId));
+            else params.set('user_id', String(state.activeUserId));
+
+            try {
+                const data = await requestJson(urls.search + '?' + params.toString());
+                state.messages.clear();
+                (data.messages || []).forEach(function (message) {
+                    state.messages.set(String(message.id), message);
+                });
+                renderConversationMessages(true);
+                if (searchClearButton) searchClearButton.hidden = false;
+                showAlert('');
+            } catch (error) {
+                showAlert(error.message);
+            }
+        }
+
+        function queueSearchMessages() {
+            window.clearTimeout(state.searchTimer);
+            state.searchTimer = window.setTimeout(searchMessages, 350);
+        }
+
+        async function reloadCurrentConversation() {
+            if (state.activeConversationId) {
+                const conv = { kind: 'group', conversation_id: state.activeConversationId, name: state.activeName };
+                await selectThread(conv);
+            } else if (state.activeUserId) {
+                const direct = { kind: 'direct', user_id: state.activeUserId, name: state.activeName };
+                await selectThread(direct);
+            }
+        }
+
+        async function hideCurrentConversation(mode) {
+            if (!state.activeConversationId) return;
+            const question = mode === 'delete'
+                ? 'سيتم مسح سجل الرسائل من شاشتك فقط، مع بقاء المستخدم/المجموعة في القائمة. لن تُحذف الرسائل من قاعدة البيانات نهائيًا. هل تريد المتابعة؟'
+                : 'سيتم أرشفة المحادثة من قائمتك. هل تريد المتابعة؟';
+            if (!window.confirm(question)) return;
+
+            const targetUrl = mode === 'delete'
+                ? conversationUrl(urls.deleteTemplate, state.activeConversationId)
+                : conversationUrl(urls.archiveTemplate, state.activeConversationId);
+
+            try {
+                const data = await postJson(targetUrl, {});
+                state.messages.clear();
+                clearSelectedReference();
+                updatePayload(data);
+
+                if (mode === 'delete') {
+                    renderConversationMessages(false);
+                    updateHeaderActions();
+                    showAlert(data.message || 'تم مسح سجل المحادثة ظاهريًا.');
+                    return;
+                }
+
+                state.activeKind = null;
+                state.activeArchived = false;
+                state.activeUserId = null;
+                state.activeConversationId = null;
+                state.activeName = '';
+                if (activeName) activeName.textContent = 'اختر محادثة';
+                if (activeSubtitle) activeSubtitle.textContent = 'لعرض المحادثة والرسائل';
+                updateHeaderActions();
+                renderConversationMessages(false);
+                showAlert(data.message || 'تم تنفيذ العملية.');
+            } catch (error) {
+                showAlert(error.message);
+            }
+        }
+
+        async function loadArchivedConversations() {
+            if (!urls.archived) return;
+            try {
+                const data = await requestJson(urls.archived);
+                state.archivedConversations = Array.isArray(data.conversations) ? data.conversations : [];
+                renderUsers();
+                showAlert('');
+            } catch (error) {
+                showAlert(error.message);
+            }
+        }
+
+        async function toggleArchivedView() {
+            state.showArchived = !state.showArchived;
+            if (searchInput) searchInput.value = '';
+            if (state.showArchived) {
+                await loadArchivedConversations();
+            } else {
+                renderUsers();
+            }
+        }
+
+        async function restoreCurrentConversation() {
+            if (!state.activeConversationId || !urls.restoreTemplate) return;
+            const targetUrl = conversationUrl(urls.restoreTemplate, state.activeConversationId);
+
+            try {
+                const data = await postJson(targetUrl, {});
+                const restored = data.conversation || {
+                    kind: 'direct_conversation',
+                    conversation_id: state.activeConversationId,
+                    name: state.activeName
+                };
+
+                state.showArchived = false;
+                state.activeArchived = false;
+                if (Array.isArray(data.archived_conversations)) {
+                    state.archivedConversations = data.archived_conversations;
+                } else {
+                    state.archivedConversations = (state.archivedConversations || []).filter(function (conversation) {
+                        return String(conversation.conversation_id) !== String(state.activeConversationId);
+                    });
+                }
+
+                updatePayload(data);
+                showAlert(data.message || 'تمت استعادة المحادثة إلى القائمة الرئيسية.');
+                await selectThread(restored);
+            } catch (error) {
+                showAlert(error.message);
+            }
+        }
+
+        function renderGroupUsers() {
+            if (!groupUsersBox) return;
+            groupUsersBox.innerHTML = '';
+            (state.users || []).forEach(function (user) {
+                const label = document.createElement('label');
+                label.className = 'internal-chat-group-user';
+                const checkbox = document.createElement('input');
+                checkbox.type = 'checkbox';
+                checkbox.value = user.user_id || user.id;
+                const span = document.createElement('span');
+                span.textContent = user.name || ('مستخدم #' + (user.user_id || user.id));
+                label.appendChild(checkbox);
+                label.appendChild(span);
+                groupUsersBox.appendChild(label);
+            });
+        }
+
+        function toggleGroupForm(force) {
+            if (!groupForm) return;
+            const shouldShow = typeof force === 'boolean' ? force : groupForm.hidden;
+            groupForm.hidden = !shouldShow;
+            if (shouldShow) {
+                renderGroupUsers();
+                if (groupTitleInput) groupTitleInput.focus();
+            }
+        }
+
+        async function createGroup(event) {
+            event.preventDefault();
+            if (!groupForm) return;
+            const selectedIds = Array.from(groupForm.querySelectorAll('input[type="checkbox"]:checked')).map(function (checkbox) {
+                return parseInt(checkbox.value, 10);
+            }).filter(Boolean);
+            if (!selectedIds.length) {
+                showAlert('اختر مستخدمًا واحدًا على الأقل للمجموعة.');
+                return;
+            }
+
+            const submitButton = groupForm.querySelector('button[type="submit"]');
+            if (submitButton) submitButton.disabled = true;
+
+            try {
+                const data = await postJson(urls.groupStore, {
+                    title: String(groupTitleInput?.value || '').trim(),
+                    user_ids: selectedIds
+                });
+                if (groupTitleInput) groupTitleInput.value = '';
+                groupForm.querySelectorAll('input[type="checkbox"]').forEach(function (checkbox) { checkbox.checked = false; });
+                toggleGroupForm(false);
+                updatePayload(data);
+                if (data.conversation) {
+                    await selectThread(data.conversation);
+                }
+                showAlert('');
+            } catch (error) {
+                showAlert(error.message);
+            } finally {
+                if (submitButton) submitButton.disabled = false;
+            }
+        }
+
+        async function lookupReference(type) {
+            const isDocument = type === 'document';
+            const inputEl = isDocument ? documentSearchInput : memoSearchInput;
+            const url = isDocument ? urls.documentLookup : urls.memoLookup;
+            const q = String(inputEl?.value || '').trim();
+            if (!q || q.length < 2) {
+                showLookupResults([], 'اكتب حرفين على الأقل للبحث.');
+                return;
+            }
+
+            try {
+                const data = await requestJson(url + '?q=' + encodeURIComponent(q));
+                showLookupResults(data.items || [], '', type);
+                showAlert('');
+            } catch (error) {
+                showAlert(error.message);
+            }
+        }
+
+        function showLookupResults(items, emptyMessage, type) {
+            if (!lookupResultsBox) return;
+            lookupResultsBox.innerHTML = '';
+            if (!Array.isArray(items) || !items.length) {
+                const empty = document.createElement('div');
+                empty.className = 'internal-chat-lookup-empty';
+                empty.textContent = emptyMessage || 'لا توجد نتائج مطابقة.';
+                lookupResultsBox.appendChild(empty);
+                return;
+            }
+
+            items.forEach(function (item) {
+                const button = document.createElement('button');
+                button.type = 'button';
+                button.className = 'internal-chat-lookup-item';
+                button.textContent = item.label || ('#' + item.id);
+                button.addEventListener('click', function () {
+                    setSelectedReference({ type: type, id: item.id, label: item.label });
+                    if (attachmentPanel) attachmentPanel.hidden = true;
+                });
+                lookupResultsBox.appendChild(button);
+            });
+        }
+
+        function setSelectedReference(reference) {
+            state.selectedReference = reference || null;
+            if (!selectedReferenceBox || !clearReferenceButton) return;
+            if (!reference) {
+                selectedReferenceBox.hidden = true;
+                selectedReferenceBox.textContent = '';
+                clearReferenceButton.hidden = true;
+                return;
+            }
+            selectedReferenceBox.hidden = false;
+            selectedReferenceBox.textContent = (reference.type === 'document' ? '📘 ' : '📝 ') + reference.label;
+            clearReferenceButton.hidden = false;
+        }
+
+        function clearSelectedReference() {
+            setSelectedReference(null);
+            if (lookupResultsBox) lookupResultsBox.innerHTML = '';
+            if (documentSearchInput) documentSearchInput.value = '';
+            if (memoSearchInput) memoSearchInput.value = '';
         }
 
         function openPanel() {
@@ -499,7 +936,7 @@
             if (panel) panel.hidden = false;
             updateSoundButton();
             loadBootstrap();
-            if (state.activeUserId) {
+            if (state.activeConversationId || state.activeUserId) {
                 window.setTimeout(poll, 150);
             }
             if (searchInput) searchInput.focus();
@@ -526,6 +963,14 @@
             document.addEventListener(eventName, unlockAudio, { once: true, passive: true });
         });
         if (searchInput) searchInput.addEventListener('input', renderUsers);
+        if (messageSearchInput) messageSearchInput.addEventListener('input', queueSearchMessages);
+        if (searchClearButton) {
+            searchClearButton.addEventListener('click', function () {
+                if (messageSearchInput) messageSearchInput.value = '';
+                if (searchClearButton) searchClearButton.hidden = true;
+                reloadCurrentConversation();
+            });
+        }
         if (form) form.addEventListener('submit', sendMessage);
         if (input) {
             input.addEventListener('keydown', function (event) {
@@ -535,8 +980,38 @@
                 }
             });
         }
+        if (archivedToggleButton) archivedToggleButton.addEventListener('click', function () { toggleArchivedView(); });
+        if (restoreButton) restoreButton.addEventListener('click', function () { restoreCurrentConversation(); });
+        if (archiveButton) archiveButton.addEventListener('click', function () { hideCurrentConversation('archive'); });
+        if (deleteButton) deleteButton.addEventListener('click', function () { hideCurrentConversation('delete'); });
+        if (groupToggleButton) groupToggleButton.addEventListener('click', function () { toggleGroupForm(); });
+        if (groupCancelButton) groupCancelButton.addEventListener('click', function () { toggleGroupForm(false); });
+        if (groupForm) groupForm.addEventListener('submit', createGroup);
+        if (attachToggle) attachToggle.addEventListener('click', function () {
+            if (attachmentPanel) attachmentPanel.hidden = !attachmentPanel.hidden;
+        });
+        if (documentLookupButton) documentLookupButton.addEventListener('click', function () { lookupReference('document'); });
+        if (memoLookupButton) memoLookupButton.addEventListener('click', function () { lookupReference('memo'); });
+        if (documentSearchInput) {
+            documentSearchInput.addEventListener('keydown', function (event) {
+                if (event.key === 'Enter') {
+                    event.preventDefault();
+                    lookupReference('document');
+                }
+            });
+        }
+        if (memoSearchInput) {
+            memoSearchInput.addEventListener('keydown', function (event) {
+                if (event.key === 'Enter') {
+                    event.preventDefault();
+                    lookupReference('memo');
+                }
+            });
+        }
+        if (clearReferenceButton) clearReferenceButton.addEventListener('click', clearSelectedReference);
 
         updateSoundButton();
+        updateHeaderActions();
         loadBootstrap();
         state.pollTimer = window.setInterval(poll, pollSeconds * 1000);
     });

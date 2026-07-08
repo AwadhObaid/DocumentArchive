@@ -80,8 +80,17 @@ Route::middleware(['auth', ApplyRoutePermissions::class])->group(function () {
         Route::get('/users', [InternalChatController::class, 'users'])->name('users');
         Route::get('/poll', [InternalChatController::class, 'poll'])->name('poll');
         Route::get('/messages/{user}', [InternalChatController::class, 'messages'])->name('messages');
+        Route::get('/conversations/{conversation}/messages', [InternalChatController::class, 'conversationMessages'])->name('conversations.messages');
         Route::post('/messages', [InternalChatController::class, 'send'])->name('send');
         Route::post('/read/{user}', [InternalChatController::class, 'markRead'])->name('read');
+        Route::post('/groups', [InternalChatController::class, 'createGroup'])->name('groups.store');
+        Route::get('/archived', [InternalChatController::class, 'archivedConversations'])->name('archived');
+        Route::post('/conversations/{conversation}/archive', [InternalChatController::class, 'archiveConversation'])->name('conversations.archive');
+        Route::post('/conversations/{conversation}/restore', [InternalChatController::class, 'restoreConversation'])->name('conversations.restore');
+        Route::post('/conversations/{conversation}/delete', [InternalChatController::class, 'deleteConversation'])->name('conversations.delete');
+        Route::get('/search', [InternalChatController::class, 'search'])->name('search');
+        Route::get('/lookup/documents', [InternalChatController::class, 'lookupDocuments'])->name('lookup.documents');
+        Route::get('/lookup/memos', [InternalChatController::class, 'lookupMemos'])->name('lookup.memos');
     });
 
     Route::get('/internal-messages', [InternalMessageController::class, 'index'])->name('internal-messages.index');

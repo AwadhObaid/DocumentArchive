@@ -5,15 +5,19 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class InternalChatMessage extends Model
 {
     use HasFactory;
 
     protected $fillable = [
+        'conversation_id',
         'sender_id',
         'receiver_id',
         'body',
+        'document_id',
+        'memo_id',
         'read_at',
         'sender_deleted_at',
         'receiver_deleted_at',
@@ -28,6 +32,11 @@ class InternalChatMessage extends Model
         ];
     }
 
+    public function conversation(): BelongsTo
+    {
+        return $this->belongsTo(InternalChatConversation::class, 'conversation_id');
+    }
+
     public function sender(): BelongsTo
     {
         return $this->belongsTo(User::class, 'sender_id');
@@ -36,6 +45,21 @@ class InternalChatMessage extends Model
     public function receiver(): BelongsTo
     {
         return $this->belongsTo(User::class, 'receiver_id');
+    }
+
+    public function document(): BelongsTo
+    {
+        return $this->belongsTo(Document::class, 'document_id');
+    }
+
+    public function memo(): BelongsTo
+    {
+        return $this->belongsTo(Memo::class, 'memo_id');
+    }
+
+    public function attachments(): HasMany
+    {
+        return $this->hasMany(InternalChatAttachment::class, 'internal_chat_message_id');
     }
 
     public function scopeBetween($query, int $firstUserId, int $secondUserId)

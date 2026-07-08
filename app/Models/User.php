@@ -21,6 +21,7 @@ class User extends Authenticatable
         'permissions',
         'is_active',
         'last_login_at',
+        'last_seen_at',
         'password',
     ];
 
@@ -34,6 +35,7 @@ class User extends Authenticatable
         return [
             'email_verified_at' => 'datetime',
             'last_login_at' => 'datetime',
+            'last_seen_at' => 'datetime',
             'password' => 'hashed',
             'is_active' => 'boolean',
             'permissions' => 'array',
@@ -111,6 +113,11 @@ class User extends Authenticatable
     public function receivedInternalChatMessages()
     {
         return $this->hasMany(InternalChatMessage::class, 'receiver_id');
+    }
+
+    public function internalChatParticipants()
+    {
+        return $this->hasMany(InternalChatParticipant::class, 'user_id');
     }
 
     public function createdSharedAttachmentLinks()
