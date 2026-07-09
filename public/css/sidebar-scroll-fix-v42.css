@@ -1,0 +1,100 @@
+/*
+|--------------------------------------------------------------------------
+| DocumentArchive Sidebar Scroll Final Hardening V42
+|--------------------------------------------------------------------------
+| Purpose:
+| Make the right sidebar navigation scroll reliably on development and
+| LAN/server URLs. This file is intentionally loaded after V41 and overrides
+| any older cached/layout rules with stronger flex constraints.
+*/
+
+html[dir="rtl"] body:not(.da-print-reference-page) .app-shell,
+body:not(.da-print-reference-page) .app-shell {
+    min-height: 100vh !important;
+    min-height: 100dvh !important;
+}
+
+html[dir="rtl"] body:not(.da-print-reference-page) .sidebar,
+body:not(.da-print-reference-page) .sidebar {
+    position: fixed !important;
+    inset-block: 0 !important;
+    height: 100vh !important;
+    height: 100dvh !important;
+    max-height: 100vh !important;
+    max-height: 100dvh !important;
+    display: flex !important;
+    flex-direction: column !important;
+    overflow: hidden !important;
+}
+
+html[dir="rtl"] body:not(.da-print-reference-page) .sidebar {
+    inset-inline-start: auto !important;
+    inset-inline-end: 0 !important;
+}
+
+html[dir="ltr"] body:not(.da-print-reference-page) .sidebar,
+body:not(.da-print-reference-page):not([dir="rtl"]) .sidebar {
+    inset-inline-start: 0 !important;
+    inset-inline-end: auto !important;
+}
+
+body:not(.da-print-reference-page) .sidebar .brand,
+body:not(.da-print-reference-page) .sidebar .sidebar-footer {
+    flex: 0 0 auto !important;
+    min-height: auto !important;
+}
+
+body:not(.da-print-reference-page) .sidebar .sidebar-footer {
+    margin-top: 0 !important;
+}
+
+html[dir="rtl"] body:not(.da-print-reference-page) .sidebar .side-nav,
+body:not(.da-print-reference-page) .sidebar .side-nav {
+    display: flex !important;
+    flex: 1 1 0 !important;
+    flex-direction: column !important;
+    min-height: 0 !important;
+    height: auto !important;
+    max-height: none !important;
+    overflow-y: scroll !important;
+    overflow-x: hidden !important;
+    overscroll-behavior: contain !important;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-gutter: stable both-edges;
+    scrollbar-width: thin;
+    scrollbar-color: rgba(148, 163, 184, .78) rgba(15, 23, 42, .30);
+    padding-bottom: 18px !important;
+}
+
+body:not(.da-print-reference-page) .sidebar .side-nav a {
+    flex: 0 0 auto !important;
+}
+
+body:not(.da-print-reference-page) .sidebar .side-nav::-webkit-scrollbar {
+    width: 12px !important;
+}
+
+body:not(.da-print-reference-page) .sidebar .side-nav::-webkit-scrollbar-thumb {
+    background: rgba(148, 163, 184, .82) !important;
+    border-radius: 999px !important;
+    border: 3px solid rgba(2, 6, 23, .70) !important;
+}
+
+body:not(.da-print-reference-page) .sidebar .side-nav::-webkit-scrollbar-track {
+    background: rgba(15, 23, 42, .34) !important;
+    border-radius: 999px !important;
+}
+
+body:not(.da-print-reference-page) .sidebar .side-nav:hover::-webkit-scrollbar-thumb {
+    background: rgba(203, 213, 225, .96) !important;
+}
+
+@media (max-width: 980px) {
+    html[dir="rtl"] body:not(.da-print-reference-page) .sidebar,
+    body:not(.da-print-reference-page) .sidebar {
+        width: min(290px, 86vw) !important;
+        height: 100vh !important;
+        height: 100dvh !important;
+        overflow: hidden !important;
+    }
+}
