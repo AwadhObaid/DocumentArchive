@@ -1,0 +1,604 @@
+/*
+|--------------------------------------------------------------------------
+| DocumentArchive Visual Theme Normalization V46
+|--------------------------------------------------------------------------
+| Purpose:
+| Normalize light/dark theme colors across the authenticated UI, including
+| pages with older dark-only inline styles. The palette is intentionally soft
+| and readable, with print pages excluded.
+*/
+
+@media screen {
+    :root {
+        color-scheme: light;
+        --da-v46-bg: #f6f8fc;
+        --da-v46-surface: #ffffff;
+        --da-v46-surface-2: #f8fafc;
+        --da-v46-surface-3: #eef4ff;
+        --da-v46-surface-hover: #f1f5f9;
+        --da-v46-text: #111827;
+        --da-v46-heading: #0b1220;
+        --da-v46-muted: #475569;
+        --da-v46-muted-2: #64748b;
+        --da-v46-border: #dbe3ef;
+        --da-v46-border-strong: #c5d0df;
+        --da-v46-primary: #2563eb;
+        --da-v46-primary-2: #1d4ed8;
+        --da-v46-primary-soft: #e8f0ff;
+        --da-v46-primary-text: #1e40af;
+        --da-v46-success: #15803d;
+        --da-v46-success-soft: #e8f8ef;
+        --da-v46-warning: #b45309;
+        --da-v46-warning-soft: #fff7df;
+        --da-v46-danger: #b91c1c;
+        --da-v46-danger-soft: #fff1f1;
+        --da-v46-info: #0369a1;
+        --da-v46-info-soft: #e8f6ff;
+        --da-v46-shadow: 0 10px 28px rgba(15, 23, 42, .07);
+        --da-v46-shadow-soft: 0 4px 14px rgba(15, 23, 42, .045);
+        --da-v46-radius: 16px;
+        --da-v46-sidebar-bg: #ffffff;
+        --da-v46-sidebar-bg-2: #f8fafc;
+        --da-v46-sidebar-text: #1e293b;
+        --da-v46-sidebar-muted: #64748b;
+        --da-v46-sidebar-border: #e2e8f0;
+        --da-v46-sidebar-active-bg: #e8f0ff;
+        --da-v46-sidebar-active-text: #1d4ed8;
+        --da-v46-sidebar-hover-bg: #f1f5f9;
+    }
+
+    html[data-theme="light"] {
+        color-scheme: light;
+        --bg: var(--da-v46-bg) !important;
+        --card: var(--da-v46-surface) !important;
+        --text: var(--da-v46-text) !important;
+        --muted: var(--da-v46-muted) !important;
+        --border: var(--da-v46-border) !important;
+        --primary: var(--da-v46-primary) !important;
+        --primary-dark: var(--da-v46-primary-2) !important;
+        --success: var(--da-v46-success) !important;
+        --danger: var(--da-v46-danger) !important;
+        --warning: var(--da-v46-warning) !important;
+        --shadow: var(--da-v46-shadow) !important;
+        --sidebar: var(--da-v46-sidebar-bg) !important;
+        --sidebar-2: var(--da-v46-sidebar-bg-2) !important;
+    }
+
+    html[data-theme="dark"] {
+        color-scheme: dark;
+        --da-v46-bg: #0b1220;
+        --da-v46-surface: #111827;
+        --da-v46-surface-2: #162033;
+        --da-v46-surface-3: #1c2940;
+        --da-v46-surface-hover: #1f2d45;
+        --da-v46-text: #eef4ff;
+        --da-v46-heading: #ffffff;
+        --da-v46-muted: #b2bfd3;
+        --da-v46-muted-2: #d0d8e7;
+        --da-v46-border: #2a3852;
+        --da-v46-border-strong: #3a4b68;
+        --da-v46-primary: #60a5fa;
+        --da-v46-primary-2: #3b82f6;
+        --da-v46-primary-soft: rgba(37, 99, 235, .20);
+        --da-v46-primary-text: #dbeafe;
+        --da-v46-success: #4ade80;
+        --da-v46-success-soft: rgba(22, 101, 52, .26);
+        --da-v46-warning: #fbbf24;
+        --da-v46-warning-soft: rgba(120, 53, 15, .26);
+        --da-v46-danger: #f87171;
+        --da-v46-danger-soft: rgba(127, 29, 29, .26);
+        --da-v46-info: #67e8f9;
+        --da-v46-info-soft: rgba(8, 145, 178, .18);
+        --da-v46-shadow: 0 14px 34px rgba(0, 0, 0, .28);
+        --da-v46-shadow-soft: 0 6px 18px rgba(0, 0, 0, .20);
+        --da-v46-sidebar-bg: #0f172a;
+        --da-v46-sidebar-bg-2: #111827;
+        --da-v46-sidebar-text: #e5edf9;
+        --da-v46-sidebar-muted: #a7b4ca;
+        --da-v46-sidebar-border: #243044;
+        --da-v46-sidebar-active-bg: rgba(59, 130, 246, .22);
+        --da-v46-sidebar-active-text: #ffffff;
+        --da-v46-sidebar-hover-bg: rgba(148, 163, 184, .10);
+        --bg: var(--da-v46-bg) !important;
+        --card: var(--da-v46-surface) !important;
+        --text: var(--da-v46-text) !important;
+        --muted: var(--da-v46-muted) !important;
+        --border: var(--da-v46-border) !important;
+        --primary: var(--da-v46-primary-2) !important;
+        --primary-dark: #2563eb !important;
+        --success: #22c55e !important;
+        --danger: #ef4444 !important;
+        --warning: #f59e0b !important;
+        --shadow: var(--da-v46-shadow) !important;
+        --sidebar: var(--da-v46-sidebar-bg) !important;
+        --sidebar-2: var(--da-v46-sidebar-bg-2) !important;
+    }
+
+    body:not(.da-print-reference-page):not(.da-print-page):not(.print-page):not(.reference-print-page):not(.legacy-print-preview-page),
+    body:not(.da-print-reference-page):not(.da-print-page):not(.print-page):not(.reference-print-page):not(.legacy-print-preview-page) .app-shell,
+    body:not(.da-print-reference-page):not(.da-print-page):not(.print-page):not(.reference-print-page):not(.legacy-print-preview-page) .main-area,
+    body:not(.da-print-reference-page):not(.da-print-page):not(.print-page):not(.reference-print-page):not(.legacy-print-preview-page) .content-area {
+        background: var(--da-v46-bg) !important;
+        color: var(--da-v46-text) !important;
+    }
+
+    body:not(.da-print-reference-page):not(.da-print-page):not(.print-page):not(.reference-print-page):not(.legacy-print-preview-page) {
+        font-family: "Cairo", Tahoma, Arial, sans-serif !important;
+        text-rendering: optimizeLegibility;
+    }
+
+    /* Layout and sidebar */
+    body:not(.da-print-reference-page) .sidebar {
+        background: linear-gradient(180deg, var(--da-v46-sidebar-bg), var(--da-v46-sidebar-bg-2)) !important;
+        color: var(--da-v46-sidebar-text) !important;
+        border-inline-start: 1px solid var(--da-v46-sidebar-border) !important;
+        box-shadow: 0 0 24px rgba(15, 23, 42, .08) !important;
+    }
+
+    html[dir="rtl"] body:not(.da-print-reference-page) .sidebar {
+        border-inline-start: 0 !important;
+        border-inline-end: 1px solid var(--da-v46-sidebar-border) !important;
+    }
+
+    body:not(.da-print-reference-page) .brand,
+    body:not(.da-print-reference-page) .sidebar-footer {
+        border-color: var(--da-v46-sidebar-border) !important;
+        color: var(--da-v46-sidebar-text) !important;
+    }
+
+    body:not(.da-print-reference-page) .brand-title,
+    body:not(.da-print-reference-page) .user-mini strong {
+        color: var(--da-v46-sidebar-text) !important;
+    }
+
+    body:not(.da-print-reference-page) .brand-subtitle,
+    body:not(.da-print-reference-page) .user-mini span {
+        color: var(--da-v46-sidebar-muted) !important;
+    }
+
+    body:not(.da-print-reference-page) .brand-icon,
+    body:not(.da-print-reference-page) .avatar {
+        background: var(--da-v46-primary-soft) !important;
+        color: var(--da-v46-primary-text) !important;
+        border: 1px solid color-mix(in srgb, var(--da-v46-primary) 20%, transparent) !important;
+    }
+
+    body:not(.da-print-reference-page) .side-nav a {
+        color: var(--da-v46-sidebar-text) !important;
+        background: transparent !important;
+        border: 1px solid transparent !important;
+        font-weight: 800;
+    }
+
+    body:not(.da-print-reference-page) .side-nav a:hover {
+        color: var(--da-v46-sidebar-active-text) !important;
+        background: var(--da-v46-sidebar-hover-bg) !important;
+        border-color: var(--da-v46-sidebar-border) !important;
+    }
+
+    body:not(.da-print-reference-page) .side-nav a.active,
+    body:not(.da-print-reference-page) .side-nav a[aria-current="page"] {
+        color: var(--da-v46-sidebar-active-text) !important;
+        background: var(--da-v46-sidebar-active-bg) !important;
+        border-color: color-mix(in srgb, var(--da-v46-primary) 35%, var(--da-v46-sidebar-border)) !important;
+        box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--da-v46-primary) 18%, transparent) !important;
+    }
+
+    body:not(.da-print-reference-page) .side-nav-badge,
+    body:not(.da-print-reference-page) .notification-count,
+    body:not(.da-print-reference-page) .internal-chat-badge {
+        background: #ef4444 !important;
+        color: #ffffff !important;
+    }
+
+    body:not(.da-print-reference-page) .topbar {
+        background: var(--da-v46-surface) !important;
+        color: var(--da-v46-text) !important;
+        border-bottom: 1px solid var(--da-v46-border) !important;
+        box-shadow: var(--da-v46-shadow-soft) !important;
+    }
+
+    body:not(.da-print-reference-page) .topbar h1,
+    body:not(.da-print-reference-page) .page-title h1,
+    body:not(.da-print-reference-page) .page-title h2,
+    body:not(.da-print-reference-page) :where(h1, h2, h3, h4, h5, h6) {
+        color: var(--da-v46-heading) !important;
+    }
+
+    body:not(.da-print-reference-page) .topbar p,
+    body:not(.da-print-reference-page) :where(p, small, .muted, .text-muted, .helper-text, .muted-note, .section-hint) {
+        color: var(--da-v46-muted) !important;
+    }
+
+    /* Generic surfaces */
+    body:not(.da-print-reference-page) :where(
+        .card,
+        .dashboard-card,
+        .filter-card,
+        .profile-card,
+        .settings-card,
+        .documents-card,
+        .document-mobile-card,
+        .form-link-card,
+        .forms-stat,
+        .ct-card,
+        .ct-stat-card,
+        .email-card,
+        .whatsapp-card,
+        .whatsapp-stat-card,
+        .share-card,
+        .share-stat-card,
+        .stat-box,
+        .stat-card,
+        .definition-card,
+        .definition-filter-card,
+        .permissions-card,
+        .workflow-card,
+        .notification-card,
+        .notification-center-panel,
+        .auto-logout-card,
+        .app-confirm-card,
+        .report-card,
+        .data-quality-card
+    ) {
+        background: var(--da-v46-surface) !important;
+        color: var(--da-v46-text) !important;
+        border-color: var(--da-v46-border) !important;
+        box-shadow: var(--da-v46-shadow) !important;
+    }
+
+    body:not(.da-print-reference-page) :where(.card *, .dashboard-card *, .filter-card *, .profile-card *, .settings-card *, .documents-card *, .definition-card *, .report-card *) {
+        border-color: var(--da-v46-border);
+    }
+
+    body:not(.da-print-reference-page) :where(label, .form-label, th) {
+        color: var(--da-v46-heading) !important;
+        font-weight: 800;
+    }
+
+    body:not(.da-print-reference-page) :where(input, select, textarea, .form-control, .form-select) {
+        background: var(--da-v46-surface) !important;
+        color: var(--da-v46-text) !important;
+        border-color: var(--da-v46-border-strong) !important;
+        box-shadow: none !important;
+        caret-color: var(--da-v46-primary) !important;
+    }
+
+    body:not(.da-print-reference-page) :where(input, select, textarea, .form-control, .form-select):focus {
+        border-color: var(--da-v46-primary) !important;
+        box-shadow: 0 0 0 3px color-mix(in srgb, var(--da-v46-primary) 18%, transparent) !important;
+        outline: none !important;
+    }
+
+    body:not(.da-print-reference-page) input::placeholder,
+    body:not(.da-print-reference-page) textarea::placeholder {
+        color: var(--da-v46-muted) !important;
+        opacity: .72 !important;
+    }
+
+    body:not(.da-print-reference-page) :where(table, .table, .documents-table, .data-table) {
+        background: var(--da-v46-surface) !important;
+        color: var(--da-v46-text) !important;
+        border-color: var(--da-v46-border) !important;
+    }
+
+    body:not(.da-print-reference-page) :where(thead, th) {
+        background: var(--da-v46-surface-2) !important;
+        color: var(--da-v46-muted) !important;
+    }
+
+    body:not(.da-print-reference-page) :where(td) {
+        background: transparent !important;
+        color: var(--da-v46-text) !important;
+        border-color: var(--da-v46-border) !important;
+    }
+
+    body:not(.da-print-reference-page) tr:hover td {
+        background: color-mix(in srgb, var(--da-v46-primary-soft) 55%, transparent) !important;
+    }
+
+    /* Buttons */
+    body:not(.da-print-reference-page) :where(.btn, button, .quick-chip, .theme-toggle, .menu-toggle) {
+        border-color: var(--da-v46-border) !important;
+        font-weight: 800;
+    }
+
+    body:not(.da-print-reference-page) :where(.btn-secondary, .btn-light, .quick-chip, .theme-toggle, .menu-toggle) {
+        background: var(--da-v46-surface) !important;
+        color: var(--da-v46-text) !important;
+        border: 1px solid var(--da-v46-border) !important;
+    }
+
+    body:not(.da-print-reference-page) :where(.btn-secondary, .btn-light, .quick-chip, .theme-toggle, .menu-toggle):hover {
+        background: var(--da-v46-surface-hover) !important;
+        color: var(--da-v46-heading) !important;
+    }
+
+    body:not(.da-print-reference-page) :where(.btn-primary, .da-btn-primary) {
+        background: linear-gradient(135deg, #3b82f6, #1d4ed8) !important;
+        color: #ffffff !important;
+        border-color: #2563eb !important;
+    }
+
+    body:not(.da-print-reference-page) :where(.btn-success, .badge-success) {
+        background: var(--da-v46-success-soft) !important;
+        color: var(--da-v46-success) !important;
+        border-color: color-mix(in srgb, var(--da-v46-success) 35%, transparent) !important;
+    }
+
+    body:not(.da-print-reference-page) :where(.btn-warning, .badge-warning) {
+        background: var(--da-v46-warning-soft) !important;
+        color: var(--da-v46-warning) !important;
+        border-color: color-mix(in srgb, var(--da-v46-warning) 35%, transparent) !important;
+    }
+
+    body:not(.da-print-reference-page) :where(.btn-danger, .badge-danger) {
+        background: var(--da-v46-danger-soft) !important;
+        color: var(--da-v46-danger) !important;
+        border-color: color-mix(in srgb, var(--da-v46-danger) 35%, transparent) !important;
+    }
+
+    body:not(.da-print-reference-page) .logout-btn {
+        background: #dc2626 !important;
+        color: #ffffff !important;
+        border: 0 !important;
+    }
+
+    /* Alerts and badges */
+    body:not(.da-print-reference-page) :where(.alert, .alert-success, .alert-error, .alert-danger, .alert-warning, .alert-info) {
+        border-radius: 14px !important;
+        border: 1px solid var(--da-v46-border) !important;
+        box-shadow: var(--da-v46-shadow-soft) !important;
+    }
+
+    body:not(.da-print-reference-page) :where(.alert-success) { background: var(--da-v46-success-soft) !important; color: var(--da-v46-success) !important; }
+    body:not(.da-print-reference-page) :where(.alert-error, .alert-danger) { background: var(--da-v46-danger-soft) !important; color: var(--da-v46-danger) !important; }
+    body:not(.da-print-reference-page) :where(.alert-warning) { background: var(--da-v46-warning-soft) !important; color: var(--da-v46-warning) !important; }
+    body:not(.da-print-reference-page) :where(.alert-info) { background: var(--da-v46-info-soft) !important; color: var(--da-v46-info) !important; }
+
+    body:not(.da-print-reference-page) :where(.badge, .pill, .filter-count) {
+        background: var(--da-v46-primary-soft) !important;
+        color: var(--da-v46-primary-text) !important;
+        border: 1px solid color-mix(in srgb, var(--da-v46-primary) 24%, transparent) !important;
+    }
+
+    body:not(.da-print-reference-page) .pill-muted { background: var(--da-v46-surface-2) !important; color: var(--da-v46-muted) !important; border-color: var(--da-v46-border) !important; }
+    body:not(.da-print-reference-page) .pill-warning { background: var(--da-v46-warning-soft) !important; color: var(--da-v46-warning) !important; border-color: color-mix(in srgb, var(--da-v46-warning) 30%, transparent) !important; }
+    body:not(.da-print-reference-page) .pill-danger { background: var(--da-v46-danger-soft) !important; color: var(--da-v46-danger) !important; border-color: color-mix(in srgb, var(--da-v46-danger) 30%, transparent) !important; }
+    body:not(.da-print-reference-page) .pill-success { background: var(--da-v46-success-soft) !important; color: var(--da-v46-success) !important; border-color: color-mix(in srgb, var(--da-v46-success) 30%, transparent) !important; }
+
+    /* Documents page: override dark-only inline palette. */
+    body:not(.da-print-reference-page) .documents-page,
+    body:not(.da-print-reference-page) .documents-page * {
+        border-color: var(--da-v46-border);
+    }
+
+    body:not(.da-print-reference-page) .documents-head h1 {
+        color: var(--da-v46-heading) !important;
+    }
+
+    body:not(.da-print-reference-page) .documents-head p {
+        color: var(--da-v46-muted) !important;
+    }
+
+    body:not(.da-print-reference-page) .doc-summary-card,
+    body:not(.da-print-reference-page) .advanced-filter-card,
+    body:not(.da-print-reference-page) .document-mobile-card {
+        background: var(--da-v46-surface) !important;
+        color: var(--da-v46-text) !important;
+        border-color: var(--da-v46-border) !important;
+        box-shadow: var(--da-v46-shadow) !important;
+    }
+
+    body:not(.da-print-reference-page) .doc-summary-card span,
+    body:not(.da-print-reference-page) .filter-header p,
+    body:not(.da-print-reference-page) .documents-table th,
+    body:not(.da-print-reference-page) .document-subject-cell small,
+    body:not(.da-print-reference-page) .policy-cell small,
+    body:not(.da-print-reference-page) .empty-documents,
+    body:not(.da-print-reference-page) .mobile-info-item span {
+        color: var(--da-v46-muted) !important;
+    }
+
+    body:not(.da-print-reference-page) .doc-summary-card strong,
+    body:not(.da-print-reference-page) .filter-header h2,
+    body:not(.da-print-reference-page) .documents-table td,
+    body:not(.da-print-reference-page) .document-subject-cell strong,
+    body:not(.da-print-reference-page) .policy-cell strong,
+    body:not(.da-print-reference-page) .document-mobile-card h3,
+    body:not(.da-print-reference-page) .mobile-info-item strong {
+        color: var(--da-v46-text) !important;
+    }
+
+    body:not(.da-print-reference-page) #documentsTableScroll {
+        scrollbar-color: color-mix(in srgb, var(--da-v46-primary) 78%, #64748b) color-mix(in srgb, var(--da-v46-border) 70%, transparent) !important;
+    }
+
+    body:not(.da-print-reference-page) #documentsTableScroll::-webkit-scrollbar-track {
+        background: color-mix(in srgb, var(--da-v46-border) 65%, transparent) !important;
+    }
+
+    body:not(.da-print-reference-page) #documentsTableScroll::-webkit-scrollbar-thumb {
+        background: color-mix(in srgb, var(--da-v46-primary) 78%, #64748b) !important;
+    }
+
+    body:not(.da-print-reference-page) .quick-chip.active {
+        background: var(--da-v46-primary-soft) !important;
+        color: var(--da-v46-primary-text) !important;
+        border-color: color-mix(in srgb, var(--da-v46-primary) 40%, transparent) !important;
+    }
+
+    /* Dashboard page */
+    body:not(.da-print-reference-page) .da-dashboard {
+        --da-bg: var(--da-v46-surface) !important;
+        --da-bg-soft: var(--da-v46-surface-2) !important;
+        --da-border: var(--da-v46-border) !important;
+        --da-text: var(--da-v46-text) !important;
+        --da-muted: var(--da-v46-muted) !important;
+        --da-muted-2: var(--da-v46-muted-2) !important;
+        --da-blue: var(--da-v46-primary) !important;
+        --da-blue-2: var(--da-v46-primary-2) !important;
+        --da-green: var(--da-v46-success) !important;
+        --da-yellow: var(--da-v46-warning) !important;
+        --da-red: var(--da-v46-danger) !important;
+        color: var(--da-v46-text) !important;
+    }
+
+    body:not(.da-print-reference-page) .da-dashboard :where(.da-card, .da-admin-alert-item, .da-info-row, .da-activity-item, .da-admin-alert-ok, .da-chart-bars, .da-bar-track) {
+        background: var(--da-v46-surface) !important;
+        color: var(--da-v46-text) !important;
+        border-color: var(--da-v46-border) !important;
+        box-shadow: var(--da-v46-shadow) !important;
+    }
+
+    body:not(.da-print-reference-page) .da-dashboard :where(.da-page-title, .da-section-title h2, .da-card-head h2, .da-stat-value, .da-admin-alert-title, .da-info-row strong, .da-activity-title, .da-table td, .da-bar-label) {
+        color: var(--da-v46-heading) !important;
+    }
+
+    body:not(.da-print-reference-page) .da-dashboard :where(.da-page-subtitle, .da-section-hint, .da-stat-label, .da-stat-note, .da-admin-alert-message, .da-activity-meta, .da-muted, .da-table th, .da-month-label) {
+        color: var(--da-v46-muted) !important;
+    }
+
+    body:not(.da-print-reference-page) .da-dashboard .da-admin-alert-item.warning { background: var(--da-v46-warning-soft) !important; border-color: color-mix(in srgb, var(--da-v46-warning) 35%, transparent) !important; }
+    body:not(.da-print-reference-page) .da-dashboard .da-admin-alert-item.danger { background: var(--da-v46-danger-soft) !important; border-color: color-mix(in srgb, var(--da-v46-danger) 35%, transparent) !important; }
+    body:not(.da-print-reference-page) .da-dashboard .da-admin-alert-item.info,
+    body:not(.da-print-reference-page) .da-dashboard .da-admin-alert-ok { background: var(--da-v46-info-soft) !important; border-color: color-mix(in srgb, var(--da-v46-info) 35%, transparent) !important; }
+
+    /* Definition/setup pages and user permissions */
+    body:not(.da-print-reference-page) :where(.definition-stats .stat-card, .definition-filter-grid, .permissions-grid, .permission-item, .permissions-header, .password-user-summary, .profile-hero, .settings-section) {
+        background-color: var(--da-v46-surface) !important;
+        color: var(--da-v46-text) !important;
+        border-color: var(--da-v46-border) !important;
+    }
+
+    body:not(.da-print-reference-page) :where(.permissions-header h3, .password-user-summary h2, .profile-hero-text h2) {
+        color: var(--da-v46-heading) !important;
+    }
+
+    body:not(.da-print-reference-page) :where(.permissions-header p, .permission-item, .password-user-summary p, .profile-hero-text p, .profile-login-info span) {
+        color: var(--da-v46-muted) !important;
+    }
+
+    /* Notification center and floating widgets */
+    body:not(.da-print-reference-page) :where(.notification-center-dropdown, .notification-center-list, .notification-center-item, .notification-center-empty, .app-notification, .flash-notification) {
+        background: var(--da-v46-surface) !important;
+        color: var(--da-v46-text) !important;
+        border-color: var(--da-v46-border) !important;
+    }
+
+    body:not(.da-print-reference-page) :where(.notification-center-title, .notification-center-item strong) {
+        color: var(--da-v46-heading) !important;
+    }
+
+    body:not(.da-print-reference-page) :where(.notification-center-message, .notification-center-time, .notification-center-empty) {
+        color: var(--da-v46-muted) !important;
+    }
+
+    /* Internal chat */
+    body:not(.da-print-reference-page) :where(.internal-chat-panel, .internal-chat-users, .internal-chat-conversation, .internal-chat-group-form, .internal-chat-attachment-panel) {
+        background: var(--da-v46-surface) !important;
+        color: var(--da-v46-text) !important;
+        border-color: var(--da-v46-border) !important;
+    }
+
+    body:not(.da-print-reference-page) :where(.internal-chat-header, .internal-chat-conversation-head, .internal-chat-note) {
+        background: var(--da-v46-surface-2) !important;
+        color: var(--da-v46-text) !important;
+        border-color: var(--da-v46-border) !important;
+    }
+
+    body:not(.da-print-reference-page) .internal-chat-user {
+        background: transparent !important;
+        color: var(--da-v46-text) !important;
+        border-color: transparent !important;
+    }
+
+    body:not(.da-print-reference-page) .internal-chat-user:hover,
+    body:not(.da-print-reference-page) .internal-chat-user.active {
+        background: var(--da-v46-primary-soft) !important;
+        border-color: color-mix(in srgb, var(--da-v46-primary) 25%, transparent) !important;
+    }
+
+    body:not(.da-print-reference-page) :where(.internal-chat-user-preview, .internal-chat-user-status, .internal-chat-meta, .internal-chat-note, .internal-chat-empty) {
+        color: var(--da-v46-muted) !important;
+    }
+
+    body:not(.da-print-reference-page) .internal-chat-message.incoming .internal-chat-bubble {
+        background: var(--da-v46-surface-2) !important;
+        color: var(--da-v46-text) !important;
+        border-color: var(--da-v46-border) !important;
+    }
+
+    body:not(.da-print-reference-page) .internal-chat-message.outgoing .internal-chat-bubble {
+        background: linear-gradient(135deg, #2563eb, #1d4ed8) !important;
+        color: #ffffff !important;
+        border-color: #1d4ed8 !important;
+    }
+
+    body:not(.da-print-reference-page) .internal-chat-message.outgoing .internal-chat-meta {
+        color: rgba(255, 255, 255, .78) !important;
+    }
+
+    /* Module-specific pages */
+    body:not(.da-print-reference-page) :where(.email-module, .whatsapp-module, .shared-attachments-page, .pdf-search-page, .system-about-page, .contacts-page, .templates-page) :where(.card, .panel, .box, .item, .stat, .result-card) {
+        background: var(--da-v46-surface) !important;
+        color: var(--da-v46-text) !important;
+        border-color: var(--da-v46-border) !important;
+    }
+
+    /* Pagination */
+    body:not(.da-print-reference-page) .pagination :where(a, span, button),
+    body:not(.da-print-reference-page) nav[role="navigation"] :where(a, span) {
+        background: var(--da-v46-surface) !important;
+        color: var(--da-v46-text) !important;
+        border-color: var(--da-v46-border) !important;
+    }
+
+    body:not(.da-print-reference-page) .pagination :where(a:hover, button:hover),
+    body:not(.da-print-reference-page) nav[role="navigation"] a:hover {
+        background: var(--da-v46-surface-hover) !important;
+    }
+
+    /* Legacy inline style safety: only inside authenticated app, not print. */
+    body:not(.da-print-reference-page) .content-area [style*="color:#94a3b8"],
+    body:not(.da-print-reference-page) .content-area [style*="color: #94a3b8"],
+    body:not(.da-print-reference-page) .content-area [style*="color:#cbd5e1"],
+    body:not(.da-print-reference-page) .content-area [style*="color: #cbd5e1"] {
+        color: var(--da-v46-muted) !important;
+    }
+
+    body:not(.da-print-reference-page) .content-area [style*="color:#fff"],
+    body:not(.da-print-reference-page) .content-area [style*="color: #fff"],
+    body:not(.da-print-reference-page) .content-area [style*="color:#ffffff"],
+    body:not(.da-print-reference-page) .content-area [style*="color: #ffffff"],
+    body:not(.da-print-reference-page) .content-area [style*="color:#f8fafc"],
+    body:not(.da-print-reference-page) .content-area [style*="color: #f8fafc"] {
+        color: var(--da-v46-heading) !important;
+    }
+
+    html[data-theme="light"] body:not(.da-print-reference-page) .content-area [style*="background:#0f172a"],
+    html[data-theme="light"] body:not(.da-print-reference-page) .content-area [style*="background: #0f172a"],
+    html[data-theme="light"] body:not(.da-print-reference-page) .content-area [style*="background:#111827"],
+    html[data-theme="light"] body:not(.da-print-reference-page) .content-area [style*="background: #111827"],
+    html[data-theme="light"] body:not(.da-print-reference-page) .content-area [style*="background:rgba(15,23,42"],
+    html[data-theme="light"] body:not(.da-print-reference-page) .content-area [style*="background: rgba(15,23,42"] {
+        background: var(--da-v46-surface) !important;
+        color: var(--da-v46-text) !important;
+        border-color: var(--da-v46-border) !important;
+    }
+}
+
+@media print {
+    html,
+    body,
+    .main-area,
+    .content-area,
+    .card,
+    table,
+    th,
+    td {
+        background: #ffffff !important;
+        color: #000000 !important;
+        box-shadow: none !important;
+    }
+}

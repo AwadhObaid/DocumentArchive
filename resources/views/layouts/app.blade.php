@@ -64,6 +64,9 @@
     <link rel="stylesheet" href="{{ asset('css/pdf-search.css') }}?v={{ filemtime(public_path('css/pdf-search.css')) }}">
     {{-- DocumentArchive sidebar vertical scroll fix --}}
     <link rel="stylesheet" href="{{ asset('css/sidebar-scroll-fix-v41.css') }}?v={{ filemtime(public_path('css/sidebar-scroll-fix-v41.css')) }}">
+    {{-- visual-theme-normalization-v46:start --}}
+    <link rel="stylesheet" href="{{ asset('css/visual-theme-normalization-v46.css') }}?v={{ filemtime(public_path('css/visual-theme-normalization-v46.css')) }}">
+    {{-- visual-theme-normalization-v46:end --}}
 </head>
 <body
     data-auto-logout-enabled="{{ $daAutoLogoutEnabled ? '1' : '0' }}"
@@ -205,8 +208,7 @@
 
         <div class="sidebar-footer">
             <div class="user-mini">
-                <div class="avatar">{{ mb_substr(auth()->user()?->name ?? 'م
-', 0, 1) }}</div>
+                <div class="avatar">{{ mb_substr(auth()->user()?->name ?? 'م', 0, 1) }}</div>
                 <div>
                     <strong>{{ auth()->user()?->name }}</strong>
                     <span>{{ auth()->user()?->role_name }}</span>
@@ -249,7 +251,7 @@
             @endif
 
             @yield('content')
-        </section>
+</section>
     </main>
 </div>
 

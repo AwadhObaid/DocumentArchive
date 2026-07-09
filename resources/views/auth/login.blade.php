@@ -97,6 +97,11 @@
             .login-card h1 { font-size: 21px; }
         }
     </style>
+
+{{-- auth-no-cache-v44:meta --}}
+<meta http-equiv="Cache-Control" content="no-store, no-cache, must-revalidate, max-age=0">
+<meta http-equiv="Pragma" content="no-cache">
+<meta http-equiv="Expires" content="0">
 </head>
 <body class="login-body">
 <div class="login-shell">
@@ -117,22 +122,27 @@
             </div>
         @endif
 
-        <form method="POST" action="{{ route('login.post') }}" autocomplete="on">
+        <form method="POST" action="{{ route('login.post') }}" autocomplete="on" data-da-login-form="1" data-lpignore="true" data-1p-ignore="true">
             @csrf
+{{-- auth-no-autofill-v44:applied --}}
+<div class="auth-autofill-decoys" aria-hidden="true" style="position:absolute;left:-10000px;top:auto;width:1px;height:1px;overflow:hidden;opacity:0;">
+    <input type="text" name="da_decoy_username_v44" tabindex="-1" autocomplete="username">
+    <input type="password" name="da_decoy_password_v44" tabindex="-1" autocomplete="current-password">
+</div>
 
             <div class="login-field">
                 <label for="username">اسم المستخدم</label>
-                <input id="username" type="text" name="username" value="{{ old('username') }}" autofocus required autocomplete="username" placeholder="أدخل اسم المستخدم">
+                <input id="username" type="text" name="username" value="{{ old('username') }}" autofocus required autocomplete="username" placeholder="أدخل اسم المستخدم" autocapitalize="none" spellcheck="false" data-da-secure-login-input="username" data-lpignore="true" data-1p-ignore="true">
             </div>
 
             <div class="login-field">
                 <label for="password">كلمة المرور</label>
-                <input id="password" type="password" name="password" required autocomplete="current-password" placeholder="أدخل كلمة المرور">
+                <input id="password" type="password" name="password" required autocomplete="current-password" placeholder="أدخل كلمة المرور" data-da-secure-login-input="password" data-lpignore="true" data-1p-ignore="true">
             </div>
 
             <div class="login-options">
                 <label>
-                    <input type="checkbox" name="remember" value="1" @checked(old('remember'))>
+                    <input type="checkbox" name="remember" value="1" @checked(old('remember')) disabled data-da-remember-disabled-v44="1">
                     <span>تذكرني</span>
                 </label>
             </div>
@@ -143,5 +153,8 @@
         <p class="login-note">حسابك لا يعمل إذا تم تعطيله من مدير النظام.</p>
     </div>
 </div>
+
+{{-- auth-no-autofill-v44:script --}}
+<script src="{{ asset('js/auth-no-autofill-v44.js') }}?v={{ filemtime(public_path('js/auth-no-autofill-v44.js')) }}" defer></script>
 </body>
 </html>

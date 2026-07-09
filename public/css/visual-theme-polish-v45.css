@@ -1,0 +1,373 @@
+/*
+|--------------------------------------------------------------------------
+| DocumentArchive Visual Theme Polish V45
+|--------------------------------------------------------------------------
+| Purpose:
+| Fix light/dark visual distortion across the authenticated UI. This file is
+| intentionally loaded after page content so it can override page inline CSS,
+| especially the dashboard dark-only inline palette.
+*/
+
+:root {
+    --da-v45-light-bg: #f5f7fb;
+    --da-v45-light-surface: #ffffff;
+    --da-v45-light-surface-2: #f8fafc;
+    --da-v45-light-surface-3: #eef4ff;
+    --da-v45-light-text: #0f172a;
+    --da-v45-light-heading: #08111f;
+    --da-v45-light-muted: #475569;
+    --da-v45-light-muted-2: #64748b;
+    --da-v45-light-border: #d8e1ee;
+    --da-v45-light-shadow: 0 12px 30px rgba(15, 23, 42, .075);
+
+    --da-v45-dark-bg: #0b1120;
+    --da-v45-dark-surface: #111827;
+    --da-v45-dark-surface-2: #162033;
+    --da-v45-dark-surface-3: #1d2a42;
+    --da-v45-dark-text: #eef2ff;
+    --da-v45-dark-heading: #ffffff;
+    --da-v45-dark-muted: #a7b3c7;
+    --da-v45-dark-muted-2: #cbd5e1;
+    --da-v45-dark-border: #2b3a55;
+    --da-v45-dark-shadow: 0 14px 34px rgba(0, 0, 0, .32);
+}
+
+html[data-theme="light"] {
+    --bg: var(--da-v45-light-bg) !important;
+    --card: var(--da-v45-light-surface) !important;
+    --text: var(--da-v45-light-text) !important;
+    --muted: var(--da-v45-light-muted) !important;
+    --border: var(--da-v45-light-border) !important;
+    --shadow: var(--da-v45-light-shadow) !important;
+}
+
+html[data-theme="dark"] {
+    --bg: var(--da-v45-dark-bg) !important;
+    --card: var(--da-v45-dark-surface) !important;
+    --text: var(--da-v45-dark-text) !important;
+    --muted: var(--da-v45-dark-muted) !important;
+    --border: var(--da-v45-dark-border) !important;
+    --shadow: var(--da-v45-dark-shadow) !important;
+}
+
+body:not(.da-print-reference-page) {
+    background: var(--bg) !important;
+    color: var(--text) !important;
+}
+
+body:not(.da-print-reference-page) .main-area,
+body:not(.da-print-reference-page) .content-area {
+    background: var(--bg) !important;
+    color: var(--text) !important;
+}
+
+body:not(.da-print-reference-page) .topbar {
+    background: var(--card) !important;
+    color: var(--text) !important;
+    border-bottom-color: var(--border) !important;
+    box-shadow: 0 4px 16px rgba(15, 23, 42, .035);
+}
+
+html[data-theme="dark"] body:not(.da-print-reference-page) .topbar {
+    box-shadow: 0 6px 20px rgba(0, 0, 0, .24);
+}
+
+body:not(.da-print-reference-page) .topbar h1,
+body:not(.da-print-reference-page) .page-title h1,
+body:not(.da-print-reference-page) h1,
+body:not(.da-print-reference-page) h2,
+body:not(.da-print-reference-page) h3,
+body:not(.da-print-reference-page) h4,
+body:not(.da-print-reference-page) .card-title,
+body:not(.da-print-reference-page) .section-title {
+    color: var(--text) !important;
+}
+
+body:not(.da-print-reference-page) .topbar p,
+body:not(.da-print-reference-page) p,
+body:not(.da-print-reference-page) small,
+body:not(.da-print-reference-page) .muted,
+body:not(.da-print-reference-page) .text-muted,
+body:not(.da-print-reference-page) .muted-note,
+body:not(.da-print-reference-page) .helper-text {
+    color: var(--muted) !important;
+}
+
+body:not(.da-print-reference-page) .card,
+body:not(.da-print-reference-page) .dashboard-card,
+body:not(.da-print-reference-page) .filter-card,
+body:not(.da-print-reference-page) .profile-card,
+body:not(.da-print-reference-page) .settings-card,
+body:not(.da-print-reference-page) .documents-card,
+body:not(.da-print-reference-page) .document-mobile-card,
+body:not(.da-print-reference-page) .form-link-card,
+body:not(.da-print-reference-page) .forms-stat,
+body:not(.da-print-reference-page) .ct-stat-card,
+body:not(.da-print-reference-page) .whatsapp-stat-card,
+body:not(.da-print-reference-page) .share-stat-card,
+body:not(.da-print-reference-page) .stat-box,
+body:not(.da-print-reference-page) .notification-center-panel,
+body:not(.da-print-reference-page) .auto-logout-card {
+    background: var(--card) !important;
+    color: var(--text) !important;
+    border-color: var(--border) !important;
+    box-shadow: var(--shadow) !important;
+}
+
+html[data-theme="light"] body:not(.da-print-reference-page) .card,
+html[data-theme="light"] body:not(.da-print-reference-page) .dashboard-card,
+html[data-theme="light"] body:not(.da-print-reference-page) .filter-card,
+html[data-theme="light"] body:not(.da-print-reference-page) .profile-card,
+html[data-theme="light"] body:not(.da-print-reference-page) .settings-card,
+html[data-theme="light"] body:not(.da-print-reference-page) .documents-card,
+html[data-theme="light"] body:not(.da-print-reference-page) .document-mobile-card,
+html[data-theme="light"] body:not(.da-print-reference-page) .form-link-card,
+html[data-theme="light"] body:not(.da-print-reference-page) .forms-stat,
+html[data-theme="light"] body:not(.da-print-reference-page) .ct-stat-card,
+html[data-theme="light"] body:not(.da-print-reference-page) .whatsapp-stat-card,
+html[data-theme="light"] body:not(.da-print-reference-page) .share-stat-card,
+html[data-theme="light"] body:not(.da-print-reference-page) .stat-box {
+    background: #ffffff !important;
+}
+
+body:not(.da-print-reference-page) input,
+body:not(.da-print-reference-page) select,
+body:not(.da-print-reference-page) textarea,
+body:not(.da-print-reference-page) .form-control,
+body:not(.da-print-reference-page) .form-select {
+    background: var(--card) !important;
+    color: var(--text) !important;
+    border-color: var(--border) !important;
+}
+
+body:not(.da-print-reference-page) input::placeholder,
+body:not(.da-print-reference-page) textarea::placeholder {
+    color: var(--muted) !important;
+    opacity: .72;
+}
+
+body:not(.da-print-reference-page) table,
+body:not(.da-print-reference-page) .table,
+body:not(.da-print-reference-page) .documents-table {
+    color: var(--text) !important;
+}
+
+body:not(.da-print-reference-page) th {
+    color: var(--muted) !important;
+    background: color-mix(in srgb, var(--card) 82%, var(--bg)) !important;
+}
+
+body:not(.da-print-reference-page) td {
+    color: var(--text) !important;
+    border-color: var(--border) !important;
+}
+
+body:not(.da-print-reference-page) .btn,
+body:not(.da-print-reference-page) button,
+body:not(.da-print-reference-page) .quick-chip {
+    border-color: var(--border);
+}
+
+html[data-theme="light"] body:not(.da-print-reference-page) .btn:not(.btn-primary):not(.btn-danger):not(.btn-success):not(.btn-warning),
+html[data-theme="light"] body:not(.da-print-reference-page) .quick-chip,
+html[data-theme="light"] body:not(.da-print-reference-page) .theme-toggle,
+html[data-theme="light"] body:not(.da-print-reference-page) .menu-toggle {
+    background: #ffffff !important;
+    color: #0f172a !important;
+    border-color: #d8e1ee !important;
+}
+
+html[data-theme="dark"] body:not(.da-print-reference-page) .btn:not(.btn-primary):not(.btn-danger):not(.btn-success):not(.btn-warning),
+html[data-theme="dark"] body:not(.da-print-reference-page) .quick-chip,
+html[data-theme="dark"] body:not(.da-print-reference-page) .theme-toggle,
+html[data-theme="dark"] body:not(.da-print-reference-page) .menu-toggle {
+    background: #162033 !important;
+    color: #eef2ff !important;
+    border-color: #2b3a55 !important;
+}
+
+/* Dashboard V45: overrides dark-only inline dashboard palette. */
+html[data-theme="light"] body:not(.da-print-reference-page) .da-dashboard {
+    --da-bg: #ffffff !important;
+    --da-bg-soft: #f8fafc !important;
+    --da-border: #d8e1ee !important;
+    --da-text: #0f172a !important;
+    --da-muted: #475569 !important;
+    --da-muted-2: #334155 !important;
+    --da-blue: #2563eb !important;
+    --da-blue-2: #1d4ed8 !important;
+    --da-green: #16a34a !important;
+    --da-yellow: #d97706 !important;
+    --da-red: #dc2626 !important;
+    color: #0f172a !important;
+}
+
+html[data-theme="dark"] body:not(.da-print-reference-page) .da-dashboard {
+    --da-bg: #111827 !important;
+    --da-bg-soft: #162033 !important;
+    --da-border: #2b3a55 !important;
+    --da-text: #eef2ff !important;
+    --da-muted: #a7b3c7 !important;
+    --da-muted-2: #cbd5e1 !important;
+    --da-blue: #60a5fa !important;
+    --da-blue-2: #2563eb !important;
+    --da-green: #22c55e !important;
+    --da-yellow: #f59e0b !important;
+    --da-red: #ef4444 !important;
+    color: #eef2ff !important;
+}
+
+body:not(.da-print-reference-page) .da-dashboard .da-card {
+    background: var(--da-bg) !important;
+    color: var(--da-text) !important;
+    border-color: var(--da-border) !important;
+    box-shadow: var(--shadow) !important;
+}
+
+html[data-theme="light"] body:not(.da-print-reference-page) .da-dashboard .da-card,
+html[data-theme="light"] body:not(.da-print-reference-page) .da-dashboard .da-admin-alert-item,
+html[data-theme="light"] body:not(.da-print-reference-page) .da-dashboard .da-info-row,
+html[data-theme="light"] body:not(.da-print-reference-page) .da-dashboard .da-activity-item {
+    background: #ffffff !important;
+    color: #0f172a !important;
+    border-color: #d8e1ee !important;
+    box-shadow: 0 10px 26px rgba(15, 23, 42, .07) !important;
+}
+
+html[data-theme="dark"] body:not(.da-print-reference-page) .da-dashboard .da-card,
+html[data-theme="dark"] body:not(.da-print-reference-page) .da-dashboard .da-admin-alert-item,
+html[data-theme="dark"] body:not(.da-print-reference-page) .da-dashboard .da-info-row,
+html[data-theme="dark"] body:not(.da-print-reference-page) .da-dashboard .da-activity-item {
+    background: #111827 !important;
+    color: #eef2ff !important;
+    border-color: #2b3a55 !important;
+}
+
+body:not(.da-print-reference-page) .da-dashboard .da-page-title,
+body:not(.da-print-reference-page) .da-dashboard .da-section-title h2,
+body:not(.da-print-reference-page) .da-dashboard .da-card-head h2,
+body:not(.da-print-reference-page) .da-dashboard .da-stat-value,
+body:not(.da-print-reference-page) .da-dashboard .da-admin-alert-title,
+body:not(.da-print-reference-page) .da-dashboard .da-info-row strong,
+body:not(.da-print-reference-page) .da-dashboard .da-activity-title,
+body:not(.da-print-reference-page) .da-dashboard .da-table td,
+body:not(.da-print-reference-page) .da-dashboard .da-bar-label {
+    color: var(--da-text) !important;
+}
+
+body:not(.da-print-reference-page) .da-dashboard .da-page-subtitle,
+body:not(.da-print-reference-page) .da-dashboard .da-section-hint,
+body:not(.da-print-reference-page) .da-dashboard .da-stat-label,
+body:not(.da-print-reference-page) .da-dashboard .da-stat-note,
+body:not(.da-print-reference-page) .da-dashboard .da-admin-alert-message,
+body:not(.da-print-reference-page) .da-dashboard .da-activity-meta,
+body:not(.da-print-reference-page) .da-dashboard .da-muted,
+body:not(.da-print-reference-page) .da-dashboard .da-table th,
+body:not(.da-print-reference-page) .da-dashboard .da-month-label {
+    color: var(--da-muted) !important;
+}
+
+html[data-theme="light"] body:not(.da-print-reference-page) .da-dashboard .da-btn-soft,
+html[data-theme="light"] body:not(.da-print-reference-page) .da-dashboard .da-btn {
+    background: #ffffff !important;
+    color: #0f172a !important;
+    border-color: #cbd5e1 !important;
+}
+
+html[data-theme="light"] body:not(.da-print-reference-page) .da-dashboard .da-btn-primary {
+    background: linear-gradient(135deg, #3b82f6, #1d4ed8) !important;
+    color: #ffffff !important;
+    border-color: rgba(37, 99, 235, .58) !important;
+}
+
+html[data-theme="light"] body:not(.da-print-reference-page) .da-dashboard .da-btn-warning {
+    background: #fffbeb !important;
+    color: #92400e !important;
+    border-color: #facc15 !important;
+}
+
+html[data-theme="light"] body:not(.da-print-reference-page) .da-dashboard .da-btn-danger {
+    background: #fef2f2 !important;
+    color: #991b1b !important;
+    border-color: #fecaca !important;
+}
+
+html[data-theme="light"] body:not(.da-print-reference-page) .da-dashboard .da-admin-alert-item.warning {
+    background: #fffbeb !important;
+    border-color: #facc15 !important;
+}
+html[data-theme="light"] body:not(.da-print-reference-page) .da-dashboard .da-admin-alert-item.danger {
+    background: #fef2f2 !important;
+    border-color: #fecaca !important;
+}
+html[data-theme="light"] body:not(.da-print-reference-page) .da-dashboard .da-admin-alert-item.info,
+html[data-theme="light"] body:not(.da-print-reference-page) .da-dashboard .da-admin-alert-ok {
+    background: #eff6ff !important;
+    border-color: #bfdbfe !important;
+}
+
+html[data-theme="dark"] body:not(.da-print-reference-page) .da-dashboard .da-admin-alert-item.warning {
+    background: rgba(120, 53, 15, .24) !important;
+    border-color: rgba(245, 158, 11, .42) !important;
+}
+html[data-theme="dark"] body:not(.da-print-reference-page) .da-dashboard .da-admin-alert-item.danger {
+    background: rgba(127, 29, 29, .24) !important;
+    border-color: rgba(239, 68, 68, .42) !important;
+}
+html[data-theme="dark"] body:not(.da-print-reference-page) .da-dashboard .da-admin-alert-item.info,
+html[data-theme="dark"] body:not(.da-print-reference-page) .da-dashboard .da-admin-alert-ok {
+    background: rgba(30, 64, 175, .18) !important;
+    border-color: rgba(96, 165, 250, .35) !important;
+}
+
+body:not(.da-print-reference-page) .da-dashboard .da-chart-bars,
+body:not(.da-print-reference-page) .da-dashboard .da-bar-track {
+    background: var(--da-bg-soft) !important;
+    border-color: var(--da-border) !important;
+}
+
+/* Alerts: readable in both modes. */
+html[data-theme="light"] body:not(.da-print-reference-page) .alert-warning,
+html[data-theme="light"] body:not(.da-print-reference-page) .alert,
+html[data-theme="light"] body:not(.da-print-reference-page) .alert-success,
+html[data-theme="light"] body:not(.da-print-reference-page) .alert-error,
+html[data-theme="light"] body:not(.da-print-reference-page) .alert-danger {
+    color: #0f172a !important;
+}
+
+html[data-theme="dark"] body:not(.da-print-reference-page) .alert,
+html[data-theme="dark"] body:not(.da-print-reference-page) .alert-success,
+html[data-theme="dark"] body:not(.da-print-reference-page) .alert-error,
+html[data-theme="dark"] body:not(.da-print-reference-page) .alert-danger,
+html[data-theme="dark"] body:not(.da-print-reference-page) .alert-warning {
+    color: #eef2ff !important;
+}
+
+/* Internal chat: keep contrast aligned with theme without changing behavior. */
+html[data-theme="light"] body:not(.da-print-reference-page) .internal-chat-panel,
+html[data-theme="light"] body:not(.da-print-reference-page) .internal-chat-users,
+html[data-theme="light"] body:not(.da-print-reference-page) .internal-chat-conversation {
+    background: #ffffff !important;
+    color: #0f172a !important;
+    border-color: #d8e1ee !important;
+}
+
+html[data-theme="dark"] body:not(.da-print-reference-page) .internal-chat-panel,
+html[data-theme="dark"] body:not(.da-print-reference-page) .internal-chat-users,
+html[data-theme="dark"] body:not(.da-print-reference-page) .internal-chat-conversation {
+    background: #111827 !important;
+    color: #eef2ff !important;
+    border-color: #2b3a55 !important;
+}
+
+/* Preserve official print/reference pages. */
+@media print {
+    body,
+    .main-area,
+    .content-area,
+    .card {
+        background: #fff !important;
+        color: #000 !important;
+        box-shadow: none !important;
+    }
+}

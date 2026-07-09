@@ -11,8 +11,13 @@
     </div>
 
     <div class="card">
-        <form method="POST" action="{{ route('users.store') }}">
+        <form method="POST" action="{{ route('users.store') }}" autocomplete="off" data-da-login-form="1" data-lpignore="true" data-1p-ignore="true">
             @csrf
+{{-- auth-no-autofill-v44:applied --}}
+<div class="auth-autofill-decoys" aria-hidden="true" style="position:absolute;left:-10000px;top:auto;width:1px;height:1px;overflow:hidden;opacity:0;">
+    <input type="text" name="da_decoy_username_v44" tabindex="-1" autocomplete="username">
+    <input type="password" name="da_decoy_password_v44" tabindex="-1" autocomplete="current-password">
+</div>
 
             <div class="form-grid">
                 <div class="form-group">
@@ -22,12 +27,12 @@
 
                 <div class="form-group">
                     <label>اسم المستخدم</label>
-                    <input type="text" name="username" value="{{ old('username') }}" required>
+                    <input type="text" name="username" value="{{ old('username') }}" required autocomplete="new-password" autocapitalize="none" spellcheck="false" data-da-secure-login-input="username" data-lpignore="true" data-1p-ignore="true">
                 </div>
 
                 <div class="form-group">
                     <label>البريد الإلكتروني</label>
-                    <input type="email" name="email" value="{{ old('email') }}">
+                    <input type="email" name="email" value="{{ old('email') }}" autocomplete="new-password" autocapitalize="none" spellcheck="false" data-da-secure-login-input="username" data-lpignore="true" data-1p-ignore="true">
                 </div>
 
                 <div class="form-group">
@@ -55,7 +60,7 @@
 
                 <div class="form-group">
                     <label>كلمة المرور</label>
-                    <input type="password" name="password" required>
+                    <input type="password" name="password" required autocomplete="new-password" data-da-secure-login-input="password" data-lpignore="true" data-1p-ignore="true">
                 </div>
 
                 <div class="form-group">
@@ -106,3 +111,5 @@
 
     @include('users.partials.permissions-style')
 @endsection
+{{-- auth-no-autofill-v44:script --}}
+<script src="{{ asset('js/auth-no-autofill-v44.js') }}?v={{ filemtime(public_path('js/auth-no-autofill-v44.js')) }}" defer></script>
