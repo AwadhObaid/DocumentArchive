@@ -62,6 +62,8 @@
     <link rel="stylesheet" href="{{ asset('css/system-about.css') }}?v={{ filemtime(public_path('css/system-about.css')) }}">
     {{-- DocumentArchive PDF/OCR search --}}
     <link rel="stylesheet" href="{{ asset('css/pdf-search.css') }}?v={{ filemtime(public_path('css/pdf-search.css')) }}">
+    {{-- DocumentArchive sidebar vertical scroll fix --}}
+    <link rel="stylesheet" href="{{ asset('css/sidebar-scroll-fix-v41.css') }}?v={{ filemtime(public_path('css/sidebar-scroll-fix-v41.css')) }}">
 </head>
 <body
     data-auto-logout-enabled="{{ $daAutoLogoutEnabled ? '1' : '0' }}"

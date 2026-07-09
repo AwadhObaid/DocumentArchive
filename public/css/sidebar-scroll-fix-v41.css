@@ -1,0 +1,92 @@
+/*
+|--------------------------------------------------------------------------
+| DocumentArchive Sidebar Scroll Fix V41
+|--------------------------------------------------------------------------
+| Purpose:
+| Keep the authenticated sidebar usable when menu items become longer after
+| enabling more modules/permissions. The sidebar itself stays fixed, while
+| only the navigation menu scrolls vertically. The footer remains visible.
+*/
+
+html[dir="rtl"] body:not(.da-print-reference-page) .app-shell,
+body:not(.da-print-reference-page) .app-shell {
+    min-height: 100vh !important;
+    min-height: 100dvh !important;
+}
+
+html[dir="rtl"] body:not(.da-print-reference-page) .sidebar,
+body:not(.da-print-reference-page) .sidebar {
+    position: fixed !important;
+    top: 0 !important;
+    bottom: 0 !important;
+    height: 100vh !important;
+    height: 100dvh !important;
+    max-height: 100vh !important;
+    max-height: 100dvh !important;
+    display: flex !important;
+    flex-direction: column !important;
+    overflow: hidden !important;
+}
+
+html[dir="rtl"] body:not(.da-print-reference-page) .sidebar .brand,
+body:not(.da-print-reference-page) .sidebar .brand {
+    flex: 0 0 auto !important;
+}
+
+html[dir="rtl"] body:not(.da-print-reference-page) .sidebar .side-nav,
+body:not(.da-print-reference-page) .sidebar .side-nav {
+    flex: 1 1 auto !important;
+    min-height: 0 !important;
+    max-height: none !important;
+    overflow-y: scroll !important;
+    overflow-x: hidden !important;
+    overscroll-behavior: contain !important;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-gutter: stable both-edges;
+    scrollbar-width: thin;
+    scrollbar-color: rgba(148, 163, 184, .62) rgba(15, 23, 42, .22);
+    padding-bottom: 16px !important;
+}
+
+html[dir="rtl"] body:not(.da-print-reference-page) .sidebar .side-nav a,
+body:not(.da-print-reference-page) .sidebar .side-nav a {
+    flex: 0 0 auto !important;
+}
+
+html[dir="rtl"] body:not(.da-print-reference-page) .sidebar .sidebar-footer,
+body:not(.da-print-reference-page) .sidebar .sidebar-footer {
+    flex: 0 0 auto !important;
+    margin-top: 0 !important;
+}
+
+html[dir="rtl"] body:not(.da-print-reference-page) .sidebar .side-nav::-webkit-scrollbar,
+body:not(.da-print-reference-page) .sidebar .side-nav::-webkit-scrollbar {
+    width: 10px;
+}
+
+html[dir="rtl"] body:not(.da-print-reference-page) .sidebar .side-nav::-webkit-scrollbar-thumb,
+body:not(.da-print-reference-page) .sidebar .side-nav::-webkit-scrollbar-thumb {
+    background: rgba(148, 163, 184, .62);
+    border-radius: 999px;
+    border: 2px solid rgba(15, 23, 42, .35);
+}
+
+html[dir="rtl"] body:not(.da-print-reference-page) .sidebar .side-nav::-webkit-scrollbar-track,
+body:not(.da-print-reference-page) .sidebar .side-nav::-webkit-scrollbar-track {
+    background: rgba(15, 23, 42, .22);
+    border-radius: 999px;
+}
+
+@media (max-width: 980px) {
+    html[dir="rtl"] body:not(.da-print-reference-page) .sidebar,
+    body:not(.da-print-reference-page) .sidebar {
+        width: min(290px, 86vw) !important;
+    }
+
+    html[dir="rtl"] body:not(.da-print-reference-page) .sidebar.open,
+    body:not(.da-print-reference-page) .sidebar.open {
+        height: 100vh !important;
+        height: 100dvh !important;
+        overflow: hidden !important;
+    }
+}
