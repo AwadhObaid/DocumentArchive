@@ -166,8 +166,182 @@
             letter-spacing: 0;
         }
 
+
+
+        .internal-chat-admin-grid {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 14px;
+        }
+
+        .internal-chat-admin-card {
+            border: 1px solid rgba(148, 163, 184, .24);
+            border-radius: 16px;
+            padding: 14px;
+            background: rgba(15, 23, 42, .28);
+        }
+
+        .internal-chat-admin-card h3 {
+            margin: 0 0 8px;
+            font-size: 16px;
+        }
+
+        .internal-chat-admin-card p {
+            color: #94a3b8;
+            line-height: 1.8;
+            margin: 0 0 12px;
+        }
+
+        .internal-chat-admin-danger {
+            border-color: rgba(239, 68, 68, .38);
+            background: rgba(127, 29, 29, .18);
+        }
+
+        .internal-chat-admin-actions {
+            display: flex;
+            gap: 8px;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+
+        .internal-chat-admin-actions input[type="file"],
+        .internal-chat-admin-actions input[type="text"] {
+            min-width: 230px;
+            flex: 1;
+        }
+
+
+
+        .internal-chat-admin-alert {
+            border-radius: 14px;
+            padding: 12px 14px;
+            margin: 0 0 14px;
+            line-height: 1.8;
+            border: 1px solid transparent;
+        }
+
+        .internal-chat-admin-alert.is-error {
+            background: rgba(239, 68, 68, .10);
+            border-color: rgba(239, 68, 68, .30);
+            color: #fecaca;
+        }
+
+        .internal-chat-admin-alert.is-success {
+            background: rgba(34, 197, 94, .10);
+            border-color: rgba(34, 197, 94, .30);
+            color: #bbf7d0;
+        }
+
+        html[data-theme="light"] .internal-chat-admin-alert.is-error {
+            background: #fef2f2;
+            border-color: #fecaca;
+            color: #991b1b;
+        }
+
+        html[data-theme="light"] .internal-chat-admin-alert.is-success {
+            background: #f0fdf4;
+            border-color: #bbf7d0;
+            color: #166534;
+        }
+
+        .internal-chat-admin-field-error {
+            width: 100%;
+            color: #fecaca;
+            font-size: 13px;
+            line-height: 1.7;
+            margin-top: 4px;
+            display: none;
+        }
+
+        .internal-chat-admin-field-error.is-visible {
+            display: block;
+        }
+
+        html[data-theme="light"] .internal-chat-admin-field-error {
+            color: #b91c1c;
+        }
+
+        .da-settings-confirm-backdrop {
+            position: fixed;
+            inset: 0;
+            z-index: 1000;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            padding: 18px;
+            background: rgba(15, 23, 42, .62);
+            backdrop-filter: blur(8px);
+        }
+
+        .da-settings-confirm-backdrop.is-open {
+            display: flex;
+        }
+
+        .da-settings-confirm-card {
+            width: min(520px, 100%);
+            border-radius: 22px;
+            border: 1px solid rgba(148, 163, 184, .28);
+            background: #0f172a;
+            color: #e5e7eb;
+            box-shadow: 0 24px 80px rgba(0, 0, 0, .35);
+            padding: 18px;
+        }
+
+        html[data-theme="light"] .da-settings-confirm-card {
+            background: #ffffff;
+            color: #111827;
+            border-color: #e5e7eb;
+        }
+
+        .da-settings-confirm-icon {
+            width: 44px;
+            height: 44px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 16px;
+            background: rgba(59, 130, 246, .14);
+            color: #93c5fd;
+            margin-bottom: 10px;
+            font-size: 22px;
+        }
+
+        .da-settings-confirm-card.is-danger .da-settings-confirm-icon {
+            background: rgba(239, 68, 68, .14);
+            color: #fecaca;
+        }
+
+        .da-settings-confirm-card h3 {
+            margin: 0 0 8px;
+            font-size: 18px;
+        }
+
+        .da-settings-confirm-card p {
+            margin: 0;
+            line-height: 1.9;
+            color: #cbd5e1;
+        }
+
+        html[data-theme="light"] .da-settings-confirm-card p {
+            color: #475569;
+        }
+
+        .da-settings-confirm-actions {
+            display: flex;
+            gap: 10px;
+            justify-content: flex-start;
+            flex-wrap: wrap;
+            margin-top: 18px;
+        }
+
         @media (max-width: 1100px) {
             .settings-polish-hero {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        @media (max-width: 760px) {
+            .internal-chat-admin-grid {
                 grid-template-columns: 1fr;
             }
         }
@@ -553,6 +727,196 @@
             <div class="alert-error">ليست لديك صلاحية إدارة الإعدادات.</div>
         @endif
     </div>
+
+
+
+    @if(auth()->user()?->hasPermission('internal_chat.backup') || auth()->user()?->hasPermission('internal_chat.restore_backup') || auth()->user()?->hasPermission('internal_chat.restore_deleted') || auth()->user()?->hasPermission('internal_chat.force_delete'))
+        <div class="card" id="internal-chat-admin-management">
+            <div class="settings-section-header">
+                <div>
+                    <h2>إدارة الدردشة الداخلية</h2>
+                    <p>أدوات إدارية للنسخ الاحتياطي، الاستعادة، واسترجاع أو تفريغ الدردشات المحذوفة. هذه الإجراءات مخصصة للمدير فقط وتُسجل في سجل النشاط.</p>
+                </div>
+            </div>
+
+            @if(session('internal_chat_admin_error') || $errors->has('confirmation') || $errors->has('backup_file'))
+                <div class="internal-chat-admin-alert is-error">
+                    {{ session('internal_chat_admin_error') ?: ($errors->first('confirmation') ?: $errors->first('backup_file')) }}
+                </div>
+            @endif
+
+            @if(session('internal_chat_admin_success'))
+                <div class="internal-chat-admin-alert is-success">
+                    {{ session('internal_chat_admin_success') }}
+                </div>
+            @endif
+
+            <div class="internal-chat-admin-grid">
+                @if(auth()->user()?->hasPermission('internal_chat.backup'))
+                    <div class="internal-chat-admin-card">
+                        <h3>نسخة احتياطية للدردشات</h3>
+                        <p>ينشئ ملف JSON يحتوي على المحادثات، المشاركين، الرسائل، ومعلومات المرفقات.</p>
+                        <form method="POST" action="{{ route('settings.internal-chat.backup') }}" class="internal-chat-admin-actions">
+                            @csrf
+                            <button type="submit" class="btn btn-primary">إنشاء وتحميل نسخة احتياطية</button>
+                        </form>
+                    </div>
+                @endif
+
+                @if(auth()->user()?->hasPermission('internal_chat.restore_backup'))
+                    <div class="internal-chat-admin-card">
+                        <h3>استعادة نسخة احتياطية</h3>
+                        <p>اختر ملف النسخة الذي تم إنشاؤه من النظام. سيتم تحديث أو إضافة السجلات الموجودة في الملف.</p>
+                        <form method="POST" action="{{ route('settings.internal-chat.restore-backup') }}" enctype="multipart/form-data" class="internal-chat-admin-actions" data-da-confirm-form data-da-confirm-title="استعادة نسخة الدردشة" data-da-confirm-message="هل تريد استعادة نسخة الدردشة المحددة؟ يفضل إنشاء نسخة احتياطية حديثة قبل الاستعادة." data-da-confirm-icon="♻️">
+                            @csrf
+                            <input type="file" name="backup_file" accept=".json,application/json" required>
+                            <button type="submit" class="btn btn-secondary">استعادة النسخة</button>
+                        </form>
+                    </div>
+                @endif
+
+                @if(auth()->user()?->hasPermission('internal_chat.restore_deleted'))
+                    <div class="internal-chat-admin-card">
+                        <h3>استعادة الدردشات المحذوفة ظاهريًا</h3>
+                        <p>يعيد المحادثات التي تم مسحها أو أرشفتها ظاهريًا إلى القوائم الرئيسية للمستخدمين.</p>
+                        <form method="POST" action="{{ route('settings.internal-chat.restore-deleted') }}" class="internal-chat-admin-actions" data-da-confirm-form data-da-confirm-title="استعادة الدردشات المحذوفة" data-da-confirm-message="سيتم استعادة الدردشات المحذوفة أو المؤرشفة ظاهريًا وإعادتها للقوائم الرئيسية. هل تريد المتابعة؟" data-da-confirm-icon="↩️">
+                            @csrf
+                            <button type="submit" class="btn btn-success">استعادة المحذوف ظاهريًا</button>
+                        </form>
+                    </div>
+                @endif
+
+                @if(auth()->user()?->hasPermission('internal_chat.force_delete'))
+                    <div class="internal-chat-admin-card internal-chat-admin-danger">
+                        <h3>تفريغ الدردشات المحذوفة نهائيًا</h3>
+                        <p>يحذف نهائيًا المحادثات التي أصبحت محذوفة/ممسوحة عند جميع المشاركين فقط. سيتم إنشاء نسخة احتياطية تلقائية قبل التفريغ.</p>
+                        <form method="POST" action="{{ route('settings.internal-chat.purge-deleted') }}" class="internal-chat-admin-actions" data-da-confirm-form data-da-confirm-title="تأكيد التفريغ النهائي" data-da-confirm-message="تحذير: سيتم حذف الدردشات المؤهلة نهائيًا بعد إنشاء نسخة احتياطية تلقائية. هذا الإجراء لا يمكن التراجع عنه إلا من نسخة احتياطية." data-da-confirm-danger="1" data-da-confirm-icon="⚠️">
+                            @csrf
+                            <input type="text" name="confirmation" placeholder="اكتب: حذف نهائي" autocomplete="off" required data-da-required-confirmation="حذف نهائي" value="{{ old('confirmation') }}">
+                            <span class="internal-chat-admin-field-error" data-da-confirmation-error>عبارة التأكيد غير صحيحة. اكتب العبارة كما هي: حذف نهائي</span>
+                            <button type="submit" class="btn btn-danger">تفريغ نهائي</button>
+                        </form>
+                    </div>
+                @endif
+            </div>
+
+            <div class="settings-warning-box">
+                للحماية، التفريغ النهائي لا يمس الدردشات النشطة، ويعمل فقط على المحادثات التي تم حذفها/مسحها من جميع المشاركين. الاستعادة من النسخة يجب استخدامها بحذر وبعد التأكد من الملف.
+            </div>
+        </div>
+
+        <div class="da-settings-confirm-backdrop" id="daSettingsConfirmModal" aria-hidden="true">
+            <div class="da-settings-confirm-card" role="dialog" aria-modal="true" aria-labelledby="daSettingsConfirmTitle" aria-describedby="daSettingsConfirmMessage">
+                <div class="da-settings-confirm-icon" data-da-confirm-modal-icon>⚠️</div>
+                <h3 id="daSettingsConfirmTitle">تأكيد الإجراء</h3>
+                <p id="daSettingsConfirmMessage">هل تريد المتابعة ؟</p>
+                <div class="da-settings-confirm-actions">
+                    <button type="button" class="btn btn-primary" data-da-confirm-accept>تأكيد وتنفيذ</button>
+                    <button type="button" class="btn btn-secondary" data-da-confirm-cancel>إلغاء</button>
+                </div>
+            </div>
+        </div>
+
+        <script>
+            document.addEventListener('DOMContentLoaded', function () {
+                const modal = document.getElementById('daSettingsConfirmModal');
+                if (!modal) return;
+
+                const card = modal.querySelector('.da-settings-confirm-card');
+                const title = modal.querySelector('#daSettingsConfirmTitle');
+                const message = modal.querySelector('#daSettingsConfirmMessage');
+                const icon = modal.querySelector('[data-da-confirm-modal-icon]');
+                const accept = modal.querySelector('[data-da-confirm-accept]');
+                const cancel = modal.querySelector('[data-da-confirm-cancel]');
+                let pendingForm = null;
+
+                function closeModal() {
+                    pendingForm = null;
+                    modal.classList.remove('is-open');
+                    modal.setAttribute('aria-hidden', 'true');
+                }
+
+                function openModal(form) {
+                    pendingForm = form;
+                    title.textContent = form.dataset.daConfirmTitle || 'تأكيد الإجراء';
+                    message.textContent = form.dataset.daConfirmMessage || 'هل تريد المتابعة؟';
+                    icon.textContent = form.dataset.daConfirmIcon || '⚠️';
+                    card.classList.toggle('is-danger', form.dataset.daConfirmDanger === '1');
+                    modal.classList.add('is-open');
+                    modal.setAttribute('aria-hidden', 'false');
+                    cancel.focus();
+                }
+
+                function showConfirmationError(input, text) {
+                    const error = input.closest('form')?.querySelector('[data-da-confirmation-error]');
+                    if (error) {
+                        error.textContent = text;
+                        error.classList.add('is-visible');
+                    }
+                    input.setAttribute('aria-invalid', 'true');
+                    input.focus();
+                }
+
+                function clearConfirmationError(input) {
+                    const error = input.closest('form')?.querySelector('[data-da-confirmation-error]');
+                    if (error) error.classList.remove('is-visible');
+                    input.removeAttribute('aria-invalid');
+                }
+
+                document.querySelectorAll('[data-da-required-confirmation]').forEach(function (input) {
+                    input.addEventListener('input', function () {
+                        clearConfirmationError(input);
+                    });
+                });
+
+                document.addEventListener('submit', function (event) {
+                    const form = event.target.closest('form[data-da-confirm-form]');
+                    if (!form) return;
+
+                    if (form.dataset.daConfirmed === '1') {
+                        delete form.dataset.daConfirmed;
+                        return;
+                    }
+
+                    const confirmationInput = form.querySelector('[data-da-required-confirmation]');
+                    if (confirmationInput) {
+                        const expected = (confirmationInput.dataset.daRequiredConfirmation || '').trim();
+                        const actual = (confirmationInput.value || '').replace(/\s+/g, ' ').trim();
+                        if (actual !== expected) {
+                            event.preventDefault();
+                            showConfirmationError(confirmationInput, 'عبارة التأكيد غير صحيحة. اكتب العبارة كما هي: ' + expected);
+                            return;
+                        }
+                    }
+
+                    event.preventDefault();
+                    openModal(form);
+                });
+
+                accept.addEventListener('click', function () {
+                    if (!pendingForm) return;
+                    const form = pendingForm;
+                    closeModal();
+                    form.dataset.daConfirmed = '1';
+                    if (typeof form.requestSubmit === 'function') {
+                        form.requestSubmit();
+                    } else {
+                        form.submit();
+                    }
+                });
+
+                cancel.addEventListener('click', closeModal);
+                modal.addEventListener('click', function (event) {
+                    if (event.target === modal) closeModal();
+                });
+                document.addEventListener('keydown', function (event) {
+                    if (event.key === 'Escape' && modal.classList.contains('is-open')) {
+                        closeModal();
+                    }
+                });
+            });
+        </script>
+    @endif
 
     <div class="card">
         <div class="settings-section-header">

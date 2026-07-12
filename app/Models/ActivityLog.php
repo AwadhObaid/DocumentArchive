@@ -75,6 +75,10 @@ class ActivityLog extends Model
             'document_type.deleted' => 'حذف نوع كتاب',
 
             'settings.updated' => 'تعديل الإعدادات',
+            'internal_chat.backup_created' => 'إنشاء نسخة احتياطية للدردشة الداخلية',
+            'internal_chat.backup_restored' => 'استعادة نسخة احتياطية للدردشة الداخلية',
+            'internal_chat.deleted_restored' => 'استعادة الدردشات المحذوفة ظاهريًا',
+            'internal_chat.deleted_purged' => 'تفريغ الدردشات المحذوفة نهائيًا',
 
             'auth.login' => 'تسجيل دخول',
             'auth.logout' => 'تسجيل خروج',
@@ -149,6 +153,7 @@ class ActivityLog extends Model
             str_starts_with($action, 'department.') => 'الإدارات',
             str_starts_with($action, 'document_type.') => 'أنواع الكتب',
             str_starts_with($action, 'settings.') => 'الإعدادات',
+            str_starts_with($action, 'internal_chat.') => 'الدردشة الداخلية',
             str_starts_with($action, 'auth.') => 'الدخول والخروج',
             str_starts_with($action, 'report.') => 'التقارير',
             default => 'عمليات أخرى',
@@ -170,6 +175,7 @@ class ActivityLog extends Model
             'App\\Models\\User' => 'مستخدم',
             'App\\Models\\Setting' => 'إعداد',
             'backup' => 'نسخة احتياطية',
+            'internal_chat_backup' => 'نسخة دردشة داخلية',
             'system' => 'النظام',
         ];
     }

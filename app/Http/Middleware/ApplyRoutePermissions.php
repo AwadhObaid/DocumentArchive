@@ -141,6 +141,10 @@ class ApplyRoutePermissions
         'whatsapp.show' => 'whatsapp.view',
         'documents.whatsapp.compose' => 'whatsapp.send',
 
+        'settings.internal-chat.backup' => 'internal_chat.backup',
+        'settings.internal-chat.restore-backup' => 'internal_chat.restore_backup',
+        'settings.internal-chat.restore-deleted' => 'internal_chat.restore_deleted',
+        'settings.internal-chat.purge-deleted' => 'internal_chat.force_delete',
         'settings.*' => 'settings.manage',
         'system-health.*' => 'system_health.view',
         'system-rights.*' => 'system_about.view',

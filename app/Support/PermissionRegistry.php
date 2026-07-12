@@ -124,6 +124,10 @@ class PermissionRegistry
                 'permissions' => [
                     'internal_chat.view' => 'عرض نافذة الدردشة الداخلية',
                     'internal_chat.send' => 'إرسال رسائل دردشة داخلية',
+                    'internal_chat.backup' => 'إنشاء نسخة احتياطية للدردشة الداخلية',
+                    'internal_chat.restore_backup' => 'استعادة نسخة احتياطية للدردشة الداخلية',
+                    'internal_chat.restore_deleted' => 'استعادة الدردشات المحذوفة ظاهريًا',
+                    'internal_chat.force_delete' => 'تفريغ الدردشات المحذوفة نهائيًا',
                 ],
             ],
 

@@ -16,6 +16,7 @@ use App\Http\Controllers\MemoController;
 use App\Http\Controllers\LiteController;
 use App\Http\Controllers\InternalMessageController;
 use App\Http\Controllers\InternalChatController;
+use App\Http\Controllers\InternalChatAdminController;
 use App\Http\Controllers\SessionActivityController;
 use App\Http\Controllers\WhatsappController;
 use App\Http\Controllers\SharedAttachmentLinkController;
@@ -92,6 +93,15 @@ Route::middleware(['auth', ApplyRoutePermissions::class])->group(function () {
         Route::post('/messages', [InternalChatController::class, 'send'])->name('send');
         Route::post('/typing', [InternalChatController::class, 'typing'])->name('typing');
         Route::post('/read/{user}', [InternalChatController::class, 'markRead'])->name('read');
+    });
+
+
+
+    Route::prefix('settings/internal-chat')->name('settings.internal-chat.')->group(function () {
+        Route::post('/backup', [InternalChatAdminController::class, 'backup'])->name('backup');
+        Route::post('/restore-backup', [InternalChatAdminController::class, 'restoreBackup'])->name('restore-backup');
+        Route::post('/restore-deleted', [InternalChatAdminController::class, 'restoreDeleted'])->name('restore-deleted');
+        Route::post('/purge-deleted', [InternalChatAdminController::class, 'purgeDeleted'])->name('purge-deleted');
     });
 
     Route::get('/internal-messages', [InternalMessageController::class, 'index'])->name('internal-messages.index');
