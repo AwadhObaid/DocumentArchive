@@ -44,6 +44,14 @@ class ActivityLog extends Model
             'document.printed' => 'طباعة رقم الكتاب',
             'document.viewed' => 'عرض كتاب',
 
+            'memo.created' => 'إنشاء مذكرة',
+            'memo.updated' => 'تعديل مذكرة',
+            'memo.deleted' => 'حذف مذكرة إلى السلة',
+            'memo.restored' => 'استعادة مذكرة',
+            'memo.force_deleted' => 'حذف مذكرة نهائي',
+            'memo_attachment.previewed' => 'معاينة مرفق مذكرة',
+            'memo_attachment.downloaded' => 'تنزيل مرفق مذكرة',
+
             'attachment.uploaded' => 'رفع مرفق',
             'attachment.previewed' => 'معاينة مرفق',
             'attachment.downloaded' => 'تنزيل مرفق',

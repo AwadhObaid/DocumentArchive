@@ -230,11 +230,63 @@ class MemoController extends Controller
     {
         $this->ensureMemoCanBeModified($memo);
 
-        ActivityLogger::log('memo.deleted', 'تم حذف المذكرة رقم ' . $memo->memo_number, $memo, ['memo_number' => $memo->memo_number]);
+        ActivityLogger::log(
+            'memo.deleted',
+            'تم حذف المذكرة رقم ' . $memo->memo_number . ' ونقلها إلى سلة المحذوفات',
+            $memo,
+            ['memo_number' => $memo->memo_number]
+        );
 
         $memo->delete();
 
-        return redirect()->route('memos.index')->with('success', 'تم حذف المذكرة ونقلها من القائمة الحالية.');
+        return redirect()
+            ->route('memos.index')
+            ->with('success', 'تم حذف المذكرة ونقلها إلى سلة المحذوفات.');
+    }
+
+    public function restore(int $id)
+    {
+        $memo = Memo::onlyTrashed()->findOrFail($id);
+        $memo->restore();
+
+        ActivityLogger::log(
+            'memo.restored',
+            'تمت استعادة المذكرة رقم ' . $memo->memo_number,
+            $memo,
+            ['memo_number' => $memo->memo_number]
+        );
+
+        return redirect()
+            ->route('documents.trash', ['section' => 'memos'])
+            ->with('success', 'تمت استعادة المذكرة بنجاح.');
+    }
+
+    public function forceDelete(int $id)
+    {
+        $memo = Memo::onlyTrashed()
+            ->with('attachments')
+            ->findOrFail($id);
+
+        foreach ($memo->attachments as $attachment) {
+            $disk = Storage::disk($attachment->disk ?: 'local');
+
+            if ($disk->exists($attachment->file_path)) {
+                $disk->delete($attachment->file_path);
+            }
+        }
+
+        ActivityLogger::log(
+            'memo.force_deleted',
+            'تم حذف المذكرة رقم ' . $memo->memo_number . ' نهائياً',
+            $memo,
+            ['memo_number' => $memo->memo_number]
+        );
+
+        $memo->forceDelete();
+
+        return redirect()
+            ->route('documents.trash', ['section' => 'memos'])
+            ->with('success', 'تم حذف المذكرة نهائياً.');
     }
 
     public function inlineAttachment(Memo $memo, MemoAttachment $attachment)

@@ -23,9 +23,9 @@ class ApplyRoutePermissions
         'documents.edit' => 'documents.edit',
         'documents.update' => 'documents.edit',
         'documents.destroy' => 'documents.delete',
-        'documents.trash' => 'documents.restore',
+        'documents.trash' => ['documents.restore', 'memos.restore'],
         'documents.restore' => 'documents.restore',
-        'documents.force-delete' => 'documents.delete',
+        'documents.force-delete' => 'documents.force_delete',
         'documents.print-reference' => 'documents.print',
         'documents.activity' => 'activity_logs.view',
         'documents.check-policy-duplicate' => 'documents.create',
@@ -45,6 +45,8 @@ class ApplyRoutePermissions
         'memos.edit' => 'memos.edit',
         'memos.update' => 'memos.edit',
         'memos.destroy' => 'memos.delete',
+        'memos.restore' => ['documents.restore', 'memos.restore'],
+        'memos.force-delete' => 'memos.force_delete',
         'memos.attachments.preview' => 'memos.attachments',
         'memos.attachments.data' => 'memos.attachments',
         'memos.attachments.inline' => 'memos.attachments',
@@ -185,14 +187,27 @@ class ApplyRoutePermissions
 
         $permission = $this->permissionFor($routeName);
 
-        if ($permission && method_exists($user, 'hasPermission') && !$user->hasPermission($permission)) {
+        if ($permission && method_exists($user, 'hasPermission') && ! $this->userHasAnyPermission($user, $permission)) {
             abort(403, 'ليست لديك صلاحية الوصول إلى هذه الصفحة أو تنفيذ هذا الإجراء.');
         }
 
         return $next($request);
     }
 
-    private function permissionFor(string $routeName): ?string
+    private function userHasAnyPermission($user, string|array $permission): bool
+    {
+        $permissions = is_array($permission) ? $permission : [$permission];
+
+        foreach ($permissions as $item) {
+            if ($user->hasPermission($item)) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    private function permissionFor(string $routeName): string|array|null
     {
         foreach ($this->permissions as $pattern => $permission) {
             if ($pattern === $routeName) {

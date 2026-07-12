@@ -7,6 +7,7 @@ use App\Models\Department;
 use App\Models\Document;
 use App\Models\DocumentAttachment;
 use App\Models\DocumentType;
+use App\Models\Memo;
 use App\Models\Setting;
 use App\Services\ReferenceNumberGenerator;
 use App\Services\ActivityLogger;
@@ -636,9 +637,20 @@ class DocumentController extends Controller
         $documents = Document::onlyTrashed()
             ->with(['department', 'documentType'])
             ->latest('deleted_at')
-            ->paginate(15);
+            ->paginate(10, ['*'], 'documents_page');
 
-        return view('documents.trash', compact('documents'));
+        $memos = Memo::onlyTrashed()
+            ->with(['department'])
+            ->withCount('attachments')
+            ->latest('deleted_at')
+            ->paginate(10, ['*'], 'memos_page');
+
+        $stats = [
+            'documents' => Document::onlyTrashed()->count(),
+            'memos' => Memo::onlyTrashed()->count(),
+        ];
+
+        return view('documents.trash', compact('documents', 'memos', 'stats'));
     }
 
     public function restore(int $id)

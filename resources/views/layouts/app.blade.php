@@ -73,16 +73,11 @@
     {{-- visual-theme-normalization-v46:start --}}
     <link rel="stylesheet" href="{{ asset('css/visual-theme-normalization-v46.css') }}?v={{ filemtime(public_path('css/visual-theme-normalization-v46.css')) }}">
     {{-- visual-theme-normalization-v46:end --}}
+    
         {{-- trash-layout-fix-v52:start --}}
-        <link rel="stylesheet" href="{{ asset('css/trash-layout-fix-v52.css') }}?v={{ filemtime(public_path('css/trash-layout-fix-v52.css')) }}">
+        <link rel="stylesheet" href="{{ asset('css/trash-layout-fix-v52.css') }}?v=52">
         {{-- trash-layout-fix-v52:end --}}
-                    {{-- sidebar-arabic-text-fix-v53:start --}}
-        <link rel="stylesheet" href="{{ asset('css/sidebar-arabic-text-fix-v53.css') }}?v={{ filemtime(public_path('css/sidebar-arabic-text-fix-v53.css')) }}">
-        {{-- sidebar-arabic-text-fix-v53:end --}}
-            {{-- sidebar-arabic-label-hard-fix-v54:start --}}
-        <link rel="stylesheet" href="{{ asset('css/sidebar-arabic-label-hard-fix-v54.css') }}?v={{ filemtime(public_path('css/sidebar-arabic-label-hard-fix-v54.css')) }}">
-        {{-- sidebar-arabic-label-hard-fix-v54:end --}}
-    </head>
+</head>
 <body
     data-auto-logout-enabled="{{ $daAutoLogoutEnabled ? '1' : '0' }}"
     data-auto-logout-timeout="{{ $daAutoLogoutTimeoutSeconds }}"
