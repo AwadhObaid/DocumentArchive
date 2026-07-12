@@ -197,6 +197,7 @@ class InternalChatController extends Controller
 
         $message->load(['sender:id,name,username', 'receiver:id,name,username', 'document:id,reference_number,subject,title', 'memo:id,memo_number,subject']);
         $this->touchPresence($currentUserId);
+        $this->clearTyping((int) $conversation->id, $currentUserId);
 
         try {
             ActivityLogger::log('internal_chat.message_sent', 'تم إرسال رسالة دردشة داخلية.', null, [
@@ -216,6 +217,63 @@ class InternalChatController extends Controller
         ], 201);
     }
 
+    public function typing(Request $request): JsonResponse
+    {
+        $guard = $this->guardAvailable($request);
+        if ($guard) {
+            return $guard;
+        }
+
+        $currentUser = $request->user();
+        $currentUserId = (int) $currentUser->id;
+        if (! $currentUser->hasPermission('internal_chat.send')) {
+            return response()->json(['message' => 'ليست لديك صلاحية إرسال حالة الكتابة.'], 403);
+        }
+
+        $validated = $request->validate([
+            'conversation_id' => ['nullable', 'integer', Rule::exists('internal_chat_conversations', 'id')],
+            'receiver_id' => ['nullable', 'integer', Rule::exists('users', 'id')->where(fn ($query) => $query->where('is_active', true))],
+            'is_typing' => ['required', 'boolean'],
+        ]);
+
+        $conversation = null;
+        if (! empty($validated['conversation_id'])) {
+            $conversation = InternalChatConversation::query()->find((int) $validated['conversation_id']);
+            if (! $conversation || ! $this->participant((int) $conversation->id, $currentUserId)) {
+                return response()->json(['message' => 'ليست لديك صلاحية تحديث حالة الكتابة لهذه المحادثة.'], 403);
+            }
+        } elseif (! empty($validated['receiver_id'])) {
+            $receiverId = (int) $validated['receiver_id'];
+            if ($receiverId !== $currentUserId) {
+                $receiver = User::query()->find($receiverId);
+                if ($receiver && $this->userCanChat($receiver)) {
+                    $conversation = $this->resolveDirectConversation($currentUserId, $receiverId, true);
+                }
+            }
+        }
+
+        if (! $conversation) {
+            return response()->json($this->basePayload($currentUserId) + [
+                'typing_users' => [],
+            ]);
+        }
+
+        if ((bool) $validated['is_typing']) {
+            \Illuminate\Support\Facades\Cache::put(
+                $this->typingCacheKey((int) $conversation->id, $currentUserId),
+                now()->timestamp,
+                now()->addSeconds(8)
+            );
+        } else {
+            $this->clearTyping((int) $conversation->id, $currentUserId);
+        }
+
+        $this->touchPresence($currentUserId);
+
+        return response()->json($this->basePayload($currentUserId) + [
+            'typing_users' => $this->typingUsersPayload($conversation, $currentUserId),
+        ]);
+    }
     public function poll(Request $request): JsonResponse
     {
         $guard = $this->guardAvailable($request);
@@ -261,6 +319,7 @@ class InternalChatController extends Controller
         return response()->json($this->basePayload($currentUserId) + [
             'messages' => $messages->map(fn (InternalChatMessage $message) => $this->messagePayload($message, $currentUserId))->values(),
             'last_id' => (int) ($messages->max('id') ?? $afterId),
+            'typing_users' => $conversation ? $this->typingUsersPayload($conversation, $currentUserId) : [],
         ]);
     }
 
@@ -570,6 +629,37 @@ class InternalChatController extends Controller
         ]);
     }
 
+    private function clearTyping(int $conversationId, int $userId): void
+    {
+        \Illuminate\Support\Facades\Cache::forget($this->typingCacheKey($conversationId, $userId));
+    }
+
+    private function typingCacheKey(int $conversationId, int $userId): string
+    {
+        return 'documentarchive:internal_chat:typing:' . $conversationId . ':' . $userId;
+    }
+
+    private function typingUsersPayload(InternalChatConversation $conversation, int $currentUserId): array
+    {
+        $conversation->loadMissing(['participants.user']);
+
+        return $conversation->participants
+            ->filter(function (InternalChatParticipant $participant) use ($conversation, $currentUserId) {
+                $userId = (int) $participant->user_id;
+
+                return $userId > 0
+                    && $userId !== $currentUserId
+                    && ! $participant->deleted_at
+                    && $participant->user
+                    && \Illuminate\Support\Facades\Cache::has($this->typingCacheKey((int) $conversation->id, $userId));
+            })
+            ->map(fn (InternalChatParticipant $participant) => [
+                'id' => (int) $participant->user_id,
+                'name' => $participant->user?->name ?: ('مستخدم #' . $participant->user_id),
+            ])
+            ->values()
+            ->all();
+    }
     private function guardAvailable(Request $request): ?JsonResponse
     {
         if (! $this->enabled()) {

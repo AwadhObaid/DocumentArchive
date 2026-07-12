@@ -40,6 +40,7 @@
         data-search-url="{{ route('internal-chat.search') }}"
         data-document-lookup-url="{{ route('internal-chat.lookup.documents') }}"
         data-memo-lookup-url="{{ route('internal-chat.lookup.memos') }}"
+        data-typing-url="{{ route('internal-chat.typing') }}"
         data-can-send="{{ auth()->user()?->hasPermission('internal_chat.send') ? '1' : '0' }}"
         data-poll-seconds="{{ max(3, min(120, (int) \App\Models\Setting::getValue('internal_chat_poll_seconds', 5))) }}"
         data-sound-enabled="{{ ($daInternalChatSoundEnabled ?? true) ? '1' : '0' }}"
@@ -110,6 +111,8 @@
                     <div class="internal-chat-messages" data-chat-messages>
                         <div class="internal-chat-empty internal-chat-empty-large">اختر مستخدمًا أو مجموعة لبدء محادثة سريعة.</div>
                     </div>
+
+                    <div class="internal-chat-typing-indicator" data-chat-typing-indicator hidden></div>
 
                     <form class="internal-chat-form" data-chat-form autocomplete="off">
                         <div class="internal-chat-compose-tools">

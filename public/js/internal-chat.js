@@ -28,7 +28,8 @@
             deleteTemplate: widget.dataset.deleteUrlTemplate,
             search: widget.dataset.searchUrl,
             documentLookup: widget.dataset.documentLookupUrl,
-            memoLookup: widget.dataset.memoLookupUrl
+            memoLookup: widget.dataset.memoLookupUrl,
+            typing: widget.dataset.typingUrl
         };
 
         const launcher = widget.querySelector('[data-chat-open]');
@@ -42,6 +43,7 @@
         const messageSearchInput = widget.querySelector('[data-chat-message-search]');
         const searchClearButton = widget.querySelector('[data-chat-search-clear]');
         const messagesBox = widget.querySelector('[data-chat-messages]');
+        const typingIndicator = widget.querySelector('[data-chat-typing-indicator]');
         const activeName = widget.querySelector('[data-chat-active-name]');
         const activeSubtitle = widget.querySelector('[data-chat-active-subtitle]');
         const archiveButton = widget.querySelector('[data-chat-archive]');
@@ -86,7 +88,10 @@
             soundVolume: soundVolume,
             messages: new Map(),
             searchTimer: null,
-            selectedReference: null
+            selectedReference: null,
+            typingStopTimer: null,
+            typingActive: false,
+            lastTypingSignalAt: 0
         };
 
         function urlFor(template, value, token) {
@@ -222,6 +227,76 @@
             });
         }
 
+        function updateTypingIndicator(typingUsers) {
+            if (!typingIndicator) return;
+            const users = Array.isArray(typingUsers) ? typingUsers.filter(Boolean) : [];
+            if (!users.length) {
+                typingIndicator.hidden = true;
+                typingIndicator.textContent = '';
+                return;
+            }
+
+            const names = users.map(function (user) {
+                return String(user.name || 'مستخدم').trim();
+            }).filter(Boolean).slice(0, 3);
+
+            let text = '';
+            if (names.length === 1) {
+                text = names[0] + ' يكتب الآن...';
+            } else if (names.length === 2) {
+                text = names[0] + ' و' + names[1] + ' يكتبان الآن...';
+            } else {
+                text = names.join('، ') + ' يكتبون الآن...';
+            }
+
+            typingIndicator.hidden = false;
+            typingIndicator.textContent = text;
+        }
+
+        async function sendTypingSignal(isTyping) {
+            if (!urls.typing || !canSend || state.activeArchived) return;
+            if (!state.activeConversationId && !state.activeUserId) return;
+
+            const now = Date.now();
+            if (isTyping && (now - state.lastTypingSignalAt) < 1800) return;
+            if (isTyping) state.lastTypingSignalAt = now;
+
+            const payload = { is_typing: !!isTyping };
+            if (state.activeConversationId) payload.conversation_id = state.activeConversationId;
+            else payload.receiver_id = state.activeUserId;
+
+            try {
+                await postJson(urls.typing, payload);
+            } catch (error) {
+                // Typing state is a soft UI hint; ignore failures silently.
+            }
+        }
+
+        function queueTypingSignal() {
+            if (!input || !canSend || state.activeArchived) return;
+            const value = String(input.value || '').trim();
+            if (!value) {
+                clearTypingSignal(true);
+                return;
+            }
+
+            state.typingActive = true;
+            sendTypingSignal(true);
+
+            window.clearTimeout(state.typingStopTimer);
+            state.typingStopTimer = window.setTimeout(function () {
+                clearTypingSignal(true);
+            }, 4500);
+        }
+
+        function clearTypingSignal(force) {
+            window.clearTimeout(state.typingStopTimer);
+            state.typingStopTimer = null;
+            if (force || state.typingActive) {
+                state.typingActive = false;
+                sendTypingSignal(false);
+            }
+        }
         function setUnreadTotal(total) {
             const value = parseInt(total || 0, 10);
             if (!totalBadge || !launcher) return;
@@ -375,6 +450,7 @@
                 state.lastUnreadTotal = parseInt(data.unread_total || 0, 10);
                 setUnreadTotal(state.lastUnreadTotal);
             }
+            if (Array.isArray(data.typing_users)) updateTypingIndicator(data.typing_users);
             renderUsers();
         }
 
@@ -557,6 +633,8 @@
 
         async function selectThread(thread) {
             if (!thread || state.loadingMessages) return;
+            clearTypingSignal(true);
+            updateTypingIndicator([]);
             state.loadingMessages = true;
             state.activeKind = thread.kind || 'direct';
             state.activeArchived = !!thread.archived;
@@ -607,6 +685,7 @@
             const body = String(input?.value || '').trim();
             const reference = state.selectedReference;
             if (!body && !reference) return;
+            clearTypingSignal(true);
 
             const submitButton = form?.querySelector('button[type="submit"]');
             if (submitButton) submitButton.disabled = true;
@@ -656,6 +735,8 @@
                     : false;
 
                 updatePayload(data);
+                if (shouldFetchActiveConversation && Array.isArray(data.typing_users)) updateTypingIndicator(data.typing_users);
+                else if (!shouldFetchActiveConversation) updateTypingIndicator([]);
                 if (shouldFetchActiveConversation && Array.isArray(data.messages) && data.messages.length) {
                     renderMessages(data.messages, false);
                 }
@@ -943,6 +1024,7 @@
         }
 
         function closePanel() {
+            clearTypingSignal(true);
             state.open = false;
             if (panel) panel.hidden = true;
         }
@@ -973,6 +1055,7 @@
         }
         if (form) form.addEventListener('submit', sendMessage);
         if (input) {
+            input.addEventListener('input', queueTypingSignal);
             input.addEventListener('keydown', function (event) {
                 if (event.key === 'Enter' && !event.shiftKey) {
                     event.preventDefault();

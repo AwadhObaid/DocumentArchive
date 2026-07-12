@@ -90,6 +90,7 @@ Route::middleware(['auth', ApplyRoutePermissions::class])->group(function () {
         Route::get('/lookup/documents', [InternalChatController::class, 'lookupDocuments'])->name('lookup.documents');
         Route::get('/lookup/memos', [InternalChatController::class, 'lookupMemos'])->name('lookup.memos');
         Route::post('/messages', [InternalChatController::class, 'send'])->name('send');
+        Route::post('/typing', [InternalChatController::class, 'typing'])->name('typing');
         Route::post('/read/{user}', [InternalChatController::class, 'markRead'])->name('read');
     });
 

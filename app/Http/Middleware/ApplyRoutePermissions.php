@@ -79,6 +79,7 @@ class ApplyRoutePermissions
         'internal-chat.poll' => 'internal_chat.view',
         'internal-chat.messages' => 'internal_chat.view',
         'internal-chat.send' => 'internal_chat.send',
+        'internal-chat.typing' => 'internal_chat.send',
         'internal-chat.read' => 'internal_chat.view',
 
 

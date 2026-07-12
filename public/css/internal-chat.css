@@ -925,3 +925,46 @@
         grid-template-columns: 1fr;
     }
 }
+
+/* DocumentArchive Internal Chat Typing Indicator V55 */
+.internal-chat-typing-indicator {
+    min-height: 24px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 4px 18px 8px;
+    color: rgba(96, 165, 250, .95);
+    font-size: 12px;
+    font-weight: 700;
+    line-height: 1.7;
+    letter-spacing: 0;
+    white-space: nowrap;
+}
+
+.internal-chat-typing-indicator[hidden] {
+    display: none !important;
+}
+
+.internal-chat-typing-indicator::before {
+    content: '•••';
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 30px;
+    height: 18px;
+    border-radius: 999px;
+    background: rgba(37, 99, 235, .12);
+    color: currentColor;
+    font-size: 13px;
+    line-height: 1;
+    animation: internal-chat-typing-pulse-v55 1.15s ease-in-out infinite;
+}
+
+@keyframes internal-chat-typing-pulse-v55 {
+    0%, 100% { opacity: .45; transform: translateY(0); }
+    50% { opacity: 1; transform: translateY(-1px); }
+}
+
+html[data-theme="dark"] .internal-chat-typing-indicator {
+    color: rgba(147, 197, 253, .98);
+}
