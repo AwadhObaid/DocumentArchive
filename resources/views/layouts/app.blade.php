@@ -5,9 +5,15 @@
     {{-- document-archive-system-settings:start --}}
     @php
         $daSystemName = \App\Models\Setting::getValue('system_name', 'الأرشيف الإلكتروني');
-        $daSystemDepartmentName = \App\Models\Setting::getValue('system_department_name', 'الشحن والتأمين');
-        $daSystemFullTitle = \App\Models\Setting::getValue('system_full_title', 'نظام الأرشيف الإلكتروني الخاص بقسم الشحن والتأمين');
-        $daSystemTagline = \App\Models\Setting::getValue('system_tagline', 'إدارة الكتب، المرفقات، البوالص، والطباعة الرسمية');
+        $daSystemDepartmentName = \App\Models\Setting::getValue('system_department_name', 'الشحن والتأ�
+ين');
+        $daSystemFullTitle = \App\Models\Setting::getValue('system_full_title', 'نظا�
+ الأرشيف الإلكتروني الخاص بقس�
+ الشحن والتأ�
+ين');
+        $daSystemTagline = \App\Models\Setting::getValue('system_tagline', 'إدارة الكتب، ال�
+رفقات، البوالص، والطباعة الرس�
+ية');
         $daSystemBrandIcon = \App\Models\Setting::getValue('system_brand_icon', '🗂️');
         $daAutoLogoutEnabled = (string) \App\Models\Setting::getValue('auto_logout_enabled', '0') === '1';
         $daAutoLogoutMinutes = max(1, min(1440, (int) \App\Models\Setting::getValue('auto_logout_minutes', 30)));
@@ -67,7 +73,16 @@
     {{-- visual-theme-normalization-v46:start --}}
     <link rel="stylesheet" href="{{ asset('css/visual-theme-normalization-v46.css') }}?v={{ filemtime(public_path('css/visual-theme-normalization-v46.css')) }}">
     {{-- visual-theme-normalization-v46:end --}}
-</head>
+        {{-- trash-layout-fix-v52:start --}}
+        <link rel="stylesheet" href="{{ asset('css/trash-layout-fix-v52.css') }}?v={{ filemtime(public_path('css/trash-layout-fix-v52.css')) }}">
+        {{-- trash-layout-fix-v52:end --}}
+                    {{-- sidebar-arabic-text-fix-v53:start --}}
+        <link rel="stylesheet" href="{{ asset('css/sidebar-arabic-text-fix-v53.css') }}?v={{ filemtime(public_path('css/sidebar-arabic-text-fix-v53.css')) }}">
+        {{-- sidebar-arabic-text-fix-v53:end --}}
+            {{-- sidebar-arabic-label-hard-fix-v54:start --}}
+        <link rel="stylesheet" href="{{ asset('css/sidebar-arabic-label-hard-fix-v54.css') }}?v={{ filemtime(public_path('css/sidebar-arabic-label-hard-fix-v54.css')) }}">
+        {{-- sidebar-arabic-label-hard-fix-v54:end --}}
+    </head>
 <body
     data-auto-logout-enabled="{{ $daAutoLogoutEnabled ? '1' : '0' }}"
     data-auto-logout-timeout="{{ $daAutoLogoutTimeoutSeconds }}"
@@ -169,7 +184,7 @@
             @endif
 
             @if(auth()->user()?->hasPermission('attachment_shares.view'))
-                <a href="{{ route('shared-attachment-links.index') }}" class="{{ request()->routeIs('shared-attachment-links.*') || request()->routeIs('documents.shared-attachments.create') ? 'active' : '' }}">🔗 مشاركة المرفقات</a>
+                <a href="{{ route('shared-attachment-links.index') }}" class="{{ request()->routeIs('shared-attachment-links.*') || request()->routeIs('documents.shared-attachments.create') ? 'active' : '' }}">🔗 مشاركة المرفقات </a>
             @endif
 
             @if(auth()->user()?->hasPermission('pdf_search.view'))
@@ -181,12 +196,12 @@
             @endif
 
             @if(auth()->user()?->hasPermission('system_health.view'))
-                <a href="{{ route('system-health.index') }}" class="{{ request()->routeIs('system-health.*') ? 'active' : '' }}">🩺 فحص النظام</a>
+                <a href="{{ route('system-health.index') }}" class="{{ request()->routeIs('system-health.*') ? 'active' : '' }}">🩺 فحص النظام </a>
             @endif
 
 
             @if(auth()->user()?->hasPermission('system_about.view'))
-                <a href="{{ route('system-rights.index') }}" class="{{ request()->routeIs('system-rights.*') ? 'active' : '' }}">🛡️ حقوق النظام</a>
+                <a href="{{ route('system-rights.index') }}" class="{{ request()->routeIs('system-rights.*') ? 'active' : '' }}">🛡️حقوق النظام </a>
             @endif
 
             @if(auth()->user()?->hasPermission('data_quality.view'))
@@ -202,13 +217,14 @@
             @endif
 
             @if(auth()->user()?->hasPermission('users.manage'))
-                <a href="{{ route('users.index') }}" class="{{ request()->routeIs('users.*') ? 'active' : '' }}">👥 المستخدمون</a>
+                <a href="{{ route('users.index') }}" class="{{ request()->routeIs('users.*') ? 'active' : '' }}">👥 المستخدمون والصلاحيات</a>
             @endif
         </nav>
 
         <div class="sidebar-footer">
             <div class="user-mini">
-                <div class="avatar">{{ mb_substr(auth()->user()?->name ?? 'م', 0, 1) }}</div>
+                <div class="avatar">{{ mb_substr(auth()->user()?->name ?? '�
+', 0, 1) }}</div>
                 <div>
                     <strong>{{ auth()->user()?->name }}</strong>
                     <span>{{ auth()->user()?->role_name }}</span>
@@ -260,9 +276,15 @@
         <div class="auto-logout-icon">🔒</div>
         <div>
             <h3 id="autoLogoutTitle">تنبيه انتهاء الجلسة</h3>
-            <p>لم يتم رصد نشاط في النظام. سيتم تسجيل الخروج تلقائياً خلال <strong data-auto-logout-countdown>60</strong> ثانية.</p>
+            <p>ل�
+ يت�
+ رصد نشاط في النظا�
+. سيت�
+ تسجيل الخروج تلقائياً خلال <strong data-auto-logout-countdown>60</strong> ثانية.</p>
             <div class="auto-logout-actions">
-                <button type="button" class="btn btn-primary" data-auto-logout-stay>متابعة العمل</button>
+                <button type="button" class="btn btn-primary" data-auto-logout-stay>�
+تابعة الع�
+ل</button>
                 <button type="button" class="btn btn-secondary" data-auto-logout-now>تسجيل الخروج الآن</button>
             </div>
         </div>
