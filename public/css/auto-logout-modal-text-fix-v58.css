@@ -1,0 +1,56 @@
+/* DocumentArchive Auto Logout Modal Text Fix V58
+   Keeps Arabic button labels readable and prevents letter/word splitting. */
+
+body:not(.da-print-reference-page) .auto-logout-modal,
+body:not(.da-print-reference-page) .auto-logout-modal * {
+    word-break: keep-all !important;
+    overflow-wrap: normal !important;
+    hyphens: none !important;
+    text-rendering: optimizeLegibility;
+}
+
+body:not(.da-print-reference-page) .auto-logout-card {
+    direction: rtl !important;
+    text-align: right !important;
+}
+
+body:not(.da-print-reference-page) .auto-logout-card h3,
+body:not(.da-print-reference-page) .auto-logout-card p,
+body:not(.da-print-reference-page) .auto-logout-actions .btn {
+    unicode-bidi: isolate !important;
+    letter-spacing: 0 !important;
+    word-spacing: normal !important;
+    line-height: 1.75 !important;
+}
+
+body:not(.da-print-reference-page) .auto-logout-actions {
+    display: flex !important;
+    flex-wrap: wrap !important;
+    gap: 12px !important;
+    align-items: center !important;
+    justify-content: flex-start !important;
+}
+
+body:not(.da-print-reference-page) .auto-logout-actions .btn,
+body:not(.da-print-reference-page) [data-auto-logout-stay],
+body:not(.da-print-reference-page) [data-auto-logout-now] {
+    white-space: nowrap !important;
+    min-width: 132px !important;
+    text-align: center !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+}
+
+@media (max-width: 560px) {
+    body:not(.da-print-reference-page) .auto-logout-actions {
+        flex-direction: column !important;
+        align-items: stretch !important;
+    }
+
+    body:not(.da-print-reference-page) .auto-logout-actions .btn,
+    body:not(.da-print-reference-page) [data-auto-logout-stay],
+    body:not(.da-print-reference-page) [data-auto-logout-now] {
+        width: 100% !important;
+    }
+}

@@ -81,6 +81,9 @@
         {{-- book-subjects-pagination-fix-v54:start --}}
         <link rel="stylesheet" href="{{ asset('css/book-subjects-pagination-fix-v54.css') }}?v=54">
         {{-- book-subjects-pagination-fix-v54:end --}}
+    {{-- auto-logout-modal-text-fix-v58:start --}}
+    <link rel="stylesheet" href="{{ asset('css/auto-logout-modal-text-fix-v58.css') }}?v=58">
+    {{-- auto-logout-modal-text-fix-v58:end --}}
 </head>
 <body
     data-auto-logout-enabled="{{ $daAutoLogoutEnabled ? '1' : '0' }}"
@@ -149,6 +152,7 @@
             @if(auth()->user()?->hasPermission('departments.manage'))
                 <a href="{{ route('departments.index') }}" class="{{ request()->routeIs('departments.*') ? 'active' : '' }}">🏢 الإدارات</a>
             @endif
+            
 
             @if(auth()->user()?->hasPermission('memos.view'))
                 <a href="{{ route('memos.index') }}" class="{{ request()->routeIs('memos.*') ? 'active' : '' }}">📒 المذكرات</a>
@@ -276,15 +280,9 @@
         <div class="auto-logout-icon">🔒</div>
         <div>
             <h3 id="autoLogoutTitle">تنبيه انتهاء الجلسة</h3>
-            <p>ل�
- يت�
- رصد نشاط في النظا�
-. سيت�
- تسجيل الخروج تلقائياً خلال <strong data-auto-logout-countdown>60</strong> ثانية.</p>
+            <p>لم يتم رصد نشاط في النظام. سيتم تسجيل الخروج تلقائيًا خلال <strong data-auto-logout-countdown>60</strong> ثانية.</p>
             <div class="auto-logout-actions">
-                <button type="button" class="btn btn-primary" data-auto-logout-stay>�
-تابعة الع�
-ل</button>
+                <button type="button" class="btn btn-primary" data-auto-logout-stay>متابعة العمل</button>
                 <button type="button" class="btn btn-secondary" data-auto-logout-now>تسجيل الخروج الآن</button>
             </div>
         </div>
