@@ -77,6 +77,10 @@
         {{-- trash-layout-fix-v52:start --}}
         <link rel="stylesheet" href="{{ asset('css/trash-layout-fix-v52.css') }}?v=52">
         {{-- trash-layout-fix-v52:end --}}
+
+        {{-- book-subjects-pagination-fix-v54:start --}}
+        <link rel="stylesheet" href="{{ asset('css/book-subjects-pagination-fix-v54.css') }}?v=54">
+        {{-- book-subjects-pagination-fix-v54:end --}}
 </head>
 <body
     data-auto-logout-enabled="{{ $daAutoLogoutEnabled ? '1' : '0' }}"
@@ -134,6 +138,18 @@
                 <a href="{{ route('documents.create') }}" class="{{ request()->routeIs('documents.create') ? 'active' : '' }}">➕ إضافة كتاب</a>
             @endif
 
+            @if(auth()->user()?->hasPermission('document_types.manage'))
+                <a href="{{ route('document-types.index') }}" class="{{ request()->routeIs('document-types.*') ? 'active' : '' }}">📑 أنواع الكتب</a>
+            @endif
+
+            @if(auth()->user()?->hasPermission('book_subjects.manage'))
+                <a href="{{ route('book-subjects.index') }}" class="{{ request()->routeIs('book-subjects.*') ? 'active' : '' }}">📌 مواضيع الكتب</a>
+            @endif
+
+            @if(auth()->user()?->hasPermission('departments.manage'))
+                <a href="{{ route('departments.index') }}" class="{{ request()->routeIs('departments.*') ? 'active' : '' }}">🏢 الإدارات</a>
+            @endif
+
             @if(auth()->user()?->hasPermission('memos.view'))
                 <a href="{{ route('memos.index') }}" class="{{ request()->routeIs('memos.*') ? 'active' : '' }}">📒 المذكرات</a>
             @endif
@@ -146,17 +162,6 @@
                 <a href="{{ route('activity-logs.index') }}" class="{{ request()->routeIs('activity-logs.*') || request()->routeIs('documents.activity') ? 'active' : '' }}">🧾 سجل النشاط</a>
             @endif
 
-            @if(auth()->user()?->hasPermission('departments.manage'))
-                <a href="{{ route('departments.index') }}" class="{{ request()->routeIs('departments.*') ? 'active' : '' }}">🏢 الإدارات</a>
-            @endif
-
-            @if(auth()->user()?->hasPermission('document_types.manage'))
-                <a href="{{ route('document-types.index') }}" class="{{ request()->routeIs('document-types.*') ? 'active' : '' }}">📑 أنواع الكتب</a>
-            @endif
-
-            @if(auth()->user()?->hasPermission('book_subjects.manage'))
-                <a href="{{ route('book-subjects.index') }}" class="{{ request()->routeIs('book-subjects.*') ? 'active' : '' }}">📌 مواضيع الكتب</a>
-            @endif
 
             @if(auth()->user()?->hasPermission('form_links.view'))
                 <a href="{{ route('form-links.index') }}" class="{{ request()->routeIs('form-links.*') ? 'active' : '' }}">📝 إدارة النماذج</a>

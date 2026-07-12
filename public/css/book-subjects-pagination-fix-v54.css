@@ -1,0 +1,139 @@
+/* DocumentArchive Book Subjects Pagination Fix V54
+   Fix oversized Laravel pagination arrows and normalize pagination layout. */
+
+body:not(.da-print-reference-page) .content-area nav[role="navigation"] {
+    margin-top: 18px !important;
+    width: 100% !important;
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 10px !important;
+    align-items: stretch !important;
+    justify-content: flex-start !important;
+    color: var(--text, #0f172a) !important;
+    font-size: .9rem !important;
+    line-height: 1.7 !important;
+}
+
+body:not(.da-print-reference-page) .content-area nav[role="navigation"] > div {
+    width: 100% !important;
+}
+
+body:not(.da-print-reference-page) .content-area nav[role="navigation"] svg,
+body:not(.da-print-reference-page) .content-area .pagination svg,
+body:not(.da-print-reference-page) .content-area .w-5.h-5,
+body:not(.da-print-reference-page) .content-area svg.w-5,
+body:not(.da-print-reference-page) .content-area svg.h-5 {
+    width: 16px !important;
+    height: 16px !important;
+    max-width: 16px !important;
+    max-height: 16px !important;
+    min-width: 16px !important;
+    min-height: 16px !important;
+    display: inline-block !important;
+    vertical-align: middle !important;
+    flex: 0 0 auto !important;
+    overflow: visible !important;
+}
+
+body:not(.da-print-reference-page) .content-area nav[role="navigation"] a,
+body:not(.da-print-reference-page) .content-area nav[role="navigation"] span,
+body:not(.da-print-reference-page) .content-area .pagination a,
+body:not(.da-print-reference-page) .content-area .pagination span {
+    font-size: .88rem !important;
+    line-height: 1.6 !important;
+    text-decoration: none !important;
+    white-space: nowrap !important;
+    word-break: keep-all !important;
+    overflow-wrap: normal !important;
+    text-align: center !important;
+}
+
+body:not(.da-print-reference-page) .content-area nav[role="navigation"] a,
+body:not(.da-print-reference-page) .content-area nav[role="navigation"] span[aria-current="page"] > span,
+body:not(.da-print-reference-page) .content-area nav[role="navigation"] span[aria-disabled="true"] > span,
+body:not(.da-print-reference-page) .content-area .pagination a,
+body:not(.da-print-reference-page) .content-area .pagination span {
+    min-height: 34px !important;
+    padding: 7px 11px !important;
+    border-radius: 10px !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    gap: 6px !important;
+}
+
+body:not(.da-print-reference-page) .content-area nav[role="navigation"] a,
+body:not(.da-print-reference-page) .content-area .pagination a {
+    background: var(--surface, #ffffff) !important;
+    color: var(--text, #0f172a) !important;
+    border: 1px solid var(--border, rgba(148, 163, 184, .35)) !important;
+}
+
+body:not(.da-print-reference-page) .content-area nav[role="navigation"] a:hover,
+body:not(.da-print-reference-page) .content-area .pagination a:hover {
+    background: rgba(37, 99, 235, .10) !important;
+    border-color: rgba(37, 99, 235, .35) !important;
+    color: var(--primary, #2563eb) !important;
+}
+
+body:not(.da-print-reference-page) .content-area nav[role="navigation"] span[aria-current="page"] > span,
+body:not(.da-print-reference-page) .content-area .pagination .active span {
+    background: var(--primary, #2563eb) !important;
+    color: #ffffff !important;
+    border: 1px solid var(--primary, #2563eb) !important;
+}
+
+body:not(.da-print-reference-page) .content-area nav[role="navigation"] span[aria-disabled="true"] > span,
+body:not(.da-print-reference-page) .content-area .pagination .disabled span {
+    background: rgba(148, 163, 184, .13) !important;
+    color: var(--muted, #64748b) !important;
+    border: 1px solid rgba(148, 163, 184, .24) !important;
+    cursor: not-allowed !important;
+}
+
+body:not(.da-print-reference-page) .content-area nav[role="navigation"] p {
+    margin: 0 !important;
+    color: var(--muted, #64748b) !important;
+    font-size: .86rem !important;
+    line-height: 1.7 !important;
+}
+
+body:not(.da-print-reference-page) .content-area nav[role="navigation"] .hidden,
+body:not(.da-print-reference-page) .content-area nav[role="navigation"] .sm\:flex-1,
+body:not(.da-print-reference-page) .content-area nav[role="navigation"] .sm\:items-center,
+body:not(.da-print-reference-page) .content-area nav[role="navigation"] .sm\:justify-between {
+    min-width: 0 !important;
+}
+
+body:not(.da-print-reference-page) .content-area nav[role="navigation"] .relative,
+body:not(.da-print-reference-page) .content-area nav[role="navigation"] .inline-flex {
+    position: relative !important;
+    display: inline-flex !important;
+    align-items: center !important;
+}
+
+html[data-theme="dark"] body:not(.da-print-reference-page) .content-area nav[role="navigation"] a,
+html[data-theme="dark"] body:not(.da-print-reference-page) .content-area .pagination a {
+    background: rgba(15, 23, 42, .78) !important;
+    color: #e5edf9 !important;
+    border-color: rgba(148, 163, 184, .25) !important;
+}
+
+html[data-theme="dark"] body:not(.da-print-reference-page) .content-area nav[role="navigation"] p {
+    color: #a8b5c9 !important;
+}
+
+@media (max-width: 768px) {
+    body:not(.da-print-reference-page) .content-area nav[role="navigation"] {
+        align-items: stretch !important;
+        gap: 8px !important;
+    }
+
+    body:not(.da-print-reference-page) .content-area nav[role="navigation"] a,
+    body:not(.da-print-reference-page) .content-area nav[role="navigation"] span[aria-current="page"] > span,
+    body:not(.da-print-reference-page) .content-area nav[role="navigation"] span[aria-disabled="true"] > span {
+        min-height: 32px !important;
+        padding: 6px 9px !important;
+        font-size: .82rem !important;
+    }
+}
