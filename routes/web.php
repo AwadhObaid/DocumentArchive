@@ -33,6 +33,7 @@ use App\Http\Middleware\ApplyRoutePermissions;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\NotificationCenterController;
 use App\Http\Controllers\NotificationSettingsController;
+use App\Http\Controllers\LeaveCalculatorController;
 
 
 Route::get('/shared/attachments/{token}', [SharedAttachmentLinkController::class, 'publicShow'])
@@ -74,6 +75,9 @@ Route::middleware(['auth', ApplyRoutePermissions::class])->group(function () {
     });
 
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
+
+    Route::get('/tools/leave-calculator', [LeaveCalculatorController::class, 'index'])
+        ->name('tools.leave-calculator.index');
 
 
     Route::prefix('internal-chat')->name('internal-chat.')->group(function () {
