@@ -141,6 +141,13 @@ class ApplyRoutePermissions
         'whatsapp.show' => 'whatsapp.view',
         'documents.whatsapp.compose' => 'whatsapp.send',
 
+        'smart-reports.index' => 'smart_reports.view',
+        'smart-reports.show' => 'smart_reports.view',
+        'smart-reports.generate' => 'smart_reports.generate',
+        'smart-reports.test-gemini' => 'smart_reports.settings',
+        'smart-reports.export-word' => 'smart_reports.export',
+        'smart-reports.export-pdf' => 'smart_reports.export',
+
         'settings.internal-chat.backup' => 'internal_chat.backup',
         'settings.internal-chat.restore-backup' => 'internal_chat.restore_backup',
         'settings.internal-chat.restore-deleted' => 'internal_chat.restore_deleted',

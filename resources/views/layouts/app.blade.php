@@ -221,6 +221,10 @@
                 <a href="{{ route('reports.index') }}" class="{{ request()->routeIs('reports.*') ? 'active' : '' }}">📊 التقارير</a>
             @endif
 
+            @if(auth()->user()?->hasPermission('smart_reports.view'))
+                <a href="{{ route('smart-reports.index') }}" class="{{ request()->routeIs('smart-reports.*') ? 'active' : '' }}">🤖 التقارير الذكية</a>
+            @endif
+
             @if(auth()->user()?->hasPermission('backups.view'))
                 <a href="{{ route('backups.index') }}" class="{{ request()->is('backups*') ? 'active' : '' }}">💾 النسخ الاحتياطي</a>
             @endif

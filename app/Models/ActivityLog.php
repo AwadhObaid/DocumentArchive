@@ -75,6 +75,8 @@ class ActivityLog extends Model
             'document_type.deleted' => 'حذف نوع كتاب',
 
             'settings.updated' => 'تعديل الإعدادات',
+            'smart_report.generated' => 'توليد تقرير ذكي',
+            'smart_report.failed' => 'فشل توليد تقرير ذكي',
             'internal_chat.backup_created' => 'إنشاء نسخة احتياطية للدردشة الداخلية',
             'internal_chat.backup_restored' => 'استعادة نسخة احتياطية للدردشة الداخلية',
             'internal_chat.deleted_restored' => 'استعادة الدردشات المحذوفة ظاهريًا',

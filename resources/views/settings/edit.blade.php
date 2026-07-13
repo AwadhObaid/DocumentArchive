@@ -782,6 +782,71 @@
 
                 <hr style="margin: 25px 0; border: 0; border-top: 1px solid rgba(148,163,184,.35);">
 
+                {{-- smart-reports-settings-v65:start --}}
+                <div class="settings-section-header">
+                    <div>
+                        <h2>إعدادات التقارير الذكية Gemini</h2>
+                        <p>فعّل توليد التقارير الذكية عبر Gemini API. يتم حفظ مفتاح API مشفراً ولا يظهر بعد الحفظ.</p>
+                    </div>
+                </div>
+
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label style="display:flex; gap:8px; align-items:center;">
+                            <input type="checkbox" name="smart_reports_enabled" value="1" @checked(old('smart_reports_enabled', $settings['smart_reports_enabled'] ?? '0') == '1')>
+                            تفعيل التقارير الذكية
+                        </label>
+                        <small class="settings-small-note">عند التعطيل تبقى صفحة التقارير ظاهرة لكن لن يتم توليد تقارير جديدة.</small>
+                    </div>
+
+                    <div class="form-group">
+                        <label>موديل Gemini</label>
+                        <select name="smart_reports_gemini_model" required>
+                            @php($geminiModel = old('smart_reports_gemini_model', $settings['smart_reports_gemini_model'] ?? 'gemini-3.5-flash'))
+                            <option value="gemini-3.5-flash" @selected($geminiModel === 'gemini-3.5-flash')>gemini-3.5-flash</option>
+                            <option value="gemini-2.5-flash" @selected($geminiModel === 'gemini-2.5-flash')>gemini-2.5-flash</option>
+                            <option value="gemini-2.0-flash" @selected($geminiModel === 'gemini-2.0-flash')>gemini-2.0-flash</option>
+                        </select>
+                        <small class="settings-small-note">ابدأ بالموديل الافتراضي. إذا رفضته خدمة Gemini غيّره حسب الموديلات المتاحة في حسابك.</small>
+                    </div>
+
+                    <div class="form-group full">
+                        <label>Gemini API Key</label>
+                        <input
+                            type="password"
+                            name="smart_reports_gemini_api_key"
+                            value=""
+                            maxlength="1000"
+                            dir="ltr"
+                            autocomplete="new-password"
+                            placeholder="{{ ($settings['smart_reports_gemini_api_key_configured'] ?? '0') === '1' ? 'مفتاح محفوظ حالياً - اتركه فارغاً للإبقاء عليه' : 'ضع Gemini API Key هنا' }}"
+                        >
+                        @error('smart_reports_gemini_api_key')
+                            <small class="settings-small-note" style="color:#fecaca;">{{ $message }}</small>
+                        @enderror
+                        <small class="settings-small-note">
+                            لا ترسل المفتاح في المحادثات أو البريد. اترك الحقل فارغاً إذا كان المفتاح محفوظاً ولا تريد تغييره.
+                        </small>
+                    </div>
+
+                    <div class="form-group full">
+                        <label style="display:flex; gap:8px; align-items:center;">
+                            <input type="checkbox" name="smart_reports_include_titles" value="1" @checked(old('smart_reports_include_titles', $settings['smart_reports_include_titles'] ?? '0') == '1')>
+                            السماح بإرسال عناوين ومواضيع عينة من الكتب إلى Gemini
+                        </label>
+                        <small class="settings-small-note">
+                            الأفضل ترك هذا الخيار غير مفعل للبيانات الحساسة. عند التعطيل يرسل النظام ملخصات إحصائية فقط بدون مرفقات.
+                        </small>
+                    </div>
+                </div>
+
+                <div class="settings-warning-box">
+                    تنبيه: التقارير الذكية ترسل ملخص البيانات إلى خدمة Gemini على الإنترنت. لا يتم إرسال المرفقات، ويمكن منع إرسال عناوين الكتب من الخيار أعلاه.
+                </div>
+                {{-- smart-reports-settings-v65:end --}}
+
+                <hr style="margin: 25px 0; border: 0; border-top: 1px solid rgba(148,163,184,.35);">
+
                 <div class="settings-section-header">
                     <div>
                         <h2>إعدادات بحث PDF و OCR</h2>

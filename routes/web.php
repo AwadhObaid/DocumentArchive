@@ -34,6 +34,7 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\NotificationCenterController;
 use App\Http\Controllers\NotificationSettingsController;
 use App\Http\Controllers\LeaveCalculatorController;
+use App\Http\Controllers\SmartReportController;
 
 
 Route::get('/shared/attachments/{token}', [SharedAttachmentLinkController::class, 'publicShow'])
@@ -78,6 +79,23 @@ Route::middleware(['auth', ApplyRoutePermissions::class])->group(function () {
 
     Route::get('/tools/leave-calculator', [LeaveCalculatorController::class, 'index'])
         ->name('tools.leave-calculator.index');
+
+    // Smart Reports - Gemini
+    Route::get('/smart-reports', [SmartReportController::class, 'index'])
+        ->name('smart-reports.index');
+    Route::post('/smart-reports/generate', [SmartReportController::class, 'generate'])
+        ->name('smart-reports.generate');
+    Route::post('/smart-reports/test-gemini', [SmartReportController::class, 'testGemini'])
+        ->name('smart-reports.test-gemini');
+    Route::get('/smart-reports/{smartReportRun}', [SmartReportController::class, 'show'])
+        ->whereNumber('smartReportRun')
+        ->name('smart-reports.show');
+    Route::get('/smart-reports/{smartReportRun}/word', [SmartReportController::class, 'exportWord'])
+        ->whereNumber('smartReportRun')
+        ->name('smart-reports.export-word');
+    Route::get('/smart-reports/{smartReportRun}/pdf', [SmartReportController::class, 'exportPdf'])
+        ->whereNumber('smartReportRun')
+        ->name('smart-reports.export-pdf');
 
 
     Route::prefix('internal-chat')->name('internal-chat.')->group(function () {

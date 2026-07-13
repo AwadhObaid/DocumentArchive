@@ -7,6 +7,7 @@ use App\Models\Setting;
 use App\Services\ActivityLogger;
 use App\Services\BookAttachmentSmartPathService;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Crypt;
 use Illuminate\Validation\Rule;
 
 class SettingsController extends Controller
@@ -41,6 +42,10 @@ class SettingsController extends Controller
         'pdf_search_enable_ocr' => '0',
         'pdf_search_pages_limit' => '20',
         'book_attachment_storage_root' => '',
+        'smart_reports_enabled' => '0',
+        'smart_reports_gemini_api_key' => '',
+        'smart_reports_gemini_model' => 'gemini-3.5-flash',
+        'smart_reports_include_titles' => '0',
         'reference_start_number' => '251230000',
         'print_department_title' => 'الشحن والتأمين',
         'print_font_family' => 'Cairo',
@@ -72,6 +77,9 @@ class SettingsController extends Controller
             'book_attachment_storage' => ($settings['book_attachment_storage_root'] ?? '') !== ''
                 ? $settings['book_attachment_storage_root']
                 : storage_path('app/private'),
+            'smart_reports' => ((string) ($settings['smart_reports_enabled'] ?? '0') === '1')
+                ? (((string) ($settings['smart_reports_gemini_api_key_configured'] ?? '0') === '1') ? ('مفعلة - ' . ($settings['smart_reports_gemini_model'] ?? 'gemini-3.5-flash')) : 'مفعلة بدون مفتاح API')
+                : 'غير مفعلة',
         ];
 
         return view('settings.edit', compact('settings', 'printFontOptions', 'printSummary'));
@@ -100,6 +108,10 @@ class SettingsController extends Controller
             'pdf_search_enable_ocr' => ['nullable', 'boolean'],
             'pdf_search_pages_limit' => ['required', 'integer', 'min:1', 'max:200'],
             'book_attachment_storage_root' => ['nullable', 'string', 'max:1000'],
+            'smart_reports_enabled' => ['nullable', 'boolean'],
+            'smart_reports_gemini_api_key' => ['nullable', 'string', 'max:1000'],
+            'smart_reports_gemini_model' => ['required', 'string', 'max:100'],
+            'smart_reports_include_titles' => ['nullable', 'boolean'],
             'reference_start_number' => ['required', 'integer', 'min:1', 'max:999999999999'],
             'print_department_title' => ['required', 'string', 'max:255'],
             'print_font_family' => ['required', 'string', Rule::in(array_keys(self::PRINT_FONT_OPTIONS))],
@@ -131,6 +143,8 @@ class SettingsController extends Controller
             'pdf_search_ocr_languages.required' => 'لغات OCR مطلوبة، مثال: ara+eng.',
             'pdf_search_pages_limit.required' => 'حد صفحات OCR مطلوب.',
             'book_attachment_storage_root.max' => 'مسار حفظ مرفقات الكتب طويل جداً.',
+            'smart_reports_gemini_model.required' => 'موديل Gemini مطلوب.',
+            'smart_reports_gemini_api_key.max' => 'Gemini API Key طويل جداً.',
             'reference_start_number.integer' => 'رقم بداية الكتاب يجب أن يكون رقماً صحيحاً.',
             'print_department_title.required' => 'عنوان الطباعة مطلوب.',
             'print_font_family.in' => 'نوع الخط المختار غير مدعوم.',
@@ -139,6 +153,8 @@ class SettingsController extends Controller
         $validated['auto_logout_enabled'] = $request->boolean('auto_logout_enabled') ? '1' : '0';
         $validated['internal_chat_enabled'] = $request->boolean('internal_chat_enabled') ? '1' : '0';
         $validated['internal_chat_sound_enabled'] = $request->boolean('internal_chat_sound_enabled') ? '1' : '0';
+        $validated['smart_reports_enabled'] = $request->boolean('smart_reports_enabled') ? '1' : '0';
+        $validated['smart_reports_include_titles'] = $request->boolean('smart_reports_include_titles') ? '1' : '0';
         $validated['internal_chat_sound_volume'] = (string) max(0, min(100, (int) ($validated['internal_chat_sound_volume'] ?? 85)));
         $validated['pdf_search_enable_ocr'] = $request->boolean('pdf_search_enable_ocr') ? '1' : '0';
         foreach (['pdf_search_pdftotext_path', 'pdf_search_pdftoppm_path', 'pdf_search_tesseract_path'] as $toolPathKey) {
@@ -153,6 +169,13 @@ class SettingsController extends Controller
                 ->withErrors(['book_attachment_storage_root' => $exception->getMessage()])
                 ->withInput();
         }
+
+        $geminiApiKeyInput = trim((string) $request->input('smart_reports_gemini_api_key', ''));
+        $validated['smart_reports_gemini_api_key'] = $geminiApiKeyInput !== ''
+            ? Crypt::encryptString($geminiApiKeyInput)
+            : (string) Setting::getValue('smart_reports_gemini_api_key', '');
+
+        $validated['smart_reports_gemini_model'] = trim((string) ($validated['smart_reports_gemini_model'] ?? 'gemini-3.5-flash')) ?: 'gemini-3.5-flash';
 
         if (((int) $validated['auto_logout_warning_seconds']) >= (((int) $validated['auto_logout_minutes']) * 60)) {
             return back()
@@ -183,6 +206,10 @@ class SettingsController extends Controller
             'pdf_search_enable_ocr' => ['pdf_search', 'boolean', 'تفعيل OCR عند فهرسة ملفات PDF الممسوحة ضوئياً'],
             'pdf_search_pages_limit' => ['pdf_search', 'number', 'أقصى عدد صفحات تتم معالجتها OCR في الملف الواحد'],
             'book_attachment_storage_root' => ['book_attachments', 'text', 'المسار الافتراضي الخارجي لحفظ مرفقات الكتب المصنفة. إذا ترك فارغاً يستخدم النظام storage/app/private داخل المشروع'],
+            'smart_reports_enabled' => ['smart_reports', 'boolean', 'تفعيل التقارير الذكية عبر Gemini API'],
+            'smart_reports_gemini_api_key' => ['smart_reports', 'password', 'Gemini API Key محفوظ بشكل مشفر'],
+            'smart_reports_gemini_model' => ['smart_reports', 'text', 'موديل Gemini المستخدم في التقارير الذكية'],
+            'smart_reports_include_titles' => ['smart_reports', 'boolean', 'السماح بإرسال عناوين ومواضيع عينة من الكتب إلى Gemini'],
             'reference_start_number' => ['references', 'number', 'رقم بداية الكتاب في بداية كل سنة'],
             'print_department_title' => ['printing', 'text', 'العنوان الثابت الذي يظهر أعلى رقم الكتاب'],
             'print_font_family' => ['printing', 'text', 'نوع خط صفحة طباعة رقم الكتاب'],
@@ -472,6 +499,10 @@ class SettingsController extends Controller
         foreach (self::DEFAULTS as $key => $default) {
             $settings[$key] = Setting::getValue($key, $default);
         }
+
+        $storedGeminiKey = (string) Setting::getValue('smart_reports_gemini_api_key', '');
+        $settings['smart_reports_gemini_api_key_configured'] = $storedGeminiKey !== '' ? '1' : '0';
+        $settings['smart_reports_gemini_api_key'] = '';
 
         if (! array_key_exists($settings['print_font_family'], self::PRINT_FONT_OPTIONS)) {
             $settings['print_font_family'] = 'Cairo';
