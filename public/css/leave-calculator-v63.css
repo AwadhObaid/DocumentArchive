@@ -1,0 +1,239 @@
+.leave-calculator-page {
+    max-width: 1100px;
+    margin: 0 auto;
+    padding-bottom: 32px;
+}
+
+.leave-header-card {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+}
+
+.leave-header-icon {
+    width: 56px;
+    height: 56px;
+    display: grid;
+    place-items: center;
+    border-radius: 18px;
+    background: rgba(56, 189, 248, 0.14);
+    border: 1px solid rgba(56, 189, 248, 0.28);
+    font-size: 26px;
+}
+
+.leave-card {
+    background: var(--card-bg, #ffffff);
+    color: var(--text-color, #0f172a);
+    border: 1px solid var(--border-color, rgba(148, 163, 184, 0.28));
+    border-radius: 22px;
+    padding: 26px;
+    box-shadow: 0 18px 45px rgba(15, 23, 42, 0.08);
+}
+
+.leave-title-row {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 14px;
+    margin-bottom: 22px;
+}
+
+.leave-title-row h2 {
+    margin: 0;
+    font-size: 24px;
+    font-weight: 900;
+    color: #ff7043;
+}
+
+.leave-title-row span {
+    color: var(--muted-color, #64748b);
+    font-size: 14px;
+}
+
+.leave-form-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 18px;
+    margin-bottom: 18px;
+}
+
+.leave-field label {
+    display: block;
+    font-weight: 800;
+    margin-bottom: 8px;
+}
+
+.leave-field input[type="date"],
+.leave-holidays-panel textarea {
+    width: 100%;
+    min-height: 44px;
+    border: 1px solid var(--border-color, rgba(148, 163, 184, 0.35));
+    border-radius: 12px;
+    background: var(--input-bg, #ffffff);
+    color: var(--text-color, #0f172a);
+    padding: 10px 12px;
+    font-family: inherit;
+    font-weight: 700;
+}
+
+.leave-options {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 14px;
+    padding: 14px;
+    background: rgba(14, 165, 233, 0.08);
+    border: 1px solid rgba(14, 165, 233, 0.18);
+    border-radius: 16px;
+    margin-bottom: 18px;
+}
+
+.leave-check {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    font-weight: 800;
+    cursor: pointer;
+    user-select: none;
+}
+
+.leave-check input {
+    width: 18px;
+    height: 18px;
+    accent-color: #0ea5e9;
+}
+
+.leave-weekend-box {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 12px;
+}
+
+.leave-holidays-panel {
+    border: 1px dashed var(--border-color, rgba(148, 163, 184, 0.35));
+    border-radius: 16px;
+    padding: 12px 14px;
+    margin-bottom: 18px;
+    background: rgba(148, 163, 184, 0.06);
+}
+
+.leave-holidays-panel summary {
+    cursor: pointer;
+    font-weight: 900;
+}
+
+.leave-holidays-panel p {
+    color: var(--muted-color, #64748b);
+    margin: 10px 0;
+    font-size: 13px;
+}
+
+.leave-result-grid {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 14px;
+    margin-top: 18px;
+}
+
+.leave-result-box {
+    text-align: center;
+    border-radius: 14px;
+    overflow: hidden;
+    border: 1px solid rgba(37, 99, 235, 0.18);
+    background: rgba(37, 99, 235, 0.08);
+}
+
+.leave-result-box span {
+    display: block;
+    padding: 8px 8px 4px;
+    font-weight: 900;
+}
+
+.leave-result-box strong {
+    display: block;
+    padding: 9px 8px;
+    background: #1e90ff;
+    color: #ffffff;
+    font-size: 18px;
+    line-height: 1.2;
+}
+
+.leave-net-box strong {
+    background: #0ea5e9;
+}
+
+.leave-total-box {
+    grid-column: span 3;
+    max-width: 360px;
+    justify-self: center;
+    width: 100%;
+}
+
+.leave-total-box strong {
+    background: rgba(148, 163, 184, 0.35);
+    color: #ef0000;
+}
+
+.leave-actions {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 10px;
+    margin-top: 28px;
+}
+
+.leave-calc-button,
+.leave-reset-button {
+    min-width: 180px;
+    border-radius: 12px;
+    font-weight: 900;
+    min-height: 44px;
+}
+
+.leave-alert {
+    border-radius: 14px;
+    padding: 14px 16px;
+    margin: 16px 0;
+    font-weight: 800;
+}
+
+.leave-alert-error {
+    background: rgba(239, 68, 68, 0.12);
+    border: 1px solid rgba(239, 68, 68, 0.35);
+    color: #ef4444;
+}
+
+[data-theme="dark"] .leave-card,
+body.dark .leave-card {
+    background: rgba(15, 23, 42, 0.92);
+    color: #e5e7eb;
+}
+
+[data-theme="dark"] .leave-field input[type="date"],
+[data-theme="dark"] .leave-holidays-panel textarea,
+body.dark .leave-field input[type="date"],
+body.dark .leave-holidays-panel textarea {
+    background: rgba(2, 6, 23, 0.78);
+    color: #e5e7eb;
+}
+
+@media (max-width: 760px) {
+    .leave-form-grid,
+    .leave-result-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .leave-total-box {
+        grid-column: span 1;
+        max-width: none;
+    }
+
+    .leave-title-row,
+    .leave-header-card {
+        flex-direction: column;
+        align-items: stretch;
+    }
+}

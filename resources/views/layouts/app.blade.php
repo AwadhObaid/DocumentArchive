@@ -113,6 +113,11 @@
 
             <a href="{{ route('lite.index') }}" class="{{ request()->routeIs('lite.*') ? 'active' : '' }}">📱 نسخة الهاتف لايت</a>
 
+            @if(auth()->user()?->hasPermission('tools.leave_calculator'))
+                <a href="{{ route('tools.leave-calculator.index') }}" class="{{ request()->routeIs('tools.leave-calculator.*') ? 'active' : '' }}">🧮 حاسبة الإجازات</a>
+            @endif
+
+
 
             @if(auth()->user()?->hasPermission('internal_messages.view'))
                 @php
