@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Document;
 use App\Models\Setting;
 use App\Services\ActivityLogger;
+use App\Services\BookAttachmentSmartPathService;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
 
@@ -39,6 +40,7 @@ class SettingsController extends Controller
         'pdf_search_ocr_languages' => 'ara+eng',
         'pdf_search_enable_ocr' => '0',
         'pdf_search_pages_limit' => '20',
+        'book_attachment_storage_root' => '',
         'reference_start_number' => '251230000',
         'print_department_title' => 'الشحن والتأمين',
         'print_font_family' => 'Cairo',
@@ -67,6 +69,9 @@ class SettingsController extends Controller
             'internal_chat' => ((string) $settings['internal_chat_enabled'] === '1')
                 ? ('مفعلة - كل ' . $settings['internal_chat_poll_seconds'] . ' ثواني' . (((string) ($settings['internal_chat_sound_enabled'] ?? '1') === '1') ? (' - صوت مفعل ' . ($settings['internal_chat_sound_volume'] ?? '85') . '%') : ' - صوت مكتوم من الإعدادات'))
                 : 'غير مفعلة',
+            'book_attachment_storage' => ($settings['book_attachment_storage_root'] ?? '') !== ''
+                ? $settings['book_attachment_storage_root']
+                : storage_path('app/private'),
         ];
 
         return view('settings.edit', compact('settings', 'printFontOptions', 'printSummary'));
@@ -94,6 +99,7 @@ class SettingsController extends Controller
             'pdf_search_ocr_languages' => ['required', 'string', 'max:80'],
             'pdf_search_enable_ocr' => ['nullable', 'boolean'],
             'pdf_search_pages_limit' => ['required', 'integer', 'min:1', 'max:200'],
+            'book_attachment_storage_root' => ['nullable', 'string', 'max:1000'],
             'reference_start_number' => ['required', 'integer', 'min:1', 'max:999999999999'],
             'print_department_title' => ['required', 'string', 'max:255'],
             'print_font_family' => ['required', 'string', Rule::in(array_keys(self::PRINT_FONT_OPTIONS))],
@@ -124,6 +130,7 @@ class SettingsController extends Controller
             'internal_chat_sound_volume.max' => 'مستوى الصوت يجب ألا يزيد عن 100%.',
             'pdf_search_ocr_languages.required' => 'لغات OCR مطلوبة، مثال: ara+eng.',
             'pdf_search_pages_limit.required' => 'حد صفحات OCR مطلوب.',
+            'book_attachment_storage_root.max' => 'مسار حفظ مرفقات الكتب طويل جداً.',
             'reference_start_number.integer' => 'رقم بداية الكتاب يجب أن يكون رقماً صحيحاً.',
             'print_department_title.required' => 'عنوان الطباعة مطلوب.',
             'print_font_family.in' => 'نوع الخط المختار غير مدعوم.',
@@ -136,6 +143,15 @@ class SettingsController extends Controller
         $validated['pdf_search_enable_ocr'] = $request->boolean('pdf_search_enable_ocr') ? '1' : '0';
         foreach (['pdf_search_pdftotext_path', 'pdf_search_pdftoppm_path', 'pdf_search_tesseract_path'] as $toolPathKey) {
             $validated[$toolPathKey] = trim((string) ($validated[$toolPathKey] ?? ''));
+        }
+
+        try {
+            $validated['book_attachment_storage_root'] = app(BookAttachmentSmartPathService::class)
+                ->prepareStorageRoot($validated['book_attachment_storage_root'] ?? null) ?: '';
+        } catch (\Throwable $exception) {
+            return back()
+                ->withErrors(['book_attachment_storage_root' => $exception->getMessage()])
+                ->withInput();
         }
 
         if (((int) $validated['auto_logout_warning_seconds']) >= (((int) $validated['auto_logout_minutes']) * 60)) {
@@ -166,6 +182,7 @@ class SettingsController extends Controller
             'pdf_search_ocr_languages' => ['pdf_search', 'text', 'لغات OCR المستخدمة مثل ara+eng'],
             'pdf_search_enable_ocr' => ['pdf_search', 'boolean', 'تفعيل OCR عند فهرسة ملفات PDF الممسوحة ضوئياً'],
             'pdf_search_pages_limit' => ['pdf_search', 'number', 'أقصى عدد صفحات تتم معالجتها OCR في الملف الواحد'],
+            'book_attachment_storage_root' => ['book_attachments', 'text', 'المسار الافتراضي الخارجي لحفظ مرفقات الكتب المصنفة. إذا ترك فارغاً يستخدم النظام storage/app/private داخل المشروع'],
             'reference_start_number' => ['references', 'number', 'رقم بداية الكتاب في بداية كل سنة'],
             'print_department_title' => ['printing', 'text', 'العنوان الثابت الذي يظهر أعلى رقم الكتاب'],
             'print_font_family' => ['printing', 'text', 'نوع خط صفحة طباعة رقم الكتاب'],
@@ -206,6 +223,243 @@ class SettingsController extends Controller
         return redirect()
             ->route('settings.edit')
             ->with('success', 'تم حفظ إعدادات النظام بنجاح.');
+    }
+
+
+    public function bookAttachmentStorageRoots()
+    {
+        return response()->json([
+            'ok' => true,
+            'roots' => $this->availableStorageRoots(),
+        ]);
+    }
+
+    public function bookAttachmentStorageDirectories(Request $request)
+    {
+        $path = $this->normalizeStorageBrowserPath($request->query('path', storage_path('app/private')));
+
+        if (! is_dir($path)) {
+            return response()->json([
+                'ok' => false,
+                'message' => 'المسار المحدد غير موجود على جهاز السيرفر.',
+                'path' => $path,
+            ], 422);
+        }
+
+        if (! is_readable($path)) {
+            return response()->json([
+                'ok' => false,
+                'message' => 'لا يمكن قراءة محتويات هذا المسار. تحقق من صلاحيات المجلد.',
+                'path' => $path,
+            ], 422);
+        }
+
+        $directories = [];
+
+        try {
+            $items = scandir($path) ?: [];
+
+            foreach ($items as $item) {
+                if ($item === '.' || $item === '..') {
+                    continue;
+                }
+
+                $fullPath = rtrim($path, "\\/") . DIRECTORY_SEPARATOR . $item;
+
+                if (@is_dir($fullPath)) {
+                    $directories[] = [
+                        'name' => $item,
+                        'path' => $this->normalizeStorageBrowserPath($fullPath),
+                        'writable' => @is_writable($fullPath),
+                    ];
+                }
+            }
+        } catch (\Throwable $exception) {
+            return response()->json([
+                'ok' => false,
+                'message' => 'تعذر استعراض هذا المجلد: ' . $exception->getMessage(),
+                'path' => $path,
+            ], 422);
+        }
+
+        usort($directories, fn (array $a, array $b) => strnatcasecmp($a['name'], $b['name']));
+
+        return response()->json([
+            'ok' => true,
+            'path' => $path,
+            'parent' => $this->parentStorageBrowserPath($path),
+            'writable' => @is_writable($path),
+            'directories' => $directories,
+        ]);
+    }
+
+    public function createBookAttachmentStorageDirectory(Request $request)
+    {
+        $validated = $request->validate([
+            'path' => ['required', 'string', 'max:1000'],
+            'name' => ['required', 'string', 'max:120'],
+        ], [
+            'path.required' => 'مسار المجلد الحالي مطلوب.',
+            'name.required' => 'اسم المجلد الجديد مطلوب.',
+        ]);
+
+        $parent = $this->normalizeStorageBrowserPath($validated['path']);
+        $folderName = $this->sanitizeStorageBrowserFolderName($validated['name']);
+
+        if ($folderName === '') {
+            return response()->json([
+                'ok' => false,
+                'message' => 'اسم المجلد غير صالح. تجنب الرموز المحظورة مثل: \\ / : * ? " < > |',
+            ], 422);
+        }
+
+        if (! is_dir($parent)) {
+            return response()->json([
+                'ok' => false,
+                'message' => 'المسار الحالي غير موجود.',
+            ], 422);
+        }
+
+        if (! @is_writable($parent)) {
+            return response()->json([
+                'ok' => false,
+                'message' => 'لا توجد صلاحية كتابة داخل هذا المجلد.',
+            ], 422);
+        }
+
+        $newPath = rtrim($parent, "\\/") . DIRECTORY_SEPARATOR . $folderName;
+
+        if (! is_dir($newPath) && ! @mkdir($newPath, 0775, true)) {
+            return response()->json([
+                'ok' => false,
+                'message' => 'تعذر إنشاء المجلد الجديد. تحقق من صلاحيات الكتابة.',
+            ], 422);
+        }
+
+        return response()->json([
+            'ok' => true,
+            'message' => 'تم إنشاء المجلد بنجاح.',
+            'path' => $this->normalizeStorageBrowserPath($newPath),
+        ]);
+    }
+
+    private function availableStorageRoots(): array
+    {
+        $roots = [];
+        $addRoot = function (string $name, string $path, string $type = 'folder') use (&$roots): void {
+            $path = $this->normalizeStorageBrowserPath($path);
+            if (! is_dir($path)) {
+                return;
+            }
+
+            $roots[$path] = [
+                'name' => $name,
+                'path' => $path,
+                'type' => $type,
+                'writable' => @is_writable($path),
+            ];
+        };
+
+        $addRoot('المسار الافتراضي داخل المشروع', storage_path('app/private'), 'default');
+
+        $configuredRoot = Setting::getValue('book_attachment_storage_root', '');
+        if (is_string($configuredRoot) && trim($configuredRoot) !== '') {
+            $addRoot('المسار المحفوظ حالياً في الإعدادات', $configuredRoot, 'configured');
+        }
+
+        if (DIRECTORY_SEPARATOR === '\\') {
+            foreach (range('A', 'Z') as $letter) {
+                $drive = $letter . ':\\';
+                if (@is_dir($drive)) {
+                    $roots[$drive] = [
+                        'name' => 'محرك الأقراص ' . $letter,
+                        'path' => $drive,
+                        'type' => 'drive',
+                        'writable' => @is_writable($drive),
+                    ];
+                }
+            }
+        } else {
+            $addRoot('جذر النظام /', '/', 'drive');
+            $home = getenv('HOME');
+            if (is_string($home) && $home !== '') {
+                $addRoot('مجلد المستخدم', $home, 'folder');
+            }
+        }
+
+        return array_values($roots);
+    }
+
+    private function normalizeStorageBrowserPath(?string $path): string
+    {
+        $path = trim((string) $path);
+        $path = trim($path, " \t\n\r\0\x0B\"'");
+
+        if ($path === '') {
+            return storage_path('app/private');
+        }
+
+        if ($this->settingsBrowserIsWindowsDriveOnly($path)) {
+            return strtoupper($path[0]) . ':\\';
+        }
+
+        if (str_starts_with($path, '\\\\')) {
+            return rtrim($path, "\\/");
+        }
+
+        $path = str_replace(['/', '\\'], DIRECTORY_SEPARATOR, $path);
+
+        if ($this->settingsBrowserIsWindowsDriveOnly($path)) {
+            return strtoupper($path[0]) . ':' . DIRECTORY_SEPARATOR;
+        }
+
+        return rtrim($path, "\\/") ?: DIRECTORY_SEPARATOR;
+    }
+
+
+    private function parentStorageBrowserPath(string $path): ?string
+    {
+        $path = $this->normalizeStorageBrowserPath($path);
+
+        if (DIRECTORY_SEPARATOR === '\\' && $this->settingsBrowserIsWindowsDriveOnly($path)) {
+            return null;
+        }
+
+        if ($path === DIRECTORY_SEPARATOR) {
+            return null;
+        }
+
+        $parent = dirname($path);
+
+        if ($parent === $path || $parent === '.' || $parent === '') {
+            return null;
+        }
+
+        return $this->normalizeStorageBrowserPath($parent);
+    }
+
+
+    private function sanitizeStorageBrowserFolderName(string $name): string
+    {
+        $name = trim($name);
+        $name = str_replace(['\\', '/', ':', '*', '?', '"', '<', '>', '|'], ' ', $name);
+        $name = preg_replace('/\s+/u', ' ', $name) ?? '';
+        $name = trim($name, " .\t\n\r\0\x0B");
+
+        if (in_array($name, ['', '.', '..'], true)) {
+            return '';
+        }
+
+        return mb_substr($name, 0, 100);
+    }
+
+
+    private function settingsBrowserIsWindowsDriveOnly(string $path): bool
+    {
+        return strlen($path) >= 2
+            && ctype_alpha($path[0])
+            && $path[1] === ':'
+            && trim(substr($path, 2), "\\/") === '';
     }
 
     private function settingsForView(): array
