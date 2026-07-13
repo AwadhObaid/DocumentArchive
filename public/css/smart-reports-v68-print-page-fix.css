@@ -1,0 +1,202 @@
+/* Smart Reports V68 - Fix blank first print page and stray layout icons */
+@media print {
+    @page {
+        size: A4 portrait;
+        margin: 12mm;
+    }
+
+    body.smart-report-printing {
+        background: #ffffff !important;
+        margin: 0 !important;
+        padding: 0 !important;
+        overflow: visible !important;
+    }
+
+    body.smart-report-printing > *:not(#smartReportPrintClone) {
+        display: none !important;
+        visibility: hidden !important;
+    }
+
+    body.smart-report-printing #smartReportPrintClone {
+        display: block !important;
+        visibility: visible !important;
+        position: static !important;
+        inset: auto !important;
+        z-index: auto !important;
+        width: 100% !important;
+        max-width: 100% !important;
+        min-height: auto !important;
+        margin: 0 !important;
+        padding: 0 !important;
+        border: 0 !important;
+        border-radius: 0 !important;
+        box-shadow: none !important;
+        background: #ffffff !important;
+        color: #111827 !important;
+        direction: rtl !important;
+        overflow: visible !important;
+        transform: none !important;
+    }
+
+    body.smart-report-printing #smartReportPrintClone *,
+    body.smart-report-printing #smartReportPrintClone *::before,
+    body.smart-report-printing #smartReportPrintClone *::after {
+        visibility: visible !important;
+        box-shadow: none !important;
+        text-shadow: none !important;
+    }
+
+    body.smart-report-printing #smartReportPrintClone .smart-card-title,
+    body.smart-report-printing #smartReportPrintClone .smart-screen-only,
+    body.smart-report-printing #smartReportPrintClone .smart-print-hide,
+    body.smart-report-printing #smartReportPrintClone .smart-meta,
+    body.smart-report-printing #smartReportPrintClone .smart-chart-grid,
+    body.smart-report-printing #smartReportPrintClone .smart-actions,
+    body.smart-report-printing #smartReportPrintClone button,
+    body.smart-report-printing #smartReportPrintClone canvas,
+    body.smart-report-printing #smartReportPrintClone script,
+    body.smart-report-printing #smartReportPrintClone style,
+    body.smart-report-printing #smartReportPrintClone .chat-launcher,
+    body.smart-report-printing #smartReportPrintClone .internal-chat-widget,
+    body.smart-report-printing #smartReportPrintClone [class*="chat"],
+    body.smart-report-printing #smartReportPrintClone [id*="chat"] {
+        display: none !important;
+        visibility: hidden !important;
+    }
+
+    body.smart-report-printing #smartReportPrintClone .smart-print-header,
+    body.smart-report-printing #smartReportPrintClone .smart-print-only,
+    body.smart-report-printing #smartReportPrintClone .smart-print-chart-summary {
+        display: block !important;
+        visibility: visible !important;
+    }
+
+    body.smart-report-printing #smartReportPrintClone .smart-print-header {
+        border: 1px solid #d8dee8 !important;
+        border-radius: 10px !important;
+        padding: 14px 16px !important;
+        margin: 0 0 12px !important;
+        background: #f8fafc !important;
+        break-inside: avoid !important;
+        page-break-inside: avoid !important;
+    }
+
+    body.smart-report-printing #smartReportPrintClone .smart-dashboard-section,
+    body.smart-report-printing #smartReportPrintClone .smart-charts-section,
+    body.smart-report-printing #smartReportPrintClone .smart-ai-analysis-section,
+    body.smart-report-printing #smartReportPrintClone .smart-local-insights {
+        display: block !important;
+        margin: 0 0 12px !important;
+        padding: 0 !important;
+        border: 0 !important;
+        background: #ffffff !important;
+        break-inside: auto !important;
+        page-break-inside: auto !important;
+    }
+
+    body.smart-report-printing #smartReportPrintClone .smart-section-heading,
+    body.smart-report-printing #smartReportPrintClone .smart-section-heading h3,
+    body.smart-report-printing #smartReportPrintClone .smart-print-section-title {
+        margin: 16px 0 8px !important;
+        padding: 0 0 5px !important;
+        border-bottom: 1px solid #dbeafe !important;
+        color: #0f172a !important;
+        font-size: 15px !important;
+        font-weight: 800 !important;
+    }
+
+    body.smart-report-printing #smartReportPrintClone .smart-section-heading span {
+        display: none !important;
+    }
+
+    body.smart-report-printing #smartReportPrintClone .smart-kpi-grid {
+        display: grid !important;
+        grid-template-columns: repeat(3, 1fr) !important;
+        gap: 8px !important;
+        margin: 8px 0 12px !important;
+    }
+
+    body.smart-report-printing #smartReportPrintClone .smart-kpi-card {
+        display: block !important;
+        border: 1px solid #d8dee8 !important;
+        border-radius: 8px !important;
+        padding: 9px !important;
+        background: #ffffff !important;
+        break-inside: avoid !important;
+        page-break-inside: avoid !important;
+    }
+
+    body.smart-report-printing #smartReportPrintClone .smart-kpi-card span {
+        color: #64748b !important;
+        font-size: 10.5px !important;
+        display: block !important;
+    }
+
+    body.smart-report-printing #smartReportPrintClone .smart-kpi-card strong {
+        color: #0f172a !important;
+        font-size: 19px !important;
+        display: block !important;
+        margin: 3px 0 !important;
+    }
+
+    body.smart-report-printing #smartReportPrintClone .smart-kpi-card small {
+        color: #64748b !important;
+        font-size: 10px !important;
+    }
+
+    body.smart-report-printing #smartReportPrintClone table,
+    body.smart-report-printing #smartReportPrintClone .smart-summary-table {
+        width: 100% !important;
+        border-collapse: collapse !important;
+        margin: 8px 0 12px !important;
+    }
+
+    body.smart-report-printing #smartReportPrintClone th,
+    body.smart-report-printing #smartReportPrintClone td,
+    body.smart-report-printing #smartReportPrintClone .smart-summary-table th,
+    body.smart-report-printing #smartReportPrintClone .smart-summary-table td {
+        border: 1px solid #d8dee8 !important;
+        padding: 6px 8px !important;
+        text-align: right !important;
+        vertical-align: middle !important;
+    }
+
+    body.smart-report-printing #smartReportPrintClone th,
+    body.smart-report-printing #smartReportPrintClone .smart-summary-table th {
+        background: #eef6ff !important;
+        color: #0f172a !important;
+        font-weight: 800 !important;
+    }
+
+    body.smart-report-printing #smartReportPrintClone .smart-report-output,
+    body.smart-report-printing #smartReportPrintClone .smart-report-clean {
+        display: block !important;
+        border: 1px solid #d8dee8 !important;
+        border-radius: 10px !important;
+        padding: 10px 12px !important;
+        background: #ffffff !important;
+        color: #111827 !important;
+        white-space: normal !important;
+        max-height: none !important;
+        overflow: visible !important;
+    }
+
+    body.smart-report-printing #smartReportPrintClone .smart-summary-bar {
+        width: 150px !important;
+        height: 8px !important;
+        background: #e5e7eb !important;
+        border-radius: 999px !important;
+        overflow: hidden !important;
+    }
+
+    body.smart-report-printing #smartReportPrintClone .smart-summary-bar span {
+        display: block !important;
+        height: 8px !important;
+        background: #2563eb !important;
+        border-radius: 999px !important;
+    }
+
+    body.smart-report-printing a[href]::after {
+        content: "" !important;
+    }
+}
