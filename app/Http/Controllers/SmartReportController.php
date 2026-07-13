@@ -2,7 +2,6 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\ActivityLog;
 use App\Models\Document;
 use App\Models\DocumentAttachment;
 use App\Models\Setting;
@@ -12,7 +11,6 @@ use App\Services\GeminiSmartReportService;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\DB;
 use Mpdf\Mpdf;
 use Throwable;
 
@@ -118,7 +116,7 @@ class SmartReportController extends Controller
                 'error_message' => null,
             ]);
 
-            ActivityLogger::log('smart_report.generated', 'تم توليد تقرير ذكي عبر Gemini.', $run, [
+            ActivityLogger::log('smart_report.generated', 'تم توليد تقرير ذكي عبر Gemini مع لوحة مؤشرات ورسوم بيانية.', $run, [
                 'report_type' => $validated['report_type'],
                 'date_from' => $from->toDateString(),
                 'date_to' => $to->toDateString(),
@@ -127,7 +125,7 @@ class SmartReportController extends Controller
 
             return redirect()
                 ->route('smart-reports.index', ['run' => $run->id])
-                ->with('success', 'تم توليد التقرير الذكي بنجاح.');
+                ->with('success', 'تم توليد التقرير الذكي بنجاح. تم تجهيز لوحة المؤشرات والرسوم البيانية.');
         } catch (Throwable $exception) {
             $run->update([
                 'status' => 'failed',
@@ -186,10 +184,10 @@ class SmartReportController extends Controller
             'mode' => 'utf-8',
             'format' => 'A4',
             'default_font' => 'dejavusans',
-            'margin_top' => 14,
-            'margin_right' => 14,
-            'margin_bottom' => 14,
-            'margin_left' => 14,
+            'margin_top' => 10,
+            'margin_right' => 10,
+            'margin_bottom' => 10,
+            'margin_left' => 10,
         ]);
 
         $mpdf->SetDirectionality('rtl');
@@ -214,6 +212,38 @@ class SmartReportController extends Controller
 
         $attachmentCount = (clone $attachmentsQuery)->count();
         $withoutAttachments = (clone $base)->doesntHave('attachments')->count();
+        $withAttachments = max(0, $total - $withoutAttachments);
+        $completionRate = $total > 0 ? round(($withAttachments / $total) * 100, 1) : 0.0;
+        $averageAttachments = $total > 0 ? round($attachmentCount / $total, 2) : 0.0;
+
+        $topCompanies = $this->groupDocuments($base, 'attachment_company_name', 12);
+        $topOperations = $this->groupDocuments($base, 'attachment_category_name', 12);
+        $topTitles = $this->groupDocuments($base, 'title', 12);
+        $byStatus = $this->groupDocuments($base, 'status', 8);
+        $byWorkflow = $this->groupDocuments($base, 'workflow_status', 8);
+        $byPriority = $this->groupDocuments($base, 'priority', 8);
+        $byDay = $this->documentsByDay($base);
+        $attachmentTypes = $this->attachmentTypes($attachmentsQuery);
+        $usersActivity = $this->usersActivity($base);
+
+        $missingMainPolicy = (clone $base)->where(function ($query) {
+            $query->whereNull('main_policy_number')->orWhere('main_policy_number', '');
+        })->count();
+
+        $missingCompany = (clone $base)->where(function ($query) {
+            $query->whereNull('attachment_company_name')->orWhere('attachment_company_name', '');
+        })->count();
+
+        $missingOperation = (clone $base)->where(function ($query) {
+            $query->whereNull('attachment_category_name')->orWhere('attachment_category_name', '');
+        })->count();
+
+        $dataQuality = [
+            'missing_main_policy_number' => $missingMainPolicy,
+            'missing_company_classification' => $missingCompany,
+            'missing_operation_classification' => $missingOperation,
+            'without_attachments' => $withoutAttachments,
+        ];
 
         $payload = [
             'meta' => [
@@ -230,31 +260,55 @@ class SmartReportController extends Controller
                 'documents_total' => $total,
                 'attachments_total' => $attachmentCount,
                 'documents_without_attachments' => $withoutAttachments,
-                'documents_with_attachments' => max(0, $total - $withoutAttachments),
+                'documents_with_attachments' => $withAttachments,
+                'completion_rate' => $completionRate,
+                'average_attachments_per_document' => $averageAttachments,
             ],
-            'top_companies' => $this->groupDocuments($base, 'attachment_company_name'),
-            'top_operations' => $this->groupDocuments($base, 'attachment_category_name'),
-            'top_titles' => $this->groupDocuments($base, 'title'),
-            'by_status' => $this->groupDocuments($base, 'status'),
-            'by_workflow_status' => $this->groupDocuments($base, 'workflow_status'),
-            'by_priority' => $this->groupDocuments($base, 'priority'),
-            'by_day' => $this->documentsByDay($base),
-            'attachment_types' => $this->attachmentTypes($attachmentsQuery),
-            'data_quality' => [
-                'missing_main_policy_number' => (clone $base)->where(function ($query) {
-                    $query->whereNull('main_policy_number')->orWhere('main_policy_number', '');
-                })->count(),
-                'missing_company_classification' => (clone $base)->where(function ($query) {
-                    $query->whereNull('attachment_company_name')->orWhere('attachment_company_name', '');
-                })->count(),
-                'missing_operation_classification' => (clone $base)->where(function ($query) {
-                    $query->whereNull('attachment_category_name')->orWhere('attachment_category_name', '');
-                })->count(),
-                'without_attachments' => $withoutAttachments,
+            'analytics' => [
+                'kpis' => [
+                    ['label' => 'إجمالي الكتب', 'value' => $total, 'hint' => 'عدد الكتب ضمن الفترة المحددة'],
+                    ['label' => 'الكتب بمرفقات', 'value' => $withAttachments, 'hint' => 'كتب تحتوي على مرفق واحد على الأقل'],
+                    ['label' => 'الكتب بدون مرفقات', 'value' => $withoutAttachments, 'hint' => 'تحتاج مراجعة قبل إغلاق الفترة'],
+                    ['label' => 'إجمالي المرفقات', 'value' => $attachmentCount, 'hint' => 'عدد المرفقات المرتبطة بكتب الفترة'],
+                    ['label' => 'نسبة الاكتمال', 'value' => $completionRate . '%', 'hint' => 'نسبة الكتب التي تحتوي على مرفقات'],
+                    ['label' => 'متوسط المرفقات', 'value' => $averageAttachments, 'hint' => 'متوسط عدد المرفقات لكل كتاب'],
+                ],
+                'charts' => [
+                    'companies' => $topCompanies,
+                    'operations' => $topOperations,
+                    'titles' => $topTitles,
+                    'daily' => $byDay,
+                    'attachment_status' => [
+                        ['label' => 'بمرفقات', 'total' => $withAttachments],
+                        ['label' => 'بدون مرفقات', 'total' => $withoutAttachments],
+                    ],
+                    'quality' => [
+                        ['label' => 'بدون بوليصة رئيسية', 'total' => $missingMainPolicy],
+                        ['label' => 'بدون شركة/جهة', 'total' => $missingCompany],
+                        ['label' => 'بدون نوع عملية', 'total' => $missingOperation],
+                        ['label' => 'بدون مرفقات', 'total' => $withoutAttachments],
+                    ],
+                    'workflow' => $byWorkflow,
+                    'priority' => $byPriority,
+                    'attachment_types' => $attachmentTypes,
+                    'users_activity' => $usersActivity,
+                ],
+                'local_insights' => [],
             ],
-            'users_activity' => $this->usersActivity($base),
+            'top_companies' => $topCompanies,
+            'top_operations' => $topOperations,
+            'top_titles' => $topTitles,
+            'by_status' => $byStatus,
+            'by_workflow_status' => $byWorkflow,
+            'by_priority' => $byPriority,
+            'by_day' => $byDay,
+            'attachment_types' => $attachmentTypes,
+            'data_quality' => $dataQuality,
+            'users_activity' => $usersActivity,
             'sample_records' => $this->sampleRecords($base),
         ];
+
+        $payload['analytics']['local_insights'] = $this->buildLocalInsights($payload);
 
         return $this->filterPayloadForReportType($payload, $reportType);
     }
@@ -262,10 +316,14 @@ class SmartReportController extends Controller
     private function buildPrompt(array $payload, string $userPrompt = ''): string
     {
         $instructions = [
-            'اكتب تقريراً إدارياً ذكياً باللغة العربية بناءً على بيانات JSON التالية.',
+            'اكتب تقريراً إدارياً احترافياً باللغة العربية بناءً على بيانات JSON التالية.',
             'لا تخترع أي رقم غير موجود في البيانات.',
-            'ركّز على المؤشرات المهمة والتوصيات العملية لقسم الشحن والتأمين.',
-            'استخدم تنسيقاً واضحاً بعناوين فرعية ونقاط مختصرة.',
+            'لا تستخدم Markdown إطلاقاً. ممنوع استخدام رموز مثل # أو ** أو --- أو backticks.',
+            'اكتب العناوين كنص عربي مباشر فقط، مثل: أولاً: الملخص التنفيذي.',
+            'رتب التقرير بهذه العناوين: الملخص التنفيذي، المؤشرات الرئيسية، قراءة الرسوم البيانية، المخاطر والملاحظات، التوصيات العملية.',
+            'استخدم فقرات قصيرة ونقاط واضحة بلغة إدارية رسمية.',
+            'اربط التحليل ببيئة قسم الشحن والتأمين، وركّز على الشركات، أنواع العمليات، المرفقات، وجودة البيانات.',
+            'لا تذكر اسم الموديل أو رقم الإصدار أو تفاصيل تقنية داخل نص التقرير النهائي.',
             'إذا وجدت كتباً بدون مرفقات أو نقصاً في التصنيف فاذكرها كتوصيات جودة بيانات.',
         ];
 
@@ -274,7 +332,7 @@ class SmartReportController extends Controller
         }
 
         return implode("\n", $instructions)
-            . "\n\nبيانات التقرير:\n"
+            . "\n\nبيانات التقرير والتحليلات المحلية:\n"
             . json_encode($payload, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_PRETTY_PRINT);
     }
 
@@ -287,7 +345,7 @@ class SmartReportController extends Controller
                 ->orderByDesc('total')
                 ->limit($limit)
                 ->get()
-                ->map(fn ($row) => ['label' => $row->label, 'total' => (int) $row->total])
+                ->map(fn ($row) => ['label' => (string) $row->label, 'total' => (int) $row->total])
                 ->values()
                 ->all();
         } catch (Throwable $exception) {
@@ -301,9 +359,9 @@ class SmartReportController extends Controller
             ->selectRaw('DATE(reference_date) as day, COUNT(*) as total')
             ->groupBy('day')
             ->orderBy('day')
-            ->limit(90)
+            ->limit(120)
             ->get()
-            ->map(fn ($row) => ['day' => (string) $row->day, 'total' => (int) $row->total])
+            ->map(fn ($row) => ['label' => (string) $row->day, 'day' => (string) $row->day, 'total' => (int) $row->total])
             ->values()
             ->all();
     }
@@ -316,7 +374,7 @@ class SmartReportController extends Controller
             ->orderByDesc('total')
             ->limit(10)
             ->get()
-            ->map(fn ($row) => ['label' => $row->label, 'total' => (int) $row->total])
+            ->map(fn ($row) => ['label' => (string) $row->label, 'total' => (int) $row->total])
             ->values()
             ->all();
     }
@@ -330,7 +388,7 @@ class SmartReportController extends Controller
             ->orderByDesc('total')
             ->limit(10)
             ->get()
-            ->map(fn ($row) => ['label' => $row->label, 'total' => (int) $row->total])
+            ->map(fn ($row) => ['label' => (string) $row->label, 'total' => (int) $row->total])
             ->values()
             ->all();
     }
@@ -372,16 +430,55 @@ class SmartReportController extends Controller
         })->values()->all();
     }
 
+    private function buildLocalInsights(array $payload): array
+    {
+        $summary = $payload['summary'] ?? [];
+        $quality = $payload['data_quality'] ?? [];
+        $topCompanies = $payload['top_companies'] ?? [];
+        $topOperations = $payload['top_operations'] ?? [];
+        $insights = [];
+
+        $total = (int) ($summary['documents_total'] ?? 0);
+        $withoutAttachments = (int) ($summary['documents_without_attachments'] ?? 0);
+        $completionRate = (float) ($summary['completion_rate'] ?? 0);
+
+        if ($total === 0) {
+            return ['لا توجد كتب ضمن الفترة المحددة، لذلك لا توجد مؤشرات كافية للتحليل.'];
+        }
+
+        if ($topCompanies !== []) {
+            $first = $topCompanies[0];
+            $insights[] = 'أكثر شركة/جهة تكراراً هي ' . $first['label'] . ' بعدد ' . $first['total'] . ' كتاب.';
+        }
+
+        if ($topOperations !== []) {
+            $first = $topOperations[0];
+            $insights[] = 'أكثر نوع عملية تكراراً هو ' . $first['label'] . ' بعدد ' . $first['total'] . ' كتاب.';
+        }
+
+        $insights[] = 'نسبة اكتمال المرفقات في الفترة هي ' . $completionRate . '%.';
+
+        if ($withoutAttachments > 0) {
+            $insights[] = 'يوجد ' . $withoutAttachments . ' كتاب بدون مرفقات ويحتاج إلى مراجعة.';
+        }
+
+        if ((int) ($quality['missing_company_classification'] ?? 0) > 0 || (int) ($quality['missing_operation_classification'] ?? 0) > 0) {
+            $insights[] = 'توجد سجلات تحتاج استكمال تصنيف الشركة أو نوع العملية لتحسين دقة التقارير.';
+        }
+
+        return $insights;
+    }
+
     private function filterPayloadForReportType(array $payload, string $reportType): array
     {
         return match ($reportType) {
-            'companies' => array_intersect_key($payload, array_flip(['meta', 'summary', 'top_companies', 'by_day', 'sample_records'])),
-            'subjects' => array_intersect_key($payload, array_flip(['meta', 'summary', 'top_titles', 'top_operations', 'by_day', 'sample_records'])),
-            'attachments' => array_intersect_key($payload, array_flip(['meta', 'summary', 'attachment_types', 'data_quality', 'top_companies', 'sample_records'])),
-            'missing_attachments' => array_intersect_key($payload, array_flip(['meta', 'summary', 'data_quality', 'top_companies', 'top_operations', 'sample_records'])),
-            'workflow' => array_intersect_key($payload, array_flip(['meta', 'summary', 'by_workflow_status', 'by_status', 'by_priority', 'sample_records'])),
-            'users_activity' => array_intersect_key($payload, array_flip(['meta', 'summary', 'users_activity', 'by_day'])),
-            'customs_export' => array_intersect_key($payload, array_flip(['meta', 'summary', 'top_companies', 'top_operations', 'top_titles', 'data_quality', 'sample_records'])),
+            'companies' => array_intersect_key($payload, array_flip(['meta', 'summary', 'analytics', 'top_companies', 'by_day', 'sample_records'])),
+            'subjects' => array_intersect_key($payload, array_flip(['meta', 'summary', 'analytics', 'top_titles', 'top_operations', 'by_day', 'sample_records'])),
+            'attachments' => array_intersect_key($payload, array_flip(['meta', 'summary', 'analytics', 'attachment_types', 'data_quality', 'top_companies', 'sample_records'])),
+            'missing_attachments' => array_intersect_key($payload, array_flip(['meta', 'summary', 'analytics', 'data_quality', 'top_companies', 'top_operations', 'sample_records'])),
+            'workflow' => array_intersect_key($payload, array_flip(['meta', 'summary', 'analytics', 'by_workflow_status', 'by_status', 'by_priority', 'sample_records'])),
+            'users_activity' => array_intersect_key($payload, array_flip(['meta', 'summary', 'analytics', 'users_activity', 'by_day'])),
+            'customs_export' => array_intersect_key($payload, array_flip(['meta', 'summary', 'analytics', 'top_companies', 'top_operations', 'top_titles', 'data_quality', 'sample_records'])),
             default => $payload,
         };
     }

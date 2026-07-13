@@ -1,0 +1,354 @@
+/* Smart Reports V67 - Professional print/export polish */
+.smart-reports-page .smart-print-header,
+.smart-reports-page .smart-print-only {
+    display: none;
+}
+
+.smart-report-clean {
+    white-space: normal;
+    font-family: inherit;
+}
+
+.smart-report-clean h3 {
+    margin: 1.15rem 0 .55rem;
+    font-size: 1.05rem;
+    color: var(--text-color, #111827);
+    font-weight: 800;
+}
+
+.smart-report-clean p {
+    margin: .45rem 0;
+    line-height: 1.95;
+}
+
+.smart-report-clean .smart-report-list {
+    margin: .5rem 0 .85rem;
+    padding-inline-start: 1.4rem;
+}
+
+.smart-report-clean .smart-report-list li {
+    margin-bottom: .4rem;
+    line-height: 1.9;
+}
+
+.smart-report-muted {
+    color: #64748b;
+}
+
+.smart-print-chart-summary,
+.smart-chart-summary-table {
+    width: 100%;
+}
+
+.smart-summary-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: .6rem 0 1rem;
+}
+
+.smart-summary-table th,
+.smart-summary-table td {
+    border: 1px solid rgba(148, 163, 184, .35);
+    padding: .55rem .65rem;
+    text-align: right;
+    vertical-align: middle;
+}
+
+.smart-summary-table th {
+    background: rgba(37, 99, 235, .08);
+    font-weight: 800;
+}
+
+.smart-summary-bar {
+    height: .55rem;
+    background: rgba(148, 163, 184, .22);
+    border-radius: 999px;
+    overflow: hidden;
+}
+
+.smart-summary-bar span {
+    display: block;
+    height: 100%;
+    background: linear-gradient(90deg, #2563eb, #06b6d4);
+    border-radius: 999px;
+}
+
+@media print {
+    @page {
+        size: A4 portrait;
+        margin: 12mm;
+    }
+
+    html,
+    body {
+        background: #ffffff !important;
+        color: #111827 !important;
+        direction: rtl !important;
+        font-size: 12px !important;
+        line-height: 1.65 !important;
+    }
+
+    body * {
+        -webkit-print-color-adjust: exact !important;
+        print-color-adjust: exact !important;
+    }
+
+    .sidebar,
+    .side-nav,
+    .topbar,
+    .navbar,
+    .app-header,
+    .page-header,
+    .breadcrumb,
+    .footer,
+    .smart-hero,
+    .smart-filter-card,
+    .smart-screen-only,
+    .smart-print-hide,
+    .smart-table-wrap,
+    .smart-alert,
+    .smart-actions,
+    .smart-btn,
+    .smart-card-title .smart-actions,
+    .smart-meta,
+    .smart-chart-grid,
+    .smart-section-heading span,
+    .notification-center,
+    .notification-dropdown,
+    .auto-logout-modal,
+    .modal,
+    .modal-backdrop,
+    .toast,
+    .floating-action-button,
+    .chat-launcher,
+    .chat-fab,
+    .internal-chat-widget,
+    #internalChatWidget,
+    #internal-chat-widget,
+    [class*="chat"],
+    [id*="chat"],
+    [class*="Chat"],
+    [id*="Chat"] {
+        display: none !important;
+        visibility: hidden !important;
+    }
+
+    .main,
+    .main-content,
+    .content,
+    .page-content,
+    .app-content,
+    .container,
+    .container-fluid,
+    .smart-reports-page,
+    .smart-result-card,
+    .smart-result-card-v66,
+    .smart-card {
+        display: block !important;
+        width: 100% !important;
+        max-width: none !important;
+        min-width: 0 !important;
+        margin: 0 !important;
+        padding: 0 !important;
+        border: 0 !important;
+        box-shadow: none !important;
+        background: #ffffff !important;
+        overflow: visible !important;
+    }
+
+    .smart-reports-page .smart-print-header,
+    .smart-reports-page .smart-print-only {
+        display: block !important;
+    }
+
+    .smart-print-header {
+        border: 1px solid #d8dee8 !important;
+        border-radius: 10px !important;
+        padding: 14px 16px !important;
+        margin: 0 0 12px !important;
+        background: #f8fafc !important;
+        break-inside: avoid !important;
+    }
+
+    .smart-print-brand {
+        color: #64748b !important;
+        font-size: 11px !important;
+        margin-bottom: 4px !important;
+    }
+
+    .smart-print-header h1 {
+        font-size: 20px !important;
+        margin: 0 0 5px !important;
+        color: #0f172a !important;
+        font-weight: 800 !important;
+    }
+
+    .smart-print-header p {
+        margin: 0 0 10px !important;
+        color: #475569 !important;
+    }
+
+    .smart-print-header table,
+    .smart-summary-table {
+        width: 100% !important;
+        border-collapse: collapse !important;
+    }
+
+    .smart-print-header th,
+    .smart-print-header td,
+    .smart-summary-table th,
+    .smart-summary-table td {
+        border: 1px solid #d8dee8 !important;
+        padding: 6px 8px !important;
+        text-align: right !important;
+        vertical-align: middle !important;
+    }
+
+    .smart-print-header th,
+    .smart-summary-table th {
+        background: #eef6ff !important;
+        color: #0f172a !important;
+        font-weight: 800 !important;
+    }
+
+    .smart-section-heading,
+    .smart-section-heading h3,
+    .smart-print-section-title {
+        margin: 16px 0 8px !important;
+        padding: 0 0 5px !important;
+        border-bottom: 1px solid #dbeafe !important;
+        color: #0f172a !important;
+        font-size: 15px !important;
+        font-weight: 800 !important;
+    }
+
+    .smart-kpi-grid {
+        display: grid !important;
+        grid-template-columns: repeat(3, 1fr) !important;
+        gap: 8px !important;
+        margin: 8px 0 12px !important;
+    }
+
+    .smart-kpi-card {
+        border: 1px solid #d8dee8 !important;
+        border-radius: 8px !important;
+        padding: 9px !important;
+        background: #ffffff !important;
+        break-inside: avoid !important;
+        box-shadow: none !important;
+    }
+
+    .smart-kpi-card span {
+        color: #64748b !important;
+        font-size: 10.5px !important;
+        display: block !important;
+    }
+
+    .smart-kpi-card strong {
+        color: #0f172a !important;
+        font-size: 19px !important;
+        display: block !important;
+        margin: 3px 0 !important;
+    }
+
+    .smart-kpi-card small {
+        color: #64748b !important;
+        font-size: 10px !important;
+    }
+
+    .smart-local-insights,
+    .smart-ai-analysis-section,
+    .smart-charts-section {
+        break-inside: auto !important;
+        page-break-inside: auto !important;
+        margin: 0 0 10px !important;
+        padding: 0 !important;
+        border: 0 !important;
+        box-shadow: none !important;
+        background: #ffffff !important;
+    }
+
+    .smart-insight-list {
+        display: block !important;
+        margin: 0 0 10px !important;
+    }
+
+    .smart-insight-item {
+        border: 1px solid #e5e7eb !important;
+        border-radius: 8px !important;
+        padding: 7px 9px !important;
+        margin-bottom: 5px !important;
+        background: #f8fafc !important;
+        break-inside: avoid !important;
+    }
+
+    .smart-report-output,
+    .smart-report-output-v66,
+    .smart-report-clean {
+        border: 1px solid #d8dee8 !important;
+        border-radius: 10px !important;
+        padding: 10px 12px !important;
+        background: #ffffff !important;
+        color: #111827 !important;
+        white-space: normal !important;
+        font-family: inherit !important;
+        overflow: visible !important;
+        max-height: none !important;
+    }
+
+    .smart-report-clean h3 {
+        margin: 12px 0 6px !important;
+        font-size: 13px !important;
+        color: #1d4ed8 !important;
+        page-break-after: avoid !important;
+    }
+
+    .smart-report-clean p,
+    .smart-report-clean li {
+        line-height: 1.75 !important;
+        font-size: 11.5px !important;
+    }
+
+    .smart-report-clean ul {
+        margin: 5px 0 8px !important;
+        padding-right: 18px !important;
+    }
+
+    .smart-chart-summary-group {
+        break-inside: avoid !important;
+        margin-bottom: 10px !important;
+    }
+
+    .smart-chart-summary-group h4 {
+        font-size: 12px !important;
+        color: #334155 !important;
+        margin: 10px 0 5px !important;
+    }
+
+    .smart-summary-table th:nth-child(2),
+    .smart-summary-table td:nth-child(2) {
+        width: 55px !important;
+        text-align: center !important;
+    }
+
+    .smart-summary-table th:nth-child(3),
+    .smart-summary-table td:nth-child(3) {
+        width: 160px !important;
+    }
+
+    .smart-summary-bar {
+        width: 150px !important;
+        height: 8px !important;
+        background: #e5e7eb !important;
+        border-radius: 999px !important;
+    }
+
+    .smart-summary-bar span {
+        height: 8px !important;
+        background: #2563eb !important;
+    }
+
+    a[href]:after {
+        content: "" !important;
+    }
+}
