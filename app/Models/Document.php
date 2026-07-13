@@ -21,6 +21,8 @@ class Document extends Model
         'title',
         'subject',
         'book_subject_id',
+        'attachment_company_name',
+        'attachment_category_name',
         'description',
         'sender',
         'receiver',
@@ -78,6 +80,16 @@ class Document extends Model
     public function bookSubject()
     {
         return $this->belongsTo(BookSubject::class);
+    }
+
+    public function attachmentCompany()
+    {
+        return $this->belongsTo(BookAttachmentCompany::class, 'book_attachment_company_id');
+    }
+
+    public function attachmentOperation()
+    {
+        return $this->belongsTo(BookAttachmentOperation::class, 'book_attachment_operation_id');
     }
 
     public function creator()

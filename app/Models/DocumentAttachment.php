@@ -3,7 +3,7 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Support\Facades\Storage;
+use App\Services\BookAttachmentSmartPathService;
 
 class DocumentAttachment extends Model
 {
@@ -16,6 +16,11 @@ class DocumentAttachment extends Model
         'file_name',
         'file_path',
         'disk',
+        'storage_root_path',
+        'classification_company_name',
+        'classification_operation_name',
+        'classification_year',
+        'classification_folder',
         'extension',
         'mime_type',
         'file_size',
@@ -31,6 +36,7 @@ class DocumentAttachment extends Model
             'version_no' => 'integer',
             'is_main' => 'boolean',
             'file_size' => 'integer',
+            'classification_year' => 'integer',
         ];
     }
 
@@ -72,6 +78,6 @@ class DocumentAttachment extends Model
 
     public function existsOnDisk(): bool
     {
-        return Storage::disk($this->disk)->exists($this->file_path);
+        return app(BookAttachmentSmartPathService::class)->attachmentExists($this);
     }
 }

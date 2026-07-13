@@ -3,6 +3,8 @@
 namespace App\Http\Controllers;
 
 use App\Models\BookSubject;
+use App\Models\BookAttachmentCompany;
+use App\Models\BookAttachmentOperation;
 use App\Models\Department;
 use App\Models\Document;
 use App\Models\DocumentAttachment;
@@ -10,11 +12,11 @@ use App\Models\DocumentType;
 use App\Models\Memo;
 use App\Models\Setting;
 use App\Services\ReferenceNumberGenerator;
+use App\Services\BookAttachmentSmartPathService;
 use App\Services\ActivityLogger;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 
 class DocumentController extends Controller
@@ -404,9 +406,11 @@ class DocumentController extends Controller
             ->orderBy('name')
             ->get();
 
+        [$attachmentCompanies, $attachmentOperations] = $this->attachmentClassificationSuggestions();
+
         $initialNextReference = ReferenceNumberGenerator::preview(date('Y-m-d'));
 
-        return view('documents.create', compact('departments', 'documentTypes', 'bookSubjects', 'initialNextReference'));
+        return view('documents.create', compact('departments', 'documentTypes', 'bookSubjects', 'attachmentCompanies', 'attachmentOperations', 'initialNextReference'));
     }
 
     public function nextReferenceNumber(Request $request)
@@ -437,6 +441,8 @@ class DocumentController extends Controller
             'sub_policy_number' => ['nullable', 'string', 'max:255'],
             'title' => ['required', 'string', 'max:255'],
             'book_subject_id' => ['nullable', 'exists:book_subjects,id'],
+            'attachment_company_name' => ['nullable', 'string', 'max:255'],
+            'attachment_category_name' => ['nullable', 'string', 'max:255'],
             'subject' => ['nullable', 'string', 'required_without:book_subject_id'],
             'description' => ['nullable', 'string'],
             'sender' => ['nullable', 'string', 'max:255'],
@@ -451,6 +457,8 @@ class DocumentController extends Controller
 
         $validated['main_policy_number'] = $this->normalizeDocumentNumber($validated['main_policy_number'] ?? null);
         $validated['sub_policy_number'] = $this->normalizeDocumentNumber($validated['sub_policy_number'] ?? null);
+        $validated['attachment_company_name'] = $this->normalizeNullableText($validated['attachment_company_name'] ?? null);
+        $validated['attachment_category_name'] = $this->normalizeNullableText($validated['attachment_category_name'] ?? null);
         $validated = $this->resolveBookSubjectData($validated);
 
         $document = DB::transaction(function () use ($request, $validated) {
@@ -468,6 +476,8 @@ class DocumentController extends Controller
                 'title' => $validated['title'],
                 'subject' => $validated['subject'] ?? null,
                 'book_subject_id' => $validated['book_subject_id'] ?? null,
+                'attachment_company_name' => $validated['attachment_company_name'] ?? null,
+                'attachment_category_name' => $validated['attachment_category_name'] ?? null,
                 'description' => $validated['description'] ?? null,
                 'sender' => $validated['sender'] ?? null,
                 'receiver' => $validated['receiver'] ?? null,
@@ -540,9 +550,11 @@ class DocumentController extends Controller
             ->orderBy('name')
             ->get();
 
+        [$attachmentCompanies, $attachmentOperations] = $this->attachmentClassificationSuggestions();
+
         $document->load(['department', 'documentType', 'bookSubject', 'attachments.textIndex']);
 
-        return view('documents.edit', compact('document', 'departments', 'documentTypes', 'bookSubjects'));
+        return view('documents.edit', compact('document', 'departments', 'documentTypes', 'bookSubjects', 'attachmentCompanies', 'attachmentOperations'));
     }
 
     public function update(Request $request, Document $document)
@@ -555,6 +567,8 @@ class DocumentController extends Controller
             'sub_policy_number' => ['nullable', 'string', 'max:255'],
             'title' => ['required', 'string', 'max:255'],
             'book_subject_id' => ['nullable', 'exists:book_subjects,id'],
+            'attachment_company_name' => ['nullable', 'string', 'max:255'],
+            'attachment_category_name' => ['nullable', 'string', 'max:255'],
             'subject' => ['nullable', 'string', 'required_without:book_subject_id'],
             'description' => ['nullable', 'string'],
             'sender' => ['nullable', 'string', 'max:255'],
@@ -570,6 +584,8 @@ class DocumentController extends Controller
 
         $validated['main_policy_number'] = $this->normalizeDocumentNumber($validated['main_policy_number'] ?? null);
         $validated['sub_policy_number'] = $this->normalizeDocumentNumber($validated['sub_policy_number'] ?? null);
+        $validated['attachment_company_name'] = $this->normalizeNullableText($validated['attachment_company_name'] ?? null);
+        $validated['attachment_category_name'] = $this->normalizeNullableText($validated['attachment_category_name'] ?? null);
         $validated = $this->resolveBookSubjectData($validated);
 
         DB::transaction(function () use ($request, $document, $validated) {
@@ -580,6 +596,8 @@ class DocumentController extends Controller
                 'title' => $validated['title'],
                 'subject' => $validated['subject'] ?? null,
                 'book_subject_id' => $validated['book_subject_id'] ?? null,
+                'attachment_company_name' => $validated['attachment_company_name'] ?? null,
+                'attachment_category_name' => $validated['attachment_category_name'] ?? null,
                 'description' => $validated['description'] ?? null,
                 'sender' => $validated['sender'] ?? null,
                 'receiver' => $validated['receiver'] ?? null,
@@ -676,12 +694,10 @@ class DocumentController extends Controller
             ->with('attachments')
             ->findOrFail($id);
 
-        foreach ($document->attachments as $attachment) {
-            $disk = Storage::disk($attachment->disk ?: 'local');
+        $attachmentStorage = app(BookAttachmentSmartPathService::class);
 
-            if ($disk->exists($attachment->file_path)) {
-                $disk->delete($attachment->file_path);
-            }
+        foreach ($document->attachments as $attachment) {
+            $attachmentStorage->deleteAttachmentFile($attachment);
         }
 
         ActivityLogger::log(
@@ -732,9 +748,9 @@ class DocumentController extends Controller
     {
         $this->authorizeAttachmentPreview($attachment);
 
-        $disk = Storage::disk($attachment->disk ?: 'local');
+        $attachmentStorage = app(BookAttachmentSmartPathService::class);
 
-        if (!$disk->exists($attachment->file_path)) {
+        if (! $attachmentStorage->attachmentExists($attachment)) {
             abort(404, 'الملف غير موجود.');
         }
 
@@ -751,7 +767,11 @@ class DocumentController extends Controller
             default => $attachment->mime_type ?: 'application/octet-stream',
         };
 
-        $binary = $disk->get($attachment->file_path);
+        $binary = $attachmentStorage->attachmentBinary($attachment);
+
+        if ($binary === null) {
+            abort(404, 'تعذر قراءة الملف.');
+        }
 
         return response()->json([
             'id' => $attachment->id,
@@ -767,9 +787,9 @@ class DocumentController extends Controller
     {
         $this->authorizeAttachmentPreview($attachment);
 
-        $disk = Storage::disk($attachment->disk ?: 'local');
+        $attachmentStorage = app(BookAttachmentSmartPathService::class);
 
-        if (!$disk->exists($attachment->file_path)) {
+        if (! $attachmentStorage->attachmentExists($attachment)) {
             abort(404, 'الملف غير موجود.');
         }
 
@@ -794,18 +814,19 @@ class DocumentController extends Controller
             'X-Content-Type-Options' => 'nosniff',
         ];
 
-        if (method_exists($disk, 'path')) {
-            return response()->file($disk->path($attachment->file_path), $headers);
+        $absolutePath = $attachmentStorage->absolutePathForAttachment($attachment);
+
+        if ($absolutePath && is_file($absolutePath)) {
+            return response()->file($absolutePath, $headers);
         }
 
-        return response()->stream(function () use ($disk, $attachment) {
-            $stream = $disk->readStream($attachment->file_path);
+        $binary = $attachmentStorage->attachmentBinary($attachment);
 
-            if ($stream) {
-                fpassthru($stream);
-                fclose($stream);
-            }
-        }, 200, $headers);
+        if ($binary === null) {
+            abort(404, 'تعذر قراءة الملف.');
+        }
+
+        return response($binary, 200, $headers);
     }
 
     public function downloadAttachment(DocumentAttachment $attachment)
@@ -823,28 +844,27 @@ class DocumentController extends Controller
             ]
         );
 
-        $disk = Storage::disk($attachment->disk ?: 'local');
+        $attachmentStorage = app(BookAttachmentSmartPathService::class);
 
-        if (!$disk->exists($attachment->file_path)) {
+        if (! $attachmentStorage->attachmentExists($attachment)) {
             abort(404, 'الملف غير موجود.');
         }
 
         $fileName = $attachment->original_name ?: $attachment->file_name;
+        $absolutePath = $attachmentStorage->absolutePathForAttachment($attachment);
 
-        if (method_exists($disk, 'path')) {
-            return response()->download(
-                $disk->path($attachment->file_path),
-                $fileName
-            );
+        if ($absolutePath && is_file($absolutePath)) {
+            return response()->download($absolutePath, $fileName);
         }
 
-        return response()->streamDownload(function () use ($disk, $attachment) {
-            $stream = $disk->readStream($attachment->file_path);
+        $binary = $attachmentStorage->attachmentBinary($attachment);
 
-            if ($stream) {
-                fpassthru($stream);
-                fclose($stream);
-            }
+        if ($binary === null) {
+            abort(404, 'تعذر قراءة الملف.');
+        }
+
+        return response()->streamDownload(function () use ($binary) {
+            echo $binary;
         }, $fileName);
     }
 
@@ -988,24 +1008,31 @@ class DocumentController extends Controller
     {
         $file = $request->file('attachment');
 
-        $extension = strtolower($file->getClientOriginalExtension());
-        $safeName = $document->reference_number . '_' . Str::random(12) . '.' . $extension;
-        $folder = 'documents/' . $document->reference_year . '/' . $document->reference_number;
-        $path = $file->storeAs($folder, $safeName, 'local');
-
         $latestVersion = DocumentAttachment::query()
             ->where('document_id', $document->id)
             ->max('version_no');
 
+        $versionNo = ((int) $latestVersion) + 1;
+        $pathService = app(BookAttachmentSmartPathService::class);
+        $storedFile = $pathService->storeUploadedFile($document, $file, $versionNo);
+        $classification = $storedFile['classification'];
+        $safeName = $storedFile['file_name'];
+        $extension = strtolower($file->getClientOriginalExtension() ?: $file->extension() ?: pathinfo($safeName, PATHINFO_EXTENSION));
+
         $attachment = DocumentAttachment::create([
             'document_id' => $document->id,
             'attachment_type' => 'main',
-            'version_no' => ((int) $latestVersion) + 1,
+            'version_no' => $versionNo,
             'is_main' => true,
             'original_name' => $file->getClientOriginalName(),
             'file_name' => $safeName,
-            'file_path' => $path,
-            'disk' => 'local',
+            'file_path' => $storedFile['file_path'],
+            'disk' => $storedFile['disk'],
+            'storage_root_path' => $storedFile['storage_root_path'],
+            'classification_company_name' => $classification['company'],
+            'classification_operation_name' => $classification['operation'],
+            'classification_year' => $classification['year'],
+            'classification_folder' => $classification['folder'],
             'extension' => $extension,
             'mime_type' => $file->getMimeType(),
             'file_size' => $file->getSize(),
@@ -1021,6 +1048,8 @@ class DocumentController extends Controller
                 'document_id' => $document->id,
                 'reference_number' => $document->reference_number,
                 'original_name' => $attachment->original_name,
+                'classification_folder' => $classification['folder'],
+                'smart_classification' => $classification['smart'],
             ]
         );
     }
@@ -1042,6 +1071,70 @@ class DocumentController extends Controller
         $validated['subject'] = $subjectText !== '' ? $subjectText : null;
 
         return $validated;
+    }
+
+    private function attachmentClassificationSuggestions(): array
+    {
+        $companies = collect();
+        $operations = collect();
+
+        try {
+            if (\Illuminate\Support\Facades\Schema::hasTable('book_attachment_companies')) {
+                $companies = BookAttachmentCompany::query()
+                    ->where('is_active', true)
+                    ->orderBy('sort_order')
+                    ->orderBy('name')
+                    ->pluck('name');
+            }
+        } catch (\Throwable $e) {
+            $companies = collect();
+        }
+
+        try {
+            $documentCompanies = Document::query()
+                ->whereNotNull('attachment_company_name')
+                ->where('attachment_company_name', '<>', '')
+                ->distinct()
+                ->orderBy('attachment_company_name')
+                ->pluck('attachment_company_name');
+            $companies = $companies->merge($documentCompanies)->filter()->unique()->values();
+        } catch (\Throwable $e) {
+            // Older databases may not have the V59 columns yet.
+        }
+
+        try {
+            if (\Illuminate\Support\Facades\Schema::hasTable('book_attachment_operations')) {
+                $operations = BookAttachmentOperation::query()
+                    ->where('is_active', true)
+                    ->orderBy('sort_order')
+                    ->orderBy('name')
+                    ->pluck('name');
+            }
+        } catch (\Throwable $e) {
+            $operations = collect();
+        }
+
+        try {
+            $documentOperations = Document::query()
+                ->whereNotNull('attachment_category_name')
+                ->where('attachment_category_name', '<>', '')
+                ->distinct()
+                ->orderBy('attachment_category_name')
+                ->pluck('attachment_category_name');
+            $operations = $operations->merge($documentOperations)->filter()->unique()->values();
+        } catch (\Throwable $e) {
+            // Older databases may not have the V59 columns yet.
+        }
+
+        return [$companies, $operations];
+    }
+
+    private function normalizeNullableText(?string $value): ?string
+    {
+        $value = trim((string) $value);
+        $value = preg_replace('/\s+/u', ' ', $value) ?: $value;
+
+        return $value === '' ? null : $value;
     }
 
     private function normalizeDocumentNumber(?string $value): ?string
@@ -1066,6 +1159,8 @@ class DocumentController extends Controller
         return trim(
             ($data['title'] ?? '') . ' ' .
             ($data['subject'] ?? '') . ' ' .
+            ($data['attachment_company_name'] ?? '') . ' ' .
+            ($data['attachment_category_name'] ?? '') . ' ' .
             ($data['description'] ?? '') . ' ' .
             ($data['sender'] ?? '') . ' ' .
             ($data['receiver'] ?? '') . ' ' .

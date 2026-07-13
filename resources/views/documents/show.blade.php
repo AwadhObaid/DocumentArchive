@@ -187,6 +187,8 @@
             <tbody>
                 <tr><th>تاريخ الكتاب</th><td>{{ optional($value($document ?? null, 'reference_date', null))->format('Y-m-d') ?? $value($document ?? null, 'reference_date') }}</td></tr>
                 <tr><th>موضوع الكتاب من القائمة</th><td>{{ $document?->bookSubject?->name ?: '-' }}</td></tr>
+                <tr><th>شركة / جهة حفظ المرفقات</th><td>{{ $document?->attachment_company_name ?: '-' }}</td></tr>
+                <tr><th>نوع عملية حفظ المرفقات</th><td>{{ $document?->attachment_category_name ?: '-' }}</td></tr>
                 <tr><th>موضوع الكتاب التفصيلي</th><td>{{ $value($document ?? null, 'subject') }}</td></tr>
                 <tr><th>عنوان الكتاب</th><td>{{ $value($document ?? null, 'title') }}</td></tr>
                 <tr><th>البوليصة الرئيسية</th><td>{{ $value($document ?? null, 'main_policy_number') }}</td></tr>
@@ -221,6 +223,7 @@
                         <th>النوع</th>
                         <th>الحجم</th>
                         <th>حالة التخزين</th>
+                        <th>مسار الحفظ</th>
                         <th>فهرسة PDF</th>
                         <th class="no-print">إجراءات</th>
                     </tr>
@@ -243,6 +246,7 @@
                                     <span class="badge" style="background:#fee2e2;color:#991b1b;border:1px solid #fecaca;">مفقود</span>
                                 @endif
                             </td>
+                            <td style="direction:ltr;text-align:left;min-width:220px;white-space:normal;word-break:break-word;">{{ data_get($attachment, 'classification_folder') ?: data_get($attachment, 'file_path', '-') }}</td>
                             <td>{!! $attachmentIndexBadge($attachment) !!}</td>
                             <td class="no-print">
                                 <div style="display:flex;gap:6px;flex-wrap:wrap;align-items:center;">

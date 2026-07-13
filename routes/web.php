@@ -145,6 +145,15 @@ Route::middleware(['auth', ApplyRoutePermissions::class])->group(function () {
     Route::post('/settings', [SettingsController::class, 'update'])
         ->name('settings.update');
 
+    Route::get('/settings/book-attachment-storage/roots', [SettingsController::class, 'bookAttachmentStorageRoots'])
+        ->name('settings.book-attachment-storage.roots');
+
+    Route::get('/settings/book-attachment-storage/directories', [SettingsController::class, 'bookAttachmentStorageDirectories'])
+        ->name('settings.book-attachment-storage.directories');
+
+    Route::post('/settings/book-attachment-storage/directories', [SettingsController::class, 'createBookAttachmentStorageDirectory'])
+        ->name('settings.book-attachment-storage.directories.create');
+
     Route::get('/activity-logs', [ActivityLogController::class, 'index'])
         ->name('activity-logs.index');
 

@@ -89,6 +89,201 @@
             margin-top: 12px;
         }
 
+
+        .book-storage-path-picker-row {
+            display: grid;
+            grid-template-columns: 1fr auto auto;
+            gap: 10px;
+            align-items: center;
+        }
+
+        .book-storage-path-picker-row input {
+            min-width: 0;
+        }
+
+        .book-storage-modal-backdrop {
+            position: fixed;
+            inset: 0;
+            z-index: 9999;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            padding: 18px;
+            background: rgba(2, 6, 23, .72);
+            backdrop-filter: blur(6px);
+        }
+
+        .book-storage-modal-backdrop.is-open {
+            display: flex;
+        }
+
+        .book-storage-modal-card {
+            width: min(980px, 96vw);
+            max-height: 88vh;
+            overflow: hidden;
+            display: grid;
+            grid-template-rows: auto auto 1fr auto;
+            border-radius: 22px;
+            background: #0f172a;
+            border: 1px solid rgba(148, 163, 184, .28);
+            box-shadow: 0 30px 90px rgba(0, 0, 0, .45);
+            color: #e5e7eb;
+        }
+
+        html[data-theme="light"] .book-storage-modal-card {
+            background: #ffffff;
+            color: #0f172a;
+            border-color: rgba(15, 23, 42, .12);
+        }
+
+        .book-storage-modal-header,
+        .book-storage-modal-footer {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 10px;
+            padding: 16px 18px;
+            border-bottom: 1px solid rgba(148, 163, 184, .22);
+        }
+
+        .book-storage-modal-footer {
+            border-bottom: 0;
+            border-top: 1px solid rgba(148, 163, 184, .22);
+            flex-wrap: wrap;
+        }
+
+        .book-storage-modal-header h3 {
+            margin: 0;
+            font-size: 18px;
+        }
+
+        .book-storage-browser-toolbar {
+            display: grid;
+            grid-template-columns: 1fr auto auto;
+            gap: 10px;
+            align-items: center;
+            padding: 14px 18px;
+            border-bottom: 1px solid rgba(148, 163, 184, .22);
+        }
+
+        .book-storage-current-path {
+            direction: ltr;
+            text-align: left;
+            border: 1px solid rgba(148, 163, 184, .24);
+            background: rgba(15, 23, 42, .36);
+            color: inherit;
+            border-radius: 12px;
+            padding: 10px 12px;
+            min-height: 42px;
+            overflow: auto;
+            white-space: nowrap;
+            font-family: Consolas, "Courier New", monospace;
+        }
+
+        html[data-theme="light"] .book-storage-current-path {
+            background: #f8fafc;
+        }
+
+        .book-storage-modal-body {
+            min-height: 360px;
+            overflow: auto;
+            padding: 14px 18px 18px;
+        }
+
+        .book-storage-roots,
+        .book-storage-folder-list {
+            display: grid;
+            gap: 8px;
+        }
+
+        .book-storage-roots {
+            grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+            margin-bottom: 14px;
+        }
+
+        .book-storage-root-btn,
+        .book-storage-folder-row {
+            width: 100%;
+            text-align: start;
+            cursor: pointer;
+            border: 1px solid rgba(148, 163, 184, .24);
+            background: rgba(30, 41, 59, .54);
+            color: inherit;
+            border-radius: 14px;
+            padding: 10px 12px;
+            transition: .15s ease;
+        }
+
+        html[data-theme="light"] .book-storage-root-btn,
+        html[data-theme="light"] .book-storage-folder-row {
+            background: #f8fafc;
+        }
+
+        .book-storage-root-btn:hover,
+        .book-storage-folder-row:hover {
+            border-color: rgba(59, 130, 246, .62);
+            transform: translateY(-1px);
+        }
+
+        .book-storage-root-btn strong,
+        .book-storage-folder-row strong {
+            display: block;
+            margin-bottom: 4px;
+        }
+
+        .book-storage-root-btn span,
+        .book-storage-folder-row span {
+            display: block;
+            direction: ltr;
+            text-align: left;
+            color: #94a3b8;
+            font-size: 12px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .book-storage-modal-alert {
+            display: none;
+            margin: 0 18px 12px;
+            padding: 10px 12px;
+            border-radius: 12px;
+            line-height: 1.7;
+            border: 1px solid rgba(245, 158, 11, .32);
+            background: rgba(245, 158, 11, .10);
+            color: #fde68a;
+        }
+
+        .book-storage-modal-alert.is-visible {
+            display: block;
+        }
+
+        .book-storage-create-row {
+            display: flex;
+            gap: 8px;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+
+        .book-storage-create-row input {
+            min-width: 230px;
+        }
+
+        @media (max-width: 760px) {
+            .book-storage-path-picker-row,
+            .book-storage-browser-toolbar {
+                grid-template-columns: 1fr;
+            }
+
+            .book-storage-modal-card {
+                max-height: 94vh;
+            }
+
+            .book-storage-modal-footer {
+                align-items: stretch;
+            }
+        }
+
         .settings-form-actions {
             display: flex;
             gap: 10px;
@@ -382,6 +577,7 @@
                 <span class="settings-polish-badge">🔒 الخروج التلقائي: {{ $printSummary['auto_logout'] }}</span>
                 <span class="settings-polish-badge">🔎 بحث PDF/OCR: {{ $printSummary['pdf_search'] }}</span>
                 <span class="settings-polish-badge">💬 الدردشة الداخلية: {{ $printSummary['internal_chat'] }}</span>
+                <span class="settings-polish-badge">📁 مسار مرفقات الكتب: {{ $printSummary['book_attachment_storage'] }}</span>
             </div>
         </div>
 
@@ -537,6 +733,51 @@
 
                 <div class="settings-warning-box">
                     الدردشة الداخلية تحفظ الرسائل في قاعدة البيانات وتظهر للمستخدم المستلم بعد التحديث التلقائي. للمراسلات الرسمية المرتبطة بالكتب والمذكرات استخدم صفحة المراسلات الداخلية.
+                </div>
+
+                <hr style="margin: 25px 0; border: 0; border-top: 1px solid rgba(148,163,184,.35);">
+
+                <div class="settings-section-header">
+                    <div>
+                        <h2>إعدادات حفظ مرفقات الكتب</h2>
+                        <p>حدد المجلد الرئيسي الذي تُحفظ داخله مرفقات الكتب المصنفة. ينطبق هذا الإعداد على المرفقات الجديدة فقط، ولا ينقل المرفقات القديمة تلقائياً.</p>
+                    </div>
+                </div>
+
+                <div class="form-grid">
+                    <div class="form-group full">
+                        <label>المسار الافتراضي لمرفقات الكتب</label>
+                        <div class="book-storage-path-picker-row">
+                            <input
+                                type="text"
+                                name="book_attachment_storage_root"
+                                id="bookAttachmentStorageRootInput"
+                                value="{{ old('book_attachment_storage_root', $settings['book_attachment_storage_root'] ?? '') }}"
+                                maxlength="1000"
+                                dir="ltr"
+                                placeholder="D:\DocumentArchiveFiles"
+                            >
+                            <button type="button" class="btn btn-secondary" id="bookAttachmentStorageBrowseBtn">اختيار المسار</button>
+                            <button type="button" class="btn btn-secondary" id="bookAttachmentStorageDefaultBtn" data-default-path="{{ storage_path('app/private') }}">المسار الافتراضي</button>
+                        </div>
+                        @error('book_attachment_storage_root')
+                            <small class="settings-small-note" style="color:#fecaca;">{{ $message }}</small>
+                        @enderror
+                        <small class="settings-small-note">
+                            زر اختيار المسار يستعرض مجلدات جهاز السيرفر وليس جهاز المستخدم البعيد. في بيئة Laragon المحلية يكون هو نفس جهازك.
+                        </small>
+                        <small class="settings-small-note">
+                            اتركه فارغاً لاستخدام المسار الافتراضي داخل المشروع: <span dir="ltr">{{ storage_path('app/private') }}</span>
+                        </small>
+                        <small class="settings-small-note">
+                            عند اختيار مسار خارجي مثل <span dir="ltr">D:\DocumentArchiveFiles</span> سيحفظ النظام المرفقات الجديدة بهذا الشكل:
+                            <span dir="ltr">D:\DocumentArchiveFiles\Books\DHL EXPRESS\إفراج جمركي 2026\251230010</span>
+                        </small>
+                    </div>
+                </div>
+
+                <div class="settings-warning-box">
+                    تنبيه مهم: يجب أن يكون المسار كاملاً ومتاحاً للكتابة من جهاز السيرفر. لا تستخدم مجلد public ولا مجلد داخل سطح المكتب لمستخدم مختلف، حتى لا تتعطل المعاينة أو التنزيل.
                 </div>
 
                 <hr style="margin: 25px 0; border: 0; border-top: 1px solid rgba(148,163,184,.35);">
@@ -723,6 +964,258 @@
                     <button type="submit" class="btn btn-success">حفظ الإعدادات</button>
                 </div>
             </form>
+
+
+            <div class="book-storage-modal-backdrop" id="bookStoragePathModal" aria-hidden="true">
+                <div class="book-storage-modal-card" role="dialog" aria-modal="true" aria-labelledby="bookStoragePathTitle">
+                    <div class="book-storage-modal-header">
+                        <div>
+                            <h3 id="bookStoragePathTitle">اختيار مسار مرفقات الكتب</h3>
+                            <small class="settings-small-note">اختر مجلداً موجوداً على جهاز السيرفر، أو أنشئ مجلداً جديداً ثم استخدمه.</small>
+                        </div>
+                        <button type="button" class="btn btn-secondary" data-book-storage-close>إغلاق</button>
+                    </div>
+
+                    <div class="book-storage-browser-toolbar">
+                        <div class="book-storage-current-path" id="bookStorageCurrentPath">...</div>
+                        <button type="button" class="btn btn-secondary" id="bookStorageParentBtn">رجوع للمجلد السابق</button>
+                        <button type="button" class="btn btn-secondary" id="bookStorageRefreshBtn">تحديث</button>
+                    </div>
+
+                    <div class="book-storage-modal-alert" id="bookStorageModalAlert"></div>
+
+                    <div class="book-storage-modal-body">
+                        <div class="book-storage-roots" id="bookStorageRoots"></div>
+                        <div class="book-storage-folder-list" id="bookStorageFolderList"></div>
+                    </div>
+
+                    <div class="book-storage-modal-footer">
+                        <div class="book-storage-create-row">
+                            <input type="text" id="bookStorageNewFolderName" placeholder="اسم مجلد جديد مثل: DocumentArchiveFiles" maxlength="120">
+                            <button type="button" class="btn btn-secondary" id="bookStorageCreateFolderBtn">إنشاء مجلد هنا</button>
+                        </div>
+                        <div style="display:flex; gap:8px; flex-wrap:wrap;">
+                            <button type="button" class="btn btn-primary" id="bookStorageUsePathBtn">استخدام هذا المسار</button>
+                            <button type="button" class="btn btn-secondary" data-book-storage-close>إلغاء</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+
+            <script>
+                document.addEventListener('DOMContentLoaded', function () {
+                    const input = document.getElementById('bookAttachmentStorageRootInput');
+                    const browseBtn = document.getElementById('bookAttachmentStorageBrowseBtn');
+                    const defaultBtn = document.getElementById('bookAttachmentStorageDefaultBtn');
+                    const modal = document.getElementById('bookStoragePathModal');
+                    const rootsBox = document.getElementById('bookStorageRoots');
+                    const folderList = document.getElementById('bookStorageFolderList');
+                    const currentPathBox = document.getElementById('bookStorageCurrentPath');
+                    const alertBox = document.getElementById('bookStorageModalAlert');
+                    const parentBtn = document.getElementById('bookStorageParentBtn');
+                    const refreshBtn = document.getElementById('bookStorageRefreshBtn');
+                    const usePathBtn = document.getElementById('bookStorageUsePathBtn');
+                    const createFolderBtn = document.getElementById('bookStorageCreateFolderBtn');
+                    const newFolderInput = document.getElementById('bookStorageNewFolderName');
+
+                    if (!input || !browseBtn || !modal) {
+                        return;
+                    }
+
+                    const urls = {
+                        roots: @json(route('settings.book-attachment-storage.roots')),
+                        directories: @json(route('settings.book-attachment-storage.directories')),
+                        create: @json(route('settings.book-attachment-storage.directories.create'))
+                    };
+                    const csrf = @json(csrf_token());
+                    let currentPath = input.value || defaultBtn?.dataset.defaultPath || '';
+                    let parentPath = null;
+
+                    function showAlert(message) {
+                        alertBox.textContent = message || '';
+                        alertBox.classList.toggle('is-visible', Boolean(message));
+                    }
+
+                    function setLoading(message) {
+                        folderList.innerHTML = '<div class="settings-small-note">' + (message || 'جاري التحميل...') + '</div>';
+                    }
+
+                    function openModal() {
+                        modal.classList.add('is-open');
+                        modal.setAttribute('aria-hidden', 'false');
+                        document.body.style.overflow = 'hidden';
+                        currentPath = input.value || defaultBtn?.dataset.defaultPath || currentPath;
+                        loadRoots();
+                        loadDirectories(currentPath);
+                    }
+
+                    function closeModal() {
+                        modal.classList.remove('is-open');
+                        modal.setAttribute('aria-hidden', 'true');
+                        document.body.style.overflow = '';
+                        showAlert('');
+                    }
+
+                    async function requestJson(url, options = {}) {
+                        const response = await fetch(url, {
+                            headers: {
+                                'Accept': 'application/json',
+                                ...(options.headers || {})
+                            },
+                            ...options
+                        });
+
+                        const data = await response.json().catch(() => ({}));
+
+                        if (!response.ok || data.ok === false) {
+                            throw new Error(data.message || 'تعذر تنفيذ العملية.');
+                        }
+
+                        return data;
+                    }
+
+                    async function loadRoots() {
+                        try {
+                            const data = await requestJson(urls.roots);
+                            rootsBox.innerHTML = '';
+                            (data.roots || []).forEach(function (root) {
+                                const btn = document.createElement('button');
+                                btn.type = 'button';
+                                btn.className = 'book-storage-root-btn';
+                                btn.innerHTML = '<strong>🗂️ ' + escapeHtml(root.name || 'مسار') + (root.writable ? ' <small>قابل للكتابة</small>' : ' <small>قراءة فقط</small>') + '</strong><span>' + escapeHtml(root.path || '') + '</span>';
+                                btn.addEventListener('click', function () {
+                                    loadDirectories(root.path);
+                                });
+                                rootsBox.appendChild(btn);
+                            });
+                        } catch (error) {
+                            showAlert(error.message);
+                        }
+                    }
+
+                    async function loadDirectories(path) {
+                        showAlert('');
+                        currentPathBox.textContent = path || '';
+                        setLoading('جاري استعراض المجلدات...');
+
+                        try {
+                            const url = urls.directories + '?path=' + encodeURIComponent(path || '');
+                            const data = await requestJson(url);
+                            currentPath = data.path || path || '';
+                            parentPath = data.parent || null;
+                            currentPathBox.textContent = currentPath;
+                            parentBtn.disabled = !parentPath;
+                            folderList.innerHTML = '';
+
+                            if (!data.writable) {
+                                showAlert('تنبيه: هذا المجلد غير قابل للكتابة حالياً. يمكنك استعراضه، لكن يفضل اختيار مجلد قابل للكتابة لحفظ المرفقات.');
+                            }
+
+                            if (!data.directories || data.directories.length === 0) {
+                                folderList.innerHTML = '<div class="settings-small-note">لا توجد مجلدات فرعية داخل هذا المسار.</div>';
+                                return;
+                            }
+
+                            data.directories.forEach(function (folder) {
+                                const row = document.createElement('button');
+                                row.type = 'button';
+                                row.className = 'book-storage-folder-row';
+                                row.innerHTML = '<strong>📁 ' + escapeHtml(folder.name || '') + (folder.writable ? ' <small>قابل للكتابة</small>' : '') + '</strong><span>' + escapeHtml(folder.path || '') + '</span>';
+                                row.addEventListener('click', function () {
+                                    loadDirectories(folder.path);
+                                });
+                                folderList.appendChild(row);
+                            });
+                        } catch (error) {
+                            folderList.innerHTML = '';
+                            showAlert(error.message);
+                        }
+                    }
+
+                    async function createFolder() {
+                        const name = (newFolderInput.value || '').trim();
+                        if (!name) {
+                            showAlert('اكتب اسم المجلد الجديد أولاً.');
+                            newFolderInput.focus();
+                            return;
+                        }
+
+                        try {
+                            const data = await requestJson(urls.create, {
+                                method: 'POST',
+                                headers: {
+                                    'Content-Type': 'application/json',
+                                    'X-CSRF-TOKEN': csrf
+                                },
+                                body: JSON.stringify({
+                                    path: currentPath,
+                                    name: name
+                                })
+                            });
+                            newFolderInput.value = '';
+                            showAlert(data.message || 'تم إنشاء المجلد.');
+                            await loadDirectories(data.path || currentPath);
+                        } catch (error) {
+                            showAlert(error.message);
+                        }
+                    }
+
+                    function escapeHtml(value) {
+                        return String(value ?? '')
+                            .replace(/&/g, '&amp;')
+                            .replace(/</g, '&lt;')
+                            .replace(/>/g, '&gt;')
+                            .replace(/"/g, '&quot;')
+                            .replace(/'/g, '&#039;');
+                    }
+
+                    browseBtn.addEventListener('click', openModal);
+
+                    defaultBtn?.addEventListener('click', function () {
+                        input.value = defaultBtn.dataset.defaultPath || '';
+                    });
+
+                    modal.querySelectorAll('[data-book-storage-close]').forEach(function (btn) {
+                        btn.addEventListener('click', closeModal);
+                    });
+
+                    modal.addEventListener('click', function (event) {
+                        if (event.target === modal) {
+                            closeModal();
+                        }
+                    });
+
+                    parentBtn.addEventListener('click', function () {
+                        if (parentPath) {
+                            loadDirectories(parentPath);
+                        }
+                    });
+
+                    refreshBtn.addEventListener('click', function () {
+                        loadDirectories(currentPath);
+                    });
+
+                    usePathBtn.addEventListener('click', function () {
+                        input.value = currentPath || '';
+                        closeModal();
+                    });
+
+                    createFolderBtn.addEventListener('click', createFolder);
+                    newFolderInput.addEventListener('keydown', function (event) {
+                        if (event.key === 'Enter') {
+                            event.preventDefault();
+                            createFolder();
+                        }
+                    });
+
+                    document.addEventListener('keydown', function (event) {
+                        if (event.key === 'Escape' && modal.classList.contains('is-open')) {
+                            closeModal();
+                        }
+                    });
+                });
+            </script>
         @else
             <div class="alert-error">ليست لديك صلاحية إدارة الإعدادات.</div>
         @endif

@@ -56,6 +56,28 @@
                     <small>عند اختيار موضوع وترك النص التفصيلي فارغاً سيتم حفظ اسم الموضوع تلقائياً.</small>
                 </div>
 
+                <div class="form-group">
+                    <label>شركة / جهة حفظ المرفقات</label>
+                    <input type="text" name="attachment_company_name" value="{{ old('attachment_company_name', $document->attachment_company_name) }}" list="attachmentCompanySuggestions" placeholder="مثال: DHL EXPRESS">
+                    <datalist id="attachmentCompanySuggestions">
+                        @foreach($attachmentCompanies ?? [] as $companyName)
+                            <option value="{{ $companyName }}">
+                        @endforeach
+                    </datalist>
+                    <small>يتم تطبيق هذا التصنيف على المرفقات الجديدة فقط.</small>
+                </div>
+
+                <div class="form-group">
+                    <label>نوع عملية حفظ المرفقات</label>
+                    <input type="text" name="attachment_category_name" value="{{ old('attachment_category_name', $document->attachment_category_name) }}" list="attachmentOperationSuggestions" placeholder="مثال: إفراج جمركي">
+                    <datalist id="attachmentOperationSuggestions">
+                        @foreach($attachmentOperations ?? [] as $operationName)
+                            <option value="{{ $operationName }}">
+                        @endforeach
+                    </datalist>
+                    <small>مثال المسار: Books / DHL EXPRESS / إفراج جمركي {{ $document->reference_year ?: now()->year }}.</small>
+                </div>
+
                 <div class="form-group full">
                     <label>موضوع إضافي / تفصيلي</label>
                     <textarea name="subject" data-subject-text placeholder="اختر موضوعاً من القائمة أو اكتب موضوعاً تفصيلياً">{{ old('subject', $document->subject) }}</textarea>

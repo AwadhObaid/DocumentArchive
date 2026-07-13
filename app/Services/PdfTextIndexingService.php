@@ -83,25 +83,48 @@ class PdfTextIndexingService
             return $index;
         }
 
-        $diskName = $attachment->disk ?: 'local';
         $path = $attachment->file_path;
-        $disk = Storage::disk($diskName);
+        $absolutePath = null;
 
-        if (! $path || ! $disk->exists($path)) {
-            $index->fill([
-                'index_status' => 'missing',
-                'extractor' => 'none',
-                'needs_ocr' => false,
-                'text_length' => 0,
-                'indexed_text' => null,
-                'error_message' => 'الملف غير موجود على التخزين.',
-                'last_indexed_at' => now(),
-            ])->save();
+        if ($sourceType === 'document' && $attachment instanceof DocumentAttachment) {
+            $attachmentStorage = app(BookAttachmentSmartPathService::class);
 
-            return $index;
+            if (! $path || ! $attachmentStorage->attachmentExists($attachment)) {
+                $index->fill([
+                    'index_status' => 'missing',
+                    'extractor' => 'none',
+                    'needs_ocr' => false,
+                    'text_length' => 0,
+                    'indexed_text' => null,
+                    'error_message' => 'الملف غير موجود على التخزين.',
+                    'last_indexed_at' => now(),
+                ])->save();
+
+                return $index;
+            }
+
+            $absolutePath = $attachmentStorage->absolutePathForAttachment($attachment);
+        } else {
+            $diskName = $attachment->disk ?: 'local';
+            $disk = Storage::disk($diskName);
+
+            if (! $path || ! $disk->exists($path)) {
+                $index->fill([
+                    'index_status' => 'missing',
+                    'extractor' => 'none',
+                    'needs_ocr' => false,
+                    'text_length' => 0,
+                    'indexed_text' => null,
+                    'error_message' => 'الملف غير موجود على التخزين.',
+                    'last_indexed_at' => now(),
+                ])->save();
+
+                return $index;
+            }
+
+            $absolutePath = method_exists($disk, 'path') ? $disk->path($path) : null;
         }
 
-        $absolutePath = method_exists($disk, 'path') ? $disk->path($path) : null;
         if (! $absolutePath || ! is_file($absolutePath)) {
             $index->fill([
                 'index_status' => 'missing',

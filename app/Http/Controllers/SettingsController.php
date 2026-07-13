@@ -417,6 +417,7 @@ class SettingsController extends Controller
     }
 
 
+
     private function parentStorageBrowserPath(string $path): ?string
     {
         $path = $this->normalizeStorageBrowserPath($path);
@@ -439,6 +440,7 @@ class SettingsController extends Controller
     }
 
 
+
     private function sanitizeStorageBrowserFolderName(string $name): string
     {
         $name = trim($name);
@@ -452,6 +454,7 @@ class SettingsController extends Controller
 
         return mb_substr($name, 0, 100);
     }
+
 
 
     private function settingsBrowserIsWindowsDriveOnly(string $path): bool

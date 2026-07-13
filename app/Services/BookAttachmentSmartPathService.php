@@ -123,10 +123,12 @@ class BookAttachmentSmartPathService
     }
 
 
+
     public function isAbsoluteStorageRoot(string $path): bool
     {
         return $this->isAbsolutePath($path);
     }
+
 
 
     public function prepareStorageRoot(?string $path): ?string
@@ -273,6 +275,7 @@ class BookAttachmentSmartPathService
             || str_starts_with($path, '/')
             || str_starts_with($path, '\\');
     }
+
 
 
     private function isWindowsDriveOnly(string $path): bool
