@@ -65,7 +65,8 @@ class GeminiSmartReportService
             'system_instruction' => $this->systemInstruction(),
             'input' => $prompt,
             'generation_config' => [
-                'temperature' => 0.35,
+                'temperature' => 0.25,
+                'thinking_level' => 'low',
             ],
         ];
 
@@ -90,7 +91,7 @@ class GeminiSmartReportService
                 $message = mb_substr($response->body(), 0, 600);
             }
 
-            throw new \RuntimeException('فشل طلب Gemini: ' . $message);
+            throw new \RuntimeException('فشل طلب Gemini (' . $response->status() . '): ' . $message);
         }
 
         $text = $this->extractText($json);
@@ -142,9 +143,14 @@ class GeminiSmartReportService
             // Compatibility with multi-step Interactions responses.
             $texts = [];
             foreach ((array) data_get($json, 'steps', []) as $step) {
+                $stepOutputText = data_get($step, 'output_text');
+                if (is_string($stepOutputText) && trim($stepOutputText) !== '') {
+                    $texts[] = trim($stepOutputText);
+                }
+
                 $blocks = data_get($step, 'output', data_get($step, 'content', []));
                 foreach ((array) $blocks as $block) {
-                    $text = is_array($block) ? ($block['text'] ?? null) : null;
+                    $text = is_array($block) ? ($block['text'] ?? data_get($block, 'delta.text')) : null;
                     if (is_string($text) && trim($text) !== '') {
                         $texts[] = trim($text);
                     }
@@ -152,7 +158,7 @@ class GeminiSmartReportService
             }
 
             if ($texts !== []) {
-                return trim(implode("\n", $texts));
+                return trim(implode("\n", array_unique($texts)));
             }
         }
 

@@ -8,6 +8,7 @@ use App\Models\Setting;
 use App\Models\SmartReportRun;
 use App\Services\ActivityLogger;
 use App\Services\GeminiSmartReportService;
+use App\Support\SmartReportTextFormatter;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -112,7 +113,7 @@ class SmartReportController extends Controller
             $run->update([
                 'status' => 'completed',
                 'model' => $result['model'],
-                'result_text' => $result['text'],
+                'result_text' => SmartReportTextFormatter::clean($result['text']),
                 'error_message' => null,
             ]);
 
@@ -190,6 +191,8 @@ class SmartReportController extends Controller
             'margin_left' => 10,
         ]);
 
+        $mpdf->SetTitle($smartReportRun->title ?: 'تقرير ذكي تحليلي');
+        $mpdf->SetAuthor('DocumentArchive');
         $mpdf->SetDirectionality('rtl');
         $mpdf->WriteHTML($html);
 
@@ -318,8 +321,9 @@ class SmartReportController extends Controller
         $instructions = [
             'اكتب تقريراً إدارياً احترافياً باللغة العربية بناءً على بيانات JSON التالية.',
             'لا تخترع أي رقم غير موجود في البيانات.',
-            'لا تستخدم Markdown إطلاقاً. ممنوع استخدام رموز مثل # أو ** أو --- أو backticks.',
+            'لا تستخدم Markdown إطلاقاً. ممنوع استخدام رموز مثل # أو ** أو --- أو backticks أو الجداول النصية.',
             'اكتب العناوين كنص عربي مباشر فقط، مثل: أولاً: الملخص التنفيذي.',
+            'لا تكتب داخل التقرير كلمات مثل: الحالة، الموديل، الإصدار المرئي، Gemini API، أو تفاصيل تقنية.',
             'رتب التقرير بهذه العناوين: الملخص التنفيذي، المؤشرات الرئيسية، قراءة الرسوم البيانية، المخاطر والملاحظات، التوصيات العملية.',
             'استخدم فقرات قصيرة ونقاط واضحة بلغة إدارية رسمية.',
             'اربط التحليل ببيئة قسم الشحن والتأمين، وركّز على الشركات، أنواع العمليات، المرفقات، وجودة البيانات.',

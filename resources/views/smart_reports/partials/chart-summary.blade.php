@@ -5,6 +5,7 @@
 @endphp
 
 @if(!empty($smartChartSets))
+    @php $hasPrintableChartRows = false; @endphp
     <div class="{{ $summaryClass }}">
         @foreach($smartChartSets as $groupTitle => $rows)
             @php
@@ -17,6 +18,7 @@
             @endphp
 
             @if($rows !== [])
+                @php $hasPrintableChartRows = true; @endphp
                 <div class="smart-chart-summary-group">
                     <h4>{{ $groupTitle }}</h4>
                     <table class="smart-summary-table">
@@ -49,4 +51,7 @@
             @endif
         @endforeach
     </div>
+    @unless($hasPrintableChartRows)
+        <p class="smart-report-muted">لا توجد بيانات كافية لعرض ملخص الرسوم والمؤشرات البيانية.</p>
+    @endunless
 @endif

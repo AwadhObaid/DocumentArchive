@@ -1,0 +1,131 @@
+/* Smart Reports V69 - Final official report polish */
+.smart-official-report-v69 {
+    position: relative;
+}
+
+.smart-official-report-v69 .smart-print-header {
+    background: linear-gradient(180deg, rgba(248,250,252,.98), rgba(255,255,255,.96));
+}
+
+.smart-official-report-v69 .smart-report-clean {
+    font-size: .96rem;
+}
+
+.smart-official-report-v69 .smart-report-clean h3 {
+    border-inline-start: 4px solid #2563eb;
+    padding: .35rem .75rem;
+    background: rgba(37, 99, 235, .07);
+    border-radius: 10px;
+}
+
+.smart-official-report-v69 .smart-report-clean p,
+.smart-official-report-v69 .smart-report-clean li {
+    color: var(--text, #111827);
+}
+
+.smart-official-report-v69 .smart-kpi-card strong {
+    direction: rtl;
+    unicode-bidi: plaintext;
+}
+
+.smart-official-report-v69 .smart-chart-summary-group {
+    break-inside: avoid;
+}
+
+.smart-official-report-v69 .smart-summary-table td:first-child {
+    word-break: break-word;
+}
+
+.smart-official-report-v69 .smart-summary-bar {
+    min-width: 120px;
+}
+
+@media print {
+    @page {
+        size: A4 portrait;
+        margin: 12mm;
+    }
+
+    body.smart-report-printing #smartReportPrintClone {
+        font-family: "DejaVu Sans", Tahoma, Arial, sans-serif !important;
+        font-size: 11.5px !important;
+        line-height: 1.7 !important;
+    }
+
+    body.smart-report-printing #smartReportPrintClone .smart-print-header {
+        margin-top: 0 !important;
+        padding: 13px 15px !important;
+    }
+
+    body.smart-report-printing #smartReportPrintClone .smart-print-brand {
+        color: #64748b !important;
+        font-size: 10.5px !important;
+    }
+
+    body.smart-report-printing #smartReportPrintClone .smart-print-header h1 {
+        font-size: 19px !important;
+        margin: 3px 0 6px !important;
+        color: #0f172a !important;
+    }
+
+    body.smart-report-printing #smartReportPrintClone .smart-print-header p {
+        color: #475569 !important;
+        margin-bottom: 9px !important;
+    }
+
+    body.smart-report-printing #smartReportPrintClone .smart-kpi-grid {
+        grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+        gap: 7px !important;
+    }
+
+    body.smart-report-printing #smartReportPrintClone .smart-report-clean h3 {
+        border: 0 !important;
+        border-bottom: 1px solid #dbeafe !important;
+        border-radius: 0 !important;
+        background: #ffffff !important;
+        color: #1d4ed8 !important;
+        padding: 0 0 5px !important;
+        margin: 12px 0 6px !important;
+        break-after: avoid !important;
+        page-break-after: avoid !important;
+    }
+
+    body.smart-report-printing #smartReportPrintClone .smart-report-clean p {
+        margin: 0 0 7px !important;
+        orphans: 3 !important;
+        widows: 3 !important;
+    }
+
+    body.smart-report-printing #smartReportPrintClone .smart-report-list {
+        margin: 4px 0 8px !important;
+        padding-right: 17px !important;
+    }
+
+    body.smart-report-printing #smartReportPrintClone .smart-report-list li {
+        margin-bottom: 4px !important;
+        break-inside: avoid !important;
+    }
+
+    body.smart-report-printing #smartReportPrintClone .smart-chart-summary-group {
+        break-inside: avoid !important;
+        page-break-inside: avoid !important;
+    }
+
+    body.smart-report-printing #smartReportPrintClone .smart-summary-table th,
+    body.smart-report-printing #smartReportPrintClone .smart-summary-table td {
+        font-size: 10.5px !important;
+    }
+
+    body.smart-report-printing #smartReportPrintClone .smart-summary-bar {
+        width: 130px !important;
+    }
+
+    body.smart-report-printing #smartReportPrintClone [class*="floating"],
+    body.smart-report-printing #smartReportPrintClone [class*="notification"],
+    body.smart-report-printing #smartReportPrintClone [id*="notification"],
+    body.smart-report-printing #smartReportPrintClone svg,
+    body.smart-report-printing #smartReportPrintClone i {
+        display: none !important;
+        visibility: hidden !important;
+    }
+}

@@ -2,13 +2,14 @@
 
 @section('title', 'التقارير الذكية')
 @section('page_title', 'التقارير الذكية')
-@section('page_subtitle', 'لوحة مؤشرات ورسوم بيانية وتحليل عبر Gemini API من بيانات الكتب داخل النظام')
+@section('page_subtitle', 'لوحة مؤشرات ورسوم بيانية وتحليل إداري من بيانات الكتب داخل النظام')
 
 @section('content')
 <link rel="stylesheet" href="{{ asset('css/smart-reports-v65.css') }}?v=65">
 <link rel="stylesheet" href="{{ asset('css/smart-reports-v66.css') }}?v=66">
 <link rel="stylesheet" href="{{ asset('css/smart-reports-v67-print.css') }}?v=67">
 <link rel="stylesheet" href="{{ asset('css/smart-reports-v68-print-page-fix.css') }}?v=68">
+<link rel="stylesheet" href="{{ asset('css/smart-reports-v69-final.css') }}?v=69">
 
 <div class="smart-reports-page smart-reports-page-v66" dir="rtl">
     @if(session('success'))
@@ -31,7 +32,7 @@
             <span class="smart-eyebrow">تقرير تحليلي</span>
             <h2>لوحة التقارير الذكية والتحليل البياني</h2>
             <p>
-                تجمع هذه الصفحة بين تحليل محلي دقيق من قاعدة البيانات ورسوم بيانية داخل النظام، ثم يستخدم Gemini ملخص الأرقام فقط لصياغة تقرير إداري عربي مع توصيات.
+                تجمع هذه الصفحة بين تحليل محلي دقيق من قاعدة البيانات ورسوم بيانية داخل النظام، ثم يصوغ النظام تقريرًا إداريًا عربيًا مع توصيات عملية قابلة للطباعة والتصدير.
                 لا يتم إرسال ملفات المرفقات نفسها.
             </p>
         </div>
@@ -152,7 +153,7 @@
             $localInsights = $analytics['local_insights'] ?? [];
         @endphp
 
-        <div class="smart-card smart-result-card smart-result-card-v66" id="smartPrintableReport">
+        <div class="smart-card smart-result-card smart-result-card-v66 smart-official-report-v69" id="smartPrintableReport">
             <div class="smart-card-title">
                 <span>{{ $lastReport->title ?: 'نتيجة التقرير الذكي' }}</span>
                 <div class="smart-actions compact smart-screen-only">
@@ -293,7 +294,7 @@
 
                 <section class="smart-ai-analysis-section">
                     <div class="smart-section-heading">
-                        <h3>التحليل الذكي بواسطة Gemini</h3>
+                        <h3>التحليل الذكي والتوصيات</h3>
                         <span>صياغة إدارية مبنية على المؤشرات والرسوم أعلاه</span>
                     </div>
                     <div class="smart-report-output smart-report-output-v66 smart-report-clean" id="smartReportOutput">{!! \App\Support\SmartReportTextFormatter::toHtml($lastReport->result_text) !!}</div>
@@ -352,4 +353,5 @@
 
 <script src="{{ asset('js/smart-reports-v66.js') }}?v=66" defer></script>
 <script src="{{ asset('js/smart-reports-v68-print-page-fix.js') }}?v=68" defer></script>
+<script src="{{ asset('js/smart-reports-v69-final.js') }}?v=69" defer></script>
 @endsection

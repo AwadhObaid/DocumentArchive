@@ -121,6 +121,6 @@
     <h2>التحليل الذكي والتوصيات</h2>
     <div class="analysis">{!! \App\Support\SmartReportTextFormatter::toHtml($report->result_text) !!}</div>
 
-    <div class="footer-note">تم إنشاء هذا التقرير من داخل نظام أرشفة المستندات. لا يتضمن هذا التقرير أي مفاتيح API أو بيانات تقنية داخلية.</div>
+    <div class="footer-note">تم إنشاء هذا التقرير من داخل نظام أرشفة المستندات اعتمادًا على بيانات الكتب المسجلة داخل النظام.</div>
 </body>
 </html>
