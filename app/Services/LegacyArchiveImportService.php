@@ -18,6 +18,8 @@ class LegacyArchiveImportService
 {
     public const SOURCE_NAME = 'ESIS_TbArchive';
 
+    private const LEGACY_REFERENCE_START_NUMBER = 251230000;
+
     public function __construct(
         private readonly LegacyArchiveCsvReader $reader,
         private readonly BookAttachmentSmartPathService $pathService,
@@ -569,12 +571,14 @@ class LegacyArchiveImportService
 
     private function referenceSequence(string $referenceNumber, int $year): int
     {
-        $startNumber = (int) Setting::getValue('reference_start_number', 251230000);
+        $referenceNumber = trim($referenceNumber);
 
         if (ctype_digit($referenceNumber)) {
             $number = (int) $referenceNumber;
-            if ($number >= $startNumber) {
-                return $number - $startNumber;
+            $sequence = $number - self::LEGACY_REFERENCE_START_NUMBER;
+
+            if ($sequence >= 0) {
+                return $sequence;
             }
         }
 
@@ -591,7 +595,7 @@ class LegacyArchiveImportService
             return;
         }
 
-        $startNumber = (int) Setting::getValue('reference_start_number', 251230000);
+        $startNumber = self::LEGACY_REFERENCE_START_NUMBER;
         $years = Document::withTrashed()
             ->whereNotNull('reference_year')
             ->distinct()
@@ -607,7 +611,7 @@ class LegacyArchiveImportService
                 ->first();
 
             $safeSequence = max($maxSequence, (int) ($existing->last_sequence ?? -1));
-            $safeStart = (int) ($existing->start_number ?? $startNumber);
+            $safeStart = $startNumber;
 
             DB::table('reference_counters')->updateOrInsert(
                 ['reference_year' => (int) $year],
