@@ -56,6 +56,10 @@ class PermissionRegistry
                 'permissions' => [
                     'attachments.preview' => 'معاينة المرفقات',
                     'attachments.download' => 'تنزيل المرفقات',
+                    'attachments.relocate' => 'ترتيب ونقل المرفقات القديمة',
+                    'scanner.workflow' => 'استخدام صندوق الماسح وربط الملفات بالكتب',
+                    'scanner.settings' => 'تعديل مسار صندوق الماسح',
+                    'legacy_import.manage' => 'فحص واستيراد الأرشيف القديم',
                 ],
             ],
             [
@@ -316,6 +320,7 @@ class PermissionRegistry
             'workflow.finalize',
             'attachments.preview',
             'attachments.download',
+            'scanner.workflow',
             'attachment_shares.view',
             'attachment_shares.create',
             'attachment_shares.revoke',

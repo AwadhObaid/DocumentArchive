@@ -1008,6 +1008,41 @@ class DocumentController extends Controller
     {
         $file = $request->file('attachment');
 
+        if (! $file || ! $file->isValid()) {
+            throw new \RuntimeException('الملف المرفوع غير صالح أو لم يكتمل رفعه.');
+        }
+
+        /*
+         * DOCUMENT_ATTACHMENT_METADATA_BEFORE_MOVE_V82_START
+         *
+         * UploadedFile::move() removes the PHP temporary upload. Therefore all
+         * metadata that depends on that temporary file must be captured before
+         * BookAttachmentSmartPathService moves it to the archive destination.
+         */
+        $originalName = $file->getClientOriginalName();
+        $extension = strtolower(
+            $file->getClientOriginalExtension()
+            ?: pathinfo($originalName, PATHINFO_EXTENSION)
+            ?: 'bin'
+        );
+
+        $fileSize = $file->getSize();
+        if ($fileSize === false || $fileSize === null) {
+            $temporaryPath = $file->getPathname();
+            $fileSize = is_file($temporaryPath) ? (int) filesize($temporaryPath) : 0;
+        }
+
+        try {
+            $mimeType = $file->getMimeType();
+        } catch (\Throwable $e) {
+            $mimeType = null;
+        }
+
+        $mimeType = $mimeType ?: $file->getClientMimeType() ?: 'application/octet-stream';
+        /*
+         * DOCUMENT_ATTACHMENT_METADATA_BEFORE_MOVE_V82_END
+         */
+
         $latestVersion = DocumentAttachment::query()
             ->where('document_id', $document->id)
             ->max('version_no');
@@ -1017,41 +1052,55 @@ class DocumentController extends Controller
         $storedFile = $pathService->storeUploadedFile($document, $file, $versionNo);
         $classification = $storedFile['classification'];
         $safeName = $storedFile['file_name'];
-        $extension = strtolower($file->getClientOriginalExtension() ?: $file->extension() ?: pathinfo($safeName, PATHINFO_EXTENSION));
 
-        $attachment = DocumentAttachment::create([
-            'document_id' => $document->id,
-            'attachment_type' => 'main',
-            'version_no' => $versionNo,
-            'is_main' => true,
-            'original_name' => $file->getClientOriginalName(),
-            'file_name' => $safeName,
-            'file_path' => $storedFile['file_path'],
-            'disk' => $storedFile['disk'],
-            'storage_root_path' => $storedFile['storage_root_path'],
-            'classification_company_name' => $classification['company'],
-            'classification_operation_name' => $classification['operation'],
-            'classification_year' => $classification['year'],
-            'classification_folder' => $classification['folder'],
-            'extension' => $extension,
-            'mime_type' => $file->getMimeType(),
-            'file_size' => $file->getSize(),
-            'ocr_status' => 'pending',
-            'uploaded_by' => Auth::id(),
-        ]);
-
-        ActivityLogger::log(
-            'attachment.uploaded',
-            'تم رفع مرفق للكتاب رقم ' . $document->reference_number,
-            $attachment,
-            [
+        try {
+            $attachment = DocumentAttachment::create([
                 'document_id' => $document->id,
-                'reference_number' => $document->reference_number,
-                'original_name' => $attachment->original_name,
+                'attachment_type' => 'main',
+                'version_no' => $versionNo,
+                'is_main' => true,
+                'original_name' => $originalName,
+                'file_name' => $safeName,
+                'file_path' => $storedFile['file_path'],
+                'disk' => $storedFile['disk'],
+                'storage_root_path' => $storedFile['storage_root_path'],
+                'classification_company_name' => $classification['company'],
+                'classification_operation_name' => $classification['operation'],
+                'classification_year' => $classification['year'],
                 'classification_folder' => $classification['folder'],
-                'smart_classification' => $classification['smart'],
-            ]
-        );
+                'extension' => $extension,
+                'mime_type' => $mimeType,
+                'file_size' => (int) $fileSize,
+                'ocr_status' => 'pending',
+                'uploaded_by' => Auth::id(),
+            ]);
+
+            ActivityLogger::log(
+                'attachment.uploaded',
+                'تم رفع مرفق للكتاب رقم ' . $document->reference_number,
+                $attachment,
+                [
+                    'document_id' => $document->id,
+                    'reference_number' => $document->reference_number,
+                    'original_name' => $attachment->original_name,
+                    'classification_folder' => $classification['folder'],
+                    'smart_classification' => $classification['smart'],
+                ]
+            );
+        } catch (\Throwable $e) {
+            /*
+             * Filesystem moves are not rolled back with the database
+             * transaction. Remove the newly stored file when the attachment
+             * row or activity log cannot be committed.
+             */
+            $absolutePath = $storedFile['absolute_path'] ?? null;
+
+            if (is_string($absolutePath) && $absolutePath !== '' && is_file($absolutePath)) {
+                @unlink($absolutePath);
+            }
+
+            throw $e;
+        }
     }
 
     private function resolveBookSubjectData(array $validated): array

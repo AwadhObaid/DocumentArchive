@@ -78,6 +78,74 @@ class BookAttachmentSmartPathService
         ];
     }
 
+
+    public function storeExistingFile(Document $document, string $absolutePath, ?string $originalName, int $versionNo): array
+    {
+        if (! is_file($absolutePath)) {
+            throw new \RuntimeException('الملف المحدد غير موجود أو لا يمكن قراءته.');
+        }
+
+        $classification = $this->buildFolder($document);
+        $safeName = $this->buildFileNameFromOriginalName($document, $originalName ?: basename($absolutePath), $versionNo);
+        $relativePath = $classification['folder'] . '/' . $safeName;
+        $customRoot = $this->configuredStorageRoot();
+
+        if ($customRoot !== null) {
+            $absoluteFolder = $this->absoluteFolderPath($customRoot, $classification['folder']);
+            $this->ensureDirectoryExists($absoluteFolder);
+            $targetPath = $this->uniqueAbsolutePath($absoluteFolder, $safeName);
+            $safeName = basename($targetPath);
+            $relativePath = $classification['folder'] . '/' . $safeName;
+
+            if (! @copy($absolutePath, $targetPath)) {
+                throw new \RuntimeException('تعذر نسخ الملف إلى مسار مرفقات الكتب.');
+            }
+
+            return [
+                'file_path' => $relativePath,
+                'disk' => self::CUSTOM_DISK,
+                'storage_root_path' => $customRoot,
+                'file_name' => $safeName,
+                'classification' => $classification,
+                'absolute_path' => $targetPath,
+            ];
+        }
+
+        $absoluteFolder = $this->localAbsolutePath($classification['folder']);
+        if ($absoluteFolder === null) {
+            throw new \RuntimeException('تعذر تحديد المسار المحلي لحفظ المرفق.');
+        }
+
+        $this->ensureDirectoryExists($absoluteFolder);
+        $targetPath = $this->uniqueAbsolutePath($absoluteFolder, $safeName);
+        $safeName = basename($targetPath);
+        $relativePath = $classification['folder'] . '/' . $safeName;
+
+        if (! @copy($absolutePath, $targetPath)) {
+            throw new \RuntimeException('تعذر نسخ الملف إلى المسار المحلي.');
+        }
+
+        return [
+            'file_path' => $relativePath,
+            'disk' => 'local',
+            'storage_root_path' => null,
+            'file_name' => $safeName,
+            'classification' => $classification,
+            'absolute_path' => $targetPath,
+        ];
+    }
+
+    public function buildFileNameFromOriginalName(Document $document, string $originalName, int $versionNo): string
+    {
+        $extension = strtolower(pathinfo($originalName, PATHINFO_EXTENSION) ?: 'bin');
+        $reference = $this->sanitizeFilePart((string) ($document->reference_number ?: $document->id), 'book');
+        $operation = $this->sanitizeFilePart((string) ($document->attachment_category_name ?: 'مرفق'), 'attachment');
+        $version = str_pad((string) max(1, $versionNo), 3, '0', STR_PAD_LEFT);
+        $date = $document->reference_date ? $document->reference_date->format('Y-m-d') : date('Y-m-d');
+
+        return $reference . '_' . $operation . '_' . $date . '_' . $version . '_' . Str::random(8) . '.' . $extension;
+    }
+
     public function buildFileName(Document $document, UploadedFile $file, int $versionNo): string
     {
         $extension = strtolower($file->getClientOriginalExtension() ?: $file->extension() ?: 'bin');
@@ -232,7 +300,9 @@ class BookAttachmentSmartPathService
             return null;
         }
 
-        $value = preg_replace('/[\\\/\:\*\?"\<\>\|]+/u', ' ', $value) ?: $value;
+        // Avoid a delimiter-sensitive regular expression on Windows paths.
+        // These characters are invalid in Windows folder names.
+        $value = str_replace(['\\', '/', ':', '*', '?', '"', '<', '>', '|'], ' ', $value);
         $value = preg_replace('/[\x00-\x1F\x7F]+/u', ' ', $value) ?: $value;
         $value = preg_replace('/\s+/u', ' ', $value) ?: $value;
         $value = trim($value, " \t\n\r\0\x0B.");
@@ -243,7 +313,6 @@ class BookAttachmentSmartPathService
 
         return mb_substr($value, 0, 120, 'UTF-8');
     }
-
     public function normalizeText(?string $value): ?string
     {
         $value = trim((string) $value);
@@ -305,6 +374,30 @@ class BookAttachmentSmartPathService
         $relative = trim(str_replace(['/', '\\'], DIRECTORY_SEPARATOR, $relative), "\\/");
 
         return rtrim($root, "\\/") . DIRECTORY_SEPARATOR . $relative;
+    }
+
+    private function uniqueAbsolutePath(string $folder, string $fileName): string
+    {
+        $candidate = rtrim($folder, "\\/") . DIRECTORY_SEPARATOR . $fileName;
+
+        if (! is_file($candidate)) {
+            return $candidate;
+        }
+
+        $base = pathinfo($fileName, PATHINFO_FILENAME) ?: 'file';
+        $extension = pathinfo($fileName, PATHINFO_EXTENSION);
+
+        for ($i = 1; $i <= 200; $i++) {
+            $suffix = '_' . date('Ymd_His') . '_' . $i;
+            $name = $base . $suffix . ($extension !== '' ? '.' . $extension : '');
+            $candidate = rtrim($folder, "\\/") . DIRECTORY_SEPARATOR . $name;
+
+            if (! is_file($candidate)) {
+                return $candidate;
+            }
+        }
+
+        return rtrim($folder, "\\/") . DIRECTORY_SEPARATOR . $base . '_' . Str::random(12) . ($extension !== '' ? '.' . $extension : '');
     }
 
     private function ensureDirectoryExists(string $folder): void

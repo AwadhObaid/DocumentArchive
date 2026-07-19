@@ -49,6 +49,12 @@ class Document extends Model
 
         'search_text',
         'notes',
+        'legacy_source',
+        'legacy_record_id',
+        'legacy_user_name',
+        'legacy_archive_folder',
+        'legacy_sader_id',
+        'legacy_original_sader_id',
     ];
 
     protected function casts(): array

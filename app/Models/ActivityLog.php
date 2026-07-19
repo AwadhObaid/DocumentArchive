@@ -75,6 +75,9 @@ class ActivityLog extends Model
             'document_type.deleted' => 'حذف نوع كتاب',
 
             'settings.updated' => 'تعديل الإعدادات',
+            'legacy_archive.dry_run_completed' => 'فحص تجريبي للأرشيف القديم',
+            'legacy_archive.import_completed' => 'استيراد الأرشيف القديم',
+            'legacy_archive.document_imported' => 'استيراد كتاب من النظام القديم',
             'smart_report.generated' => 'توليد تقرير ذكي',
             'smart_report.failed' => 'فشل توليد تقرير ذكي',
             'internal_chat.backup_created' => 'إنشاء نسخة احتياطية للدردشة الداخلية',

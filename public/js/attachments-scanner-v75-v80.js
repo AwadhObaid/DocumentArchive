@@ -1,0 +1,1 @@
+document.addEventListener('submit',function(e){var f=e.target;if(f&&f.matches('.scanner-attach-form')){var s=f.querySelector('select[name="document_id"]');if(s&&!s.value){e.preventDefault();alert('اختر الكتاب أولاً قبل ربط ملف الماسح.');}}});

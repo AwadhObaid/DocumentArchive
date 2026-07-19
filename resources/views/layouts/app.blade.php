@@ -84,6 +84,12 @@
     {{-- auto-logout-modal-text-fix-v58:start --}}
     <link rel="stylesheet" href="{{ asset('css/auto-logout-modal-text-fix-v58.css') }}?v=58">
     {{-- auto-logout-modal-text-fix-v58:end --}}
+{{-- attachments-scanner-v75-v80-css:start --}}
+    <link rel="stylesheet" href="{{ asset('css/attachments-scanner-v75-v80.css') }}?v={{ filemtime(public_path('css/attachments-scanner-v75-v80.css')) }}">
+{{-- attachments-scanner-v75-v80-css:end --}}
+{{-- legacy-archive-import-v81-css:start --}}
+    <link rel="stylesheet" href="{{ asset('css/legacy-archive-import-v81.css') }}?v={{ filemtime(public_path('css/legacy-archive-import-v81.css')) }}">
+{{-- legacy-archive-import-v81-css:end --}}
 </head>
 <body
     data-auto-logout-enabled="{{ $daAutoLogoutEnabled ? '1' : '0' }}"
@@ -196,6 +202,20 @@
                 <a href="{{ route('shared-attachment-links.index') }}" class="{{ request()->routeIs('shared-attachment-links.*') || request()->routeIs('documents.shared-attachments.create') ? 'active' : '' }}">🔗 مشاركة المرفقات </a>
             @endif
 
+{{-- attachments-scanner-v75-v80-nav:start --}}
+            @if(auth()->user()?->hasPermission('attachments.relocate') || auth()->user()?->hasPermission('settings.manage'))
+                <a href="{{ route('attachments-migration.index') }}" class="{{ request()->routeIs('attachments-migration.*') ? 'active' : '' }}">🧰 ترتيب المرفقات القديمة</a>
+            @endif
+
+            @if(auth()->user()?->hasPermission('scanner.workflow') || auth()->user()?->hasPermission('documents.edit') || auth()->user()?->hasPermission('settings.manage'))
+                <a href="{{ route('scanner-inbox.index') }}" class="{{ request()->routeIs('scanner-inbox.*') ? 'active' : '' }}">🖨️ صندوق الماسح</a>
+            @endif
+{{-- attachments-scanner-v75-v80-nav:end --}}
+{{-- legacy-archive-import-v81-nav:start --}}
+            @if(auth()->user()?->hasPermission('legacy_import.manage') || auth()->user()?->hasPermission('settings.manage'))
+                <a href="{{ route('legacy-archive-import.index') }}" class="{{ request()->routeIs('legacy-archive-import.*') ? 'active' : '' }}">📦 استيراد الأرشيف القديم</a>
+            @endif
+{{-- legacy-archive-import-v81-nav:end --}}
             @if(auth()->user()?->hasPermission('pdf_search.view'))
                 <a href="{{ route('pdf-search.index') }}" class="{{ request()->routeIs('pdf-search.*') ? 'active' : '' }}">🔎 بحث PDF/OCR</a>
             @endif
@@ -321,5 +341,8 @@
     <script src="{{ asset('js/arabic-text-mojibake-v4.js') }}?v={{ filemtime(public_path('js/arabic-text-mojibake-v4.js')) }}" defer></script>
     <script src="{{ asset('js/auto-logout.js') }}?v={{ filemtime(public_path('js/auto-logout.js')) }}" defer></script>
     <script src="{{ asset('js/internal-chat.js') }}?v={{ filemtime(public_path('js/internal-chat.js')) }}" defer></script>
+{{-- attachments-scanner-v75-v80-js:start --}}
+    <script src="{{ asset('js/attachments-scanner-v75-v80.js') }}?v={{ filemtime(public_path('js/attachments-scanner-v75-v80.js')) }}" defer></script>
+{{-- attachments-scanner-v75-v80-js:end --}}
 </body>
 </html>

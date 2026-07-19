@@ -35,6 +35,7 @@ use App\Http\Controllers\NotificationCenterController;
 use App\Http\Controllers\NotificationSettingsController;
 use App\Http\Controllers\LeaveCalculatorController;
 use App\Http\Controllers\SmartReportController;
+use App\Http\Controllers\LegacyArchiveImportController;
 
 
 Route::get('/shared/attachments/{token}', [SharedAttachmentLinkController::class, 'publicShow'])
@@ -80,6 +81,33 @@ Route::middleware(['auth', ApplyRoutePermissions::class])->group(function () {
     Route::get('/tools/leave-calculator', [LeaveCalculatorController::class, 'index'])
         ->name('tools.leave-calculator.index');
 
+// attachments-scanner-v75-v80-routes:start
+    Route::prefix('tools/attachments-migration')->name('attachments-migration.')->group(function () {
+        Route::get('/', [\App\Http\Controllers\AttachmentRelocationController::class, 'index'])->name('index');
+        Route::post('/dry-run', [\App\Http\Controllers\AttachmentRelocationController::class, 'dryRun'])->name('dry-run');
+        Route::post('/execute', [\App\Http\Controllers\AttachmentRelocationController::class, 'execute'])->name('execute');
+        Route::get('/runs/{run}', [\App\Http\Controllers\AttachmentRelocationController::class, 'show'])
+            ->whereNumber('run')
+            ->name('show');
+    });
+
+    Route::prefix('scanner-inbox')->name('scanner-inbox.')->group(function () {
+        Route::get('/', [\App\Http\Controllers\ScannerInboxController::class, 'index'])->name('index');
+        Route::post('/path', [\App\Http\Controllers\ScannerInboxController::class, 'updatePath'])->name('update-path');
+        Route::post('/attach', [\App\Http\Controllers\ScannerInboxController::class, 'attach'])->name('attach');
+    });
+    // attachments-scanner-v75-v80-routes:end
+
+// legacy-archive-import-v81-routes:start
+    Route::prefix('tools/legacy-archive-import')->name('legacy-archive-import.')->group(function () {
+        Route::get('/', [\App\Http\Controllers\LegacyArchiveImportController::class, 'index'])->name('index');
+        Route::post('/dry-run', [\App\Http\Controllers\LegacyArchiveImportController::class, 'dryRun'])->name('dry-run');
+        Route::post('/execute', [\App\Http\Controllers\LegacyArchiveImportController::class, 'execute'])->name('execute');
+        Route::get('/runs/{run}', [\App\Http\Controllers\LegacyArchiveImportController::class, 'show'])
+            ->whereNumber('run')
+            ->name('show');
+    });
+// legacy-archive-import-v81-routes:end
     // Smart Reports - Gemini
     Route::get('/smart-reports', [SmartReportController::class, 'index'])
         ->name('smart-reports.index');
