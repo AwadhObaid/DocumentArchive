@@ -77,8 +77,25 @@ class LegacyArchiveCsvReader
                 continue;
             }
 
+            /*
+             * LEGACY_CSV_PATH_MARKS_FIX_V81_6
+             *
+             * Unicode direction marks can be part of a real Windows share,
+             * folder, or file name. Preserve them in path-related columns.
+             */
+            $pathColumns = [
+                'ArchiveFolder',
+                'FileName',
+                'FilePath',
+                'OriginalFilePath',
+                'OriginalFileName',
+            ];
+
             foreach ($row as $key => $value) {
-                $row[$key] = $this->normalizeCell($value);
+                $row[$key] = $this->normalizeCell(
+                    $value,
+                    in_array($key, $pathColumns, true)
+                );
             }
 
             $row['_line'] = $line;
@@ -153,10 +170,19 @@ class LegacyArchiveCsvReader
         return true;
     }
 
-    private function normalizeCell(mixed $value): ?string
-    {
+    private function normalizeCell(
+        mixed $value,
+        bool $preserveDirectionalMarks = false
+    ): ?string {
         $value = trim((string) $value);
-        $value = preg_replace('/[\x{200E}\x{200F}\x{202A}-\x{202E}\x{2066}-\x{2069}\x{FEFF}]/u', '', $value) ?? $value;
+
+        if (! $preserveDirectionalMarks) {
+            $value = preg_replace(
+                '/[\x{200E}\x{200F}\x{202A}-\x{202E}\x{2066}-\x{2069}\x{FEFF}]/u',
+                '',
+                $value
+            ) ?? $value;
+        }
 
         if ($value === '' || strcasecmp($value, 'NULL') === 0) {
             return null;

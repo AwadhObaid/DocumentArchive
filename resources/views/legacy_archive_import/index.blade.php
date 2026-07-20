@@ -20,6 +20,25 @@
         </div>
     </section>
 
+
+    {{-- legacy-archive-existing-attachment-repair-v81-5:start --}}
+    <section class="legacy-import-card">
+        <div class="legacy-import-section-head">
+            <div>
+                <h3>🧩 استكمال مرفقات الكتب المستوردة — V81.5</h3>
+                <p>
+                    العثور على رقم ID قديم لا يجعل السجل مكررًا مباشرة. يفحص النظام أولًا وجود مرفق فعلي صالح؛
+                    فإن لم يوجد، يبحث في FilePath وOriginalFilePath مع الحفاظ على أسماء المشاركات العربية كما هي.
+                </p>
+            </div>
+        </div>
+        <div class="legacy-import-warning">
+            ابدأ بالفحص التجريبي. الكتب الموجودة دون مرفق صالح ستظهر بالحالة «جاهز لاستكمال المرفق»،
+            بينما الكتب التي لديها ملف فعلي صالح فقط ستظهر «مستورد سابقًا».
+        </div>
+    </section>
+    {{-- legacy-archive-existing-attachment-repair-v81-5:end --}}
+
     <section class="legacy-import-grid">
         <article class="legacy-import-card">
             <h3>مصدر البيانات</h3>

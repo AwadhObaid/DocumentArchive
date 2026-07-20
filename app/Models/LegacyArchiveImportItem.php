@@ -52,6 +52,11 @@ class LegacyArchiveImportItem extends Model
             'ready' => 'جاهز للاستيراد',
             'imported' => 'تم الاستيراد',
             'imported_missing_file' => 'تم استيراد البيانات والمرفق مفقود',
+            'attachment_repair_ready' => 'جاهز لاستكمال المرفق',
+            'attachment_repaired' => 'تم استكمال المرفق',
+            'attachment_repair_missing_file' => 'مصدر المرفق ما زال مفقودًا',
+            'attachment_already_present' => 'المرفق موجود مسبقًا',
+            'document_deleted' => 'الكتاب في سلة المحذوفات',
             'duplicate_legacy' => 'مستورد سابقًا',
             'duplicate_reference' => 'رقم الكتاب موجود',
             'missing_file' => 'الملف مفقود',
@@ -65,9 +70,9 @@ class LegacyArchiveImportItem extends Model
     public function getStatusToneAttribute(): string
     {
         return match ($this->status) {
-            'imported', 'ready' => 'success',
-            'imported_missing_file', 'missing_file' => 'warning',
-            'duplicate_legacy', 'duplicate_reference', 'skipped' => 'neutral',
+            'imported', 'ready', 'attachment_repaired', 'attachment_repair_ready' => 'success',
+            'imported_missing_file', 'missing_file', 'attachment_repair_missing_file' => 'warning',
+            'duplicate_legacy', 'duplicate_reference', 'attachment_already_present', 'document_deleted', 'skipped' => 'neutral',
             'invalid', 'failed' => 'danger',
             default => 'neutral',
         };

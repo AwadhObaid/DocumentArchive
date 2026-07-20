@@ -20,6 +20,8 @@ class LegacyArchiveImportService
 
     private const LEGACY_REFERENCE_START_NUMBER = 251230000;
 
+    private const EXISTING_ATTACHMENT_REPAIR_VERSION = 'V81.5';
+
     public function __construct(
         private readonly LegacyArchiveCsvReader $reader,
         private readonly BookAttachmentSmartPathService $pathService,
@@ -70,7 +72,7 @@ class LegacyArchiveImportService
         int $limit
     ): LegacyArchiveImportRun {
         $rows = $this->reader->read($sourceFile, $limit);
-        $sourceRootOverride = $this->normalizePath($sourceRootOverride);
+        $sourceRootOverride = $this->normalizePath($sourceRootOverride, false);
 
         $run = LegacyArchiveImportRun::create([
             'source_name' => self::SOURCE_NAME,
@@ -154,37 +156,57 @@ class LegacyArchiveImportService
 
         $status = 'ready';
         $message = 'السجل جاهز للاستيراد.';
+        $existingDocument = null;
 
         if ($recordId === null || $referenceNumber === '' || $date === null || $subject === '') {
             $status = 'invalid';
             $message = 'السجل لا يحتوي رقم سجل قديم أو رقم كتاب أو تاريخ أو موضوع صحيح.';
         }
 
-        $legacyDuplicate = $recordId !== null
-            && Document::withTrashed()
+        /*
+         * LEGACY_EXISTING_ATTACHMENT_REPAIR_V81_5
+         *
+         * Finding the old ID is not enough to call the row a duplicate.
+         * The imported document must be inspected for a physically readable
+         * attachment. If it has none, the same CSV row becomes a repair row.
+         */
+        if ($status === 'ready' && $recordId !== null) {
+            $existingDocument = Document::withTrashed()
                 ->where('legacy_source', self::SOURCE_NAME)
                 ->where('legacy_record_id', $recordId)
-                ->exists();
+                ->first();
+        }
 
-        $referenceDuplicate = $date !== null && $referenceNumber !== ''
-            && Document::withTrashed()
+        $referenceDuplicate = null;
+        if ($status === 'ready' && $existingDocument === null && $date !== null && $referenceNumber !== '') {
+            $referenceDuplicate = Document::withTrashed()
                 ->where('reference_year', (int) $date->year)
                 ->where('reference_number', $referenceNumber)
-                ->exists();
-
-        if ($legacyDuplicate) {
-            $status = 'duplicate_legacy';
-            $message = 'هذا السجل مستورد سابقًا اعتمادًا على رقم ID القديم.';
-        } elseif ($referenceDuplicate) {
-            $status = 'duplicate_reference';
-            $message = 'رقم الكتاب موجود مسبقًا في النظام الجديد.';
+                ->first();
         }
 
         $resolvedPath = $this->resolveSourcePath($row, $sourceRootOverride);
         $fileExists = $resolvedPath !== null && is_file($resolvedPath) && is_readable($resolvedPath);
         $sourceSize = $fileExists ? (int) (@filesize($resolvedPath) ?: 0) : null;
 
-        if ($status === 'ready' && ! $fileExists) {
+        if ($status === 'ready' && $existingDocument !== null) {
+            if ($existingDocument->trashed()) {
+                $status = 'document_deleted';
+                $message = 'الكتاب المستورد موجود داخل سلة المحذوفات؛ لم تتم إضافة مرفق جديد إليه.';
+            } elseif ($this->documentHasUsableAttachment($existingDocument)) {
+                $status = 'duplicate_legacy';
+                $message = 'الكتاب مستورد سابقًا ويحتوي مرفقًا صالحًا وموجودًا فعليًا على وسيط التخزين؛ تم تجاوزه دون تكرار.';
+            } elseif ($fileExists) {
+                $status = 'attachment_repair_ready';
+                $message = 'الكتاب موجود بدون مرفق صالح، والملف القديم متاح وجاهز للاستكمال.';
+            } else {
+                $status = 'attachment_repair_missing_file';
+                $message = 'الكتاب موجود بدون مرفق صالح، لكن الملف القديم ما زال غير متاح في المسارات المحددة.';
+            }
+        } elseif ($status === 'ready' && $referenceDuplicate !== null) {
+            $status = 'duplicate_reference';
+            $message = 'رقم الكتاب موجود مسبقًا في النظام الجديد، لكنه غير مرتبط بنفس ID القديم؛ تم تجاوزه للحماية.';
+        } elseif ($status === 'ready' && ! $fileExists) {
             $status = 'missing_file';
             $message = 'بيانات الكتاب صالحة لكن ملف المرفق لم يتم العثور عليه.';
         }
@@ -199,13 +221,16 @@ class LegacyArchiveImportService
             'reference_year' => $date ? (int) $date->year : null,
             'status' => $status,
             'message' => $message,
-            'source_path' => $this->normalizePath($row['FilePath'] ?? null)
-                ?: $this->normalizePath($row['OriginalFilePath'] ?? null),
+            'source_path' => $this->firstPathCandidate(
+                $row['FilePath'] ?? null,
+                $row['OriginalFilePath'] ?? null
+            ),
             'resolved_source_path' => $fileExists ? $resolvedPath : null,
             'file_exists' => $fileExists,
             'source_size' => $sourceSize,
             'company' => $company,
             'operation' => $operation,
+            'existing_document_id' => $existingDocument?->id,
         ];
     }
 
@@ -215,7 +240,17 @@ class LegacyArchiveImportService
         array $analysis,
         bool $importMissingWithoutFile
     ): array {
-        if (in_array($analysis['status'], ['invalid', 'duplicate_legacy', 'duplicate_reference'], true)) {
+        if ($analysis['status'] === 'attachment_repair_ready') {
+            return $this->repairExistingDocumentAttachment($run, $row, $analysis);
+        }
+
+        if (in_array($analysis['status'], [
+            'invalid',
+            'duplicate_legacy',
+            'duplicate_reference',
+            'document_deleted',
+            'attachment_repair_missing_file',
+        ], true)) {
             $item = $this->recordAnalysisItem($run, $analysis);
 
             return [
@@ -384,6 +419,187 @@ class LegacyArchiveImportService
         }
     }
 
+    private function repairExistingDocumentAttachment(
+        LegacyArchiveImportRun $run,
+        array $row,
+        array $analysis
+    ): array {
+        $stored = null;
+
+        try {
+            $result = DB::transaction(function () use ($run, $row, $analysis, &$stored) {
+                $document = Document::withTrashed()
+                    ->whereKey((int) ($analysis['existing_document_id'] ?? 0))
+                    ->lockForUpdate()
+                    ->first();
+
+                if (! $document) {
+                    throw new RuntimeException('تعذر العثور على الكتاب المستورد المرتبط بالسجل القديم.');
+                }
+
+                if ($document->trashed()) {
+                    throw new RuntimeException('الكتاب موجود داخل سلة المحذوفات ولا يمكن استكمال مرفقه قبل استعادته.');
+                }
+
+                if ($this->documentHasUsableAttachment($document)) {
+                    $item = LegacyArchiveImportItem::create([
+                        'run_id' => $run->id,
+                        'source_record_id' => $analysis['source_record_id'],
+                        'document_id' => $document->id,
+                        'reference_number' => $analysis['reference_number'],
+                        'status' => 'attachment_already_present',
+                        'message' => 'تم تجاوز الكتاب لأن مرفقًا صالحًا أصبح موجودًا بالفعل.',
+                        'source_path' => $analysis['source_path'],
+                        'resolved_source_path' => $analysis['resolved_source_path'],
+                        'file_exists' => $analysis['file_exists'],
+                        'file_copied' => false,
+                        'source_size' => $analysis['source_size'],
+                        'payload' => $row,
+                    ]);
+
+                    return ['item' => $item, 'copied_files' => 0, 'copied_bytes' => 0];
+                }
+
+                $sourcePath = (string) ($analysis['resolved_source_path'] ?? '');
+                if ($sourcePath === '' || ! is_file($sourcePath) || ! is_readable($sourcePath)) {
+                    throw new RuntimeException('الملف القديم لم يعد متاحًا وقت تنفيذ الاستكمال.');
+                }
+
+                $originalName = $this->firstNonEmpty(
+                    $row['OriginalFileName'] ?? null,
+                    $row['FileName'] ?? null,
+                    basename($sourcePath)
+                );
+
+                $versionNo = max(1, (int) DocumentAttachment::where('document_id', $document->id)->max('version_no') + 1);
+
+                $stored = $this->pathService->storeExistingFile(
+                    $document,
+                    $sourcePath,
+                    $originalName,
+                    $versionNo
+                );
+
+                $targetPath = (string) ($stored['absolute_path'] ?? '');
+                if ($targetPath === '' || ! is_file($targetPath)) {
+                    throw new RuntimeException('تمت محاولة النسخ لكن الملف الهدف غير موجود.');
+                }
+
+                $sourceHash = hash_file('sha256', $sourcePath) ?: null;
+                $targetHash = hash_file('sha256', $targetPath) ?: null;
+
+                if ($sourceHash === null || $targetHash === null || ! hash_equals($sourceHash, $targetHash)) {
+                    throw new RuntimeException('فشل التحقق من بصمة الملف بعد استكمال المرفق.');
+                }
+
+                $sourceSize = (int) (@filesize($sourcePath) ?: 0);
+                $targetSize = (int) (@filesize($targetPath) ?: 0);
+
+                if ($sourceSize !== $targetSize) {
+                    throw new RuntimeException('حجم المرفق المستكمل لا يطابق الملف الأصلي.');
+                }
+
+                DocumentAttachment::where('document_id', $document->id)
+                    ->where('is_main', true)
+                    ->update(['is_main' => false, 'updated_at' => now()]);
+
+                $classification = $stored['classification'];
+                $extension = strtolower(
+                    pathinfo($originalName, PATHINFO_EXTENSION)
+                    ?: ($row['FileType'] ?? 'bin')
+                );
+
+                DocumentAttachment::create([
+                    'document_id' => $document->id,
+                    'attachment_type' => 'legacy_import_repair',
+                    'version_no' => $versionNo,
+                    'is_main' => true,
+                    'original_name' => $originalName,
+                    'file_name' => $stored['file_name'],
+                    'file_path' => $stored['file_path'],
+                    'disk' => $stored['disk'],
+                    'storage_root_path' => $stored['storage_root_path'],
+                    'classification_company_name' => $classification['company'],
+                    'classification_operation_name' => $classification['operation'],
+                    'classification_year' => $classification['year'],
+                    'classification_folder' => $classification['folder'],
+                    'extension' => $extension,
+                    'mime_type' => $this->mimeType($targetPath, $extension),
+                    'file_size' => $targetSize,
+                    'ocr_status' => 'pending',
+                    'uploaded_by' => Auth::id(),
+                ]);
+
+                $item = LegacyArchiveImportItem::create([
+                    'run_id' => $run->id,
+                    'source_record_id' => $analysis['source_record_id'],
+                    'document_id' => $document->id,
+                    'reference_number' => $analysis['reference_number'],
+                    'status' => 'attachment_repaired',
+                    'message' => 'تم استكمال المرفق المفقود للكتاب الموجود والتحقق من البصمة والحجم.',
+                    'source_path' => $analysis['source_path'],
+                    'resolved_source_path' => $analysis['resolved_source_path'],
+                    'target_path' => $targetPath,
+                    'file_exists' => true,
+                    'file_copied' => true,
+                    'source_size' => $sourceSize,
+                    'target_size' => $targetSize,
+                    'source_sha256' => $sourceHash,
+                    'target_sha256' => $targetHash,
+                    'payload' => $row,
+                ]);
+
+                ActivityLogger::log(
+                    'legacy_archive.attachment_repaired',
+                    'تم استكمال المرفق المفقود للكتاب القديم رقم ' . $document->reference_number,
+                    $document,
+                    [
+                        'legacy_record_id' => $analysis['source_record_id'],
+                        'source_path' => $sourcePath,
+                    ]
+                );
+
+                return ['item' => $item, 'copied_files' => 1, 'copied_bytes' => $targetSize];
+            });
+
+            return [
+                'status' => $result['item']->status,
+                'copied_files' => $result['copied_files'],
+                'copied_bytes' => $result['copied_bytes'],
+            ];
+        } catch (Throwable $exception) {
+            $target = (string) ($stored['absolute_path'] ?? '');
+            if ($target !== '' && is_file($target)) {
+                @unlink($target);
+            }
+
+            LegacyArchiveImportItem::create([
+                'run_id' => $run->id,
+                'source_record_id' => $analysis['source_record_id'],
+                'document_id' => $analysis['existing_document_id'] ?? null,
+                'reference_number' => $analysis['reference_number'],
+                'status' => 'failed',
+                'message' => $exception->getMessage(),
+                'source_path' => $analysis['source_path'],
+                'resolved_source_path' => $analysis['resolved_source_path'],
+                'target_path' => $target ?: null,
+                'file_exists' => $analysis['file_exists'],
+                'file_copied' => false,
+                'source_size' => $analysis['source_size'],
+                'payload' => $row,
+            ]);
+
+            return ['status' => 'failed', 'copied_files' => 0, 'copied_bytes' => 0];
+        }
+    }
+
+    private function documentHasUsableAttachment(Document $document): bool
+    {
+        return DocumentAttachment::where('document_id', $document->id)
+            ->get()
+            ->contains(fn (DocumentAttachment $attachment): bool => $this->pathService->attachmentExists($attachment));
+    }
+
     private function createDocument(array $row, array $analysis): Document
     {
         $referenceNumber = $analysis['reference_number'];
@@ -439,6 +655,7 @@ class LegacyArchiveImportService
         return LegacyArchiveImportItem::create([
             'run_id' => $run->id,
             'source_record_id' => $analysis['source_record_id'],
+            'document_id' => $analysis['existing_document_id'] ?? null,
             'reference_number' => $analysis['reference_number'],
             'status' => $analysis['status'],
             'message' => $analysis['message'],
@@ -454,9 +671,9 @@ class LegacyArchiveImportService
     private function incrementDryRunCounters(array &$counters, array $analysis): void
     {
         match ($analysis['status']) {
-            'ready' => $counters['ready_rows']++,
-            'missing_file' => $counters['missing_file_rows']++,
-            'duplicate_legacy', 'duplicate_reference' => $counters['duplicate_rows']++,
+            'ready', 'attachment_repair_ready' => $counters['ready_rows']++,
+            'missing_file', 'attachment_repair_missing_file' => $counters['missing_file_rows']++,
+            'duplicate_legacy', 'duplicate_reference', 'attachment_already_present' => $counters['duplicate_rows']++,
             'invalid' => $counters['failed_rows']++,
             default => $counters['skipped_rows']++,
         };
@@ -465,10 +682,10 @@ class LegacyArchiveImportService
     private function incrementExecuteCounters(array &$counters, array $result): void
     {
         match ($result['status']) {
-            'imported' => $counters['imported_rows']++,
+            'imported', 'attachment_repaired' => $counters['imported_rows']++,
             'imported_missing_file' => [$counters['imported_rows']++, $counters['missing_file_rows']++],
-            'duplicate_legacy', 'duplicate_reference' => $counters['duplicate_rows']++,
-            'missing_file' => $counters['missing_file_rows']++,
+            'duplicate_legacy', 'duplicate_reference', 'attachment_already_present' => $counters['duplicate_rows']++,
+            'missing_file', 'attachment_repair_missing_file' => $counters['missing_file_rows']++,
             'failed', 'invalid' => $counters['failed_rows']++,
             default => $counters['skipped_rows']++,
         };
@@ -483,24 +700,33 @@ class LegacyArchiveImportService
         $fileName = $this->safeBaseName($row['FileName'] ?? null);
         $originalFileName = $this->safeBaseName($row['OriginalFileName'] ?? null);
 
-        $candidates = [
-            $this->normalizePath($row['FilePath'] ?? null),
-            $this->normalizePath($row['OriginalFilePath'] ?? null),
-        ];
+        /*
+         * LEGACY_UNICODE_SHARE_PATH_FIX_V81_4_RETAINED
+         *
+         * Real Windows share names can contain Unicode direction marks.
+         * The exact path must be tested before a cleaned fallback; otherwise
+         * a valid share name is changed into a different, non-existing name.
+         */
+        $candidates = array_merge(
+            $this->pathVariants($row['FilePath'] ?? null),
+            $this->pathVariants($row['OriginalFilePath'] ?? null)
+        );
 
-        if ($sourceRootOverride !== null) {
+        foreach ($this->pathVariants($sourceRootOverride) as $rootVariant) {
             if ($archiveFolder && $fileName) {
-                $candidates[] = $this->joinPath($sourceRootOverride, $archiveFolder, $fileName);
+                $candidates[] = $this->joinPath($rootVariant, $archiveFolder, $fileName);
             }
 
             if ($archiveFolder && $originalFileName) {
-                $candidates[] = $this->joinPath($sourceRootOverride, $archiveFolder, $originalFileName);
+                $candidates[] = $this->joinPath($rootVariant, $archiveFolder, $originalFileName);
             }
 
-            $filePath = $this->normalizePath($row['FilePath'] ?? null);
-            $relativeFromShare = $this->relativeAfterShare($filePath, 'ESIS_Archive');
-            if ($relativeFromShare) {
-                $candidates[] = $this->joinPath($sourceRootOverride, $relativeFromShare);
+            foreach ($this->pathVariants($row['FilePath'] ?? null) as $filePathVariant) {
+                $relativeFromShare = $this->relativeAfterShare($filePathVariant, 'ESIS_Archive');
+
+                if ($relativeFromShare) {
+                    $candidates[] = $this->joinPath($rootVariant, $relativeFromShare);
+                }
             }
         }
 
@@ -692,10 +918,18 @@ class LegacyArchiveImportService
         return null;
     }
 
-    private function normalizePath(?string $path): ?string
+    private function normalizePath(?string $path, bool $stripDirectionalMarks = false): ?string
     {
         $path = trim((string) $path);
-        $path = preg_replace('/[\x{200E}\x{200F}\x{202A}-\x{202E}\x{2066}-\x{2069}\x{FEFF}]/u', '', $path) ?? $path;
+
+        if ($stripDirectionalMarks) {
+            $path = preg_replace(
+                '/[\x{200E}\x{200F}\x{202A}-\x{202E}\x{2066}-\x{2069}\x{FEFF}]/u',
+                '',
+                $path
+            ) ?? $path;
+        }
+
         $path = trim($path, " \t\n\r\0\x0B\"'");
 
         if ($path === '') {
@@ -705,9 +939,30 @@ class LegacyArchiveImportService
         return str_replace(['/', '\\'], DIRECTORY_SEPARATOR, $path);
     }
 
+    private function pathVariants(?string $path): array
+    {
+        $exact = $this->normalizePath($path, false);
+        $cleaned = $this->normalizePath($path, true);
+
+        return array_values(array_unique(array_filter([$exact, $cleaned])));
+    }
+
+    private function firstPathCandidate(mixed ...$paths): ?string
+    {
+        foreach ($paths as $path) {
+            $variants = $this->pathVariants(is_scalar($path) ? (string) $path : null);
+
+            if ($variants !== []) {
+                return $variants[0];
+            }
+        }
+
+        return null;
+    }
+
     private function normalizeRelativePath(?string $path): ?string
     {
-        $path = $this->normalizePath($path);
+        $path = $this->normalizePath($path, true);
 
         return $path ? trim($path, "\\/") : null;
     }
