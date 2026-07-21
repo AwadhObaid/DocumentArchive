@@ -28,6 +28,7 @@
     $canEditDocument = $currentUser && method_exists($currentUser, 'hasPermission')
         && $currentUser->hasPermission('documents.edit')
         && (! method_exists($document, 'canBeModifiedBy') || $document->canBeModifiedBy($currentUser));
+    $canManageAttachments = $canEditDocument;
 
     $arabicDocumentValue = function (string $field, $raw) {
         if ($raw === null || $raw === '') {
@@ -547,9 +548,101 @@
 
 @include('partials.workflow-panel', ['record' => $document, 'type' => 'document'])
 
+{{-- attachment-management-v83:start --}}
+<style>
+    .attachment-management-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+        flex-wrap: wrap;
+    }
+
+    .attachment-action-row {
+        display: flex;
+        gap: 6px;
+        flex-wrap: wrap;
+        align-items: center;
+    }
+
+    .attachment-dialog {
+        width: min(560px, calc(100vw - 28px));
+        border: 1px solid #334155;
+        border-radius: 16px;
+        padding: 0;
+        color: #f8fafc;
+        background: #101b2d;
+        box-shadow: 0 24px 70px rgba(0, 0, 0, .5);
+    }
+
+    .attachment-dialog::backdrop {
+        background: rgba(2, 6, 23, .72);
+        backdrop-filter: blur(3px);
+    }
+
+    .attachment-dialog-head {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 12px;
+        padding: 16px 18px;
+        border-bottom: 1px solid #334155;
+    }
+
+    .attachment-dialog-body {
+        padding: 18px;
+    }
+
+    .attachment-dialog-body label {
+        display: block;
+        margin-bottom: 8px;
+        font-weight: 700;
+    }
+
+    .attachment-dialog-body input[type="file"],
+    .attachment-dialog-body textarea {
+        width: 100%;
+        border: 1px solid #475569;
+        border-radius: 10px;
+        padding: 10px 12px;
+        color: #f8fafc;
+        background: #0b1525;
+    }
+
+    .attachment-dialog-body textarea {
+        min-height: 96px;
+        resize: vertical;
+    }
+
+    .attachment-dialog-actions {
+        display: flex;
+        justify-content: flex-end;
+        gap: 8px;
+        margin-top: 16px;
+    }
+
+    .attachment-warning-note {
+        margin-bottom: 14px;
+        padding: 11px 12px;
+        border: 1px solid rgba(245, 158, 11, .42);
+        border-radius: 10px;
+        color: #fde68a;
+        background: rgba(245, 158, 11, .1);
+        font-size: 12px;
+        line-height: 1.7;
+    }
+</style>
+
 <div class="card mt-4 document-attachments-card">
-    <div class="card-header">
+    <div class="card-header attachment-management-header">
         <h2>المرفقات</h2>
+
+        @if($docId)
+            <a class="btn btn-sm btn-light no-print"
+               href="{{ route('documents.attachments.history', $docId) }}">
+                سجل المرفقات والإصدارات
+            </a>
+        @endif
     </div>
 
     @if($attachmentsList->count())
@@ -596,12 +689,111 @@
                                         <a class="btn btn-sm btn-primary" href="{{ url('/attachments/'.$attId.'/download') }}">تنزيل</a>
                                     @endif
 
+                                    @if($attId && $canManageAttachments)
+                                        <button class="btn btn-sm btn-warning"
+                                                type="button"
+                                                onclick="document.getElementById('replace-attachment-{{ $attId }}').showModal()">
+                                            استبدال
+                                        </button>
+
+                                        <button class="btn btn-sm btn-danger"
+                                                type="button"
+                                                onclick="document.getElementById('delete-attachment-{{ $attId }}').showModal()">
+                                            حذف
+                                        </button>
+                                    @endif
+
                                     @if(!$exists)
                                         <span class="text-muted" style="font-size:12px;">الملف غير موجود على التخزين</span>
                                     @endif
                                 </div>
                             </td>
                         </tr>
+
+                        @if($attId && $canManageAttachments)
+                            <dialog class="attachment-dialog no-print" id="replace-attachment-{{ $attId }}">
+                                <div class="attachment-dialog-head">
+                                    <strong>استبدال المرفق</strong>
+                                    <button class="btn btn-sm btn-light"
+                                            type="button"
+                                            onclick="this.closest('dialog').close()">إغلاق</button>
+                                </div>
+
+                                <form method="POST"
+                                      action="{{ route('attachments.replace', $attId) }}"
+                                      enctype="multipart/form-data"
+                                      class="attachment-dialog-body">
+                                    @csrf
+                                    @method('PATCH')
+
+                                    <div class="attachment-warning-note">
+                                        سيصبح الملف الجديد هو المرفق الحالي، وسيُحتفظ بالملف السابق
+                                        كإصدار محفوظ داخل سجل المرفقات.
+                                    </div>
+
+                                    <label for="replacement-file-{{ $attId }}">الملف الصحيح</label>
+                                    <input id="replacement-file-{{ $attId }}"
+                                           type="file"
+                                           name="replacement_file"
+                                           required>
+
+                                    <label for="replacement-reason-{{ $attId }}" style="margin-top:14px;">
+                                        سبب الاستبدال
+                                    </label>
+                                    <textarea id="replacement-reason-{{ $attId }}"
+                                              name="replacement_reason"
+                                              maxlength="1000"
+                                              required
+                                              placeholder="مثال: تم إرفاق نسخة غير صحيحة بالخطأ."></textarea>
+
+                                    <div class="attachment-dialog-actions">
+                                        <button class="btn btn-light"
+                                                type="button"
+                                                onclick="this.closest('dialog').close()">إلغاء</button>
+                                        <button class="btn btn-warning" type="submit">
+                                            اعتماد الاستبدال
+                                        </button>
+                                    </div>
+                                </form>
+                            </dialog>
+
+                            <dialog class="attachment-dialog no-print" id="delete-attachment-{{ $attId }}">
+                                <div class="attachment-dialog-head">
+                                    <strong>حذف المرفق ظاهريًا</strong>
+                                    <button class="btn btn-sm btn-light"
+                                            type="button"
+                                            onclick="this.closest('dialog').close()">إغلاق</button>
+                                </div>
+
+                                <form method="POST"
+                                      action="{{ route('attachments.destroy', $attId) }}"
+                                      class="attachment-dialog-body">
+                                    @csrf
+                                    @method('DELETE')
+
+                                    <div class="attachment-warning-note">
+                                        لن يُحذف الملف من وسيط التخزين نهائيًا. سيُخفى من الكتاب
+                                        ويمكن استعادته من سجل المرفقات.
+                                    </div>
+
+                                    <label for="deletion-reason-{{ $attId }}">سبب الحذف</label>
+                                    <textarea id="deletion-reason-{{ $attId }}"
+                                              name="deletion_reason"
+                                              maxlength="1000"
+                                              required
+                                              placeholder="اكتب سبب حذف المرفق."></textarea>
+
+                                    <div class="attachment-dialog-actions">
+                                        <button class="btn btn-light"
+                                                type="button"
+                                                onclick="this.closest('dialog').close()">إلغاء</button>
+                                        <button class="btn btn-danger" type="submit">
+                                            حذف المرفق
+                                        </button>
+                                    </div>
+                                </form>
+                            </dialog>
+                        @endif
                     @endforeach
                 </tbody>
             </table>
@@ -610,4 +802,5 @@
         <p class="empty-state">لا توجد مرفقات.</p>
     @endif
 </div>
+{{-- attachment-management-v83:end --}}
 @endsection

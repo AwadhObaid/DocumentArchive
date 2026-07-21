@@ -3,10 +3,13 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\SoftDeletes;
 use App\Services\BookAttachmentSmartPathService;
 
 class DocumentAttachment extends Model
 {
+    use SoftDeletes;
+
     protected $fillable = [
         'document_id',
         'attachment_type',
@@ -28,6 +31,12 @@ class DocumentAttachment extends Model
         'ocr_text',
         'ocr_error',
         'uploaded_by',
+        'deleted_by',
+        'deletion_reason',
+        'replaces_attachment_id',
+        'replaced_by_attachment_id',
+        'replacement_reason',
+        'replaced_at',
     ];
 
     protected function casts(): array
@@ -37,6 +46,8 @@ class DocumentAttachment extends Model
             'is_main' => 'boolean',
             'file_size' => 'integer',
             'classification_year' => 'integer',
+            'replaced_at' => 'datetime',
+            'deleted_at' => 'datetime',
         ];
     }
 
@@ -48,6 +59,21 @@ class DocumentAttachment extends Model
     public function uploader()
     {
         return $this->belongsTo(User::class, 'uploaded_by');
+    }
+
+    public function deletedBy()
+    {
+        return $this->belongsTo(User::class, 'deleted_by');
+    }
+
+    public function replacesAttachment()
+    {
+        return $this->belongsTo(self::class, 'replaces_attachment_id')->withTrashed();
+    }
+
+    public function replacedByAttachment()
+    {
+        return $this->belongsTo(self::class, 'replaced_by_attachment_id')->withTrashed();
     }
 
     public function sharedLinkItems()

@@ -63,6 +63,13 @@ class ApplyRoutePermissions
         'attachments.data' => 'attachments.preview',
         'attachments.inline' => 'attachments.preview',
         'attachments.download' => 'attachments.download',
+        'documents.attachments.history' => 'documents.view',
+        'attachments.replace' => 'documents.edit',
+        'attachments.destroy' => 'documents.edit',
+        'attachments.restore' => 'documents.edit',
+        'attachments.archived-download' => 'documents.edit',
+        'attachments.archived-preview' => 'attachments.preview',
+        'attachments.force-delete' => 'documents.force_delete',
 
         'shared-attachment-links.index' => 'attachment_shares.view',
         'shared-attachment-links.create' => 'attachment_shares.create',

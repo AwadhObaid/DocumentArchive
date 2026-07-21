@@ -108,6 +108,11 @@ class Document extends Model
         return $this->hasMany(DocumentAttachment::class);
     }
 
+    public function attachmentsWithTrashed()
+    {
+        return $this->hasMany(DocumentAttachment::class)->withTrashed();
+    }
+
     public function mainAttachment()
     {
         return $this->hasOne(DocumentAttachment::class)->where('is_main', true);

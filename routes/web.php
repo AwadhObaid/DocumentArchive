@@ -249,6 +249,45 @@ Route::middleware(['auth', ApplyRoutePermissions::class])->group(function () {
     Route::get('/attachments/{attachment}/download', [DocumentController::class, 'downloadAttachment'])
         ->name('attachments.download');
 
+    // attachment-management-v83:start
+    Route::get(
+        '/documents/{document}/attachments/history',
+        [\App\Http\Controllers\DocumentAttachmentManagementController::class, 'history']
+    )->name('documents.attachments.history');
+
+    Route::patch(
+        '/attachments/{attachment}/replace',
+        [\App\Http\Controllers\DocumentAttachmentManagementController::class, 'replace']
+    )->name('attachments.replace');
+
+    Route::delete(
+        '/attachments/{attachment}',
+        [\App\Http\Controllers\DocumentAttachmentManagementController::class, 'destroy']
+    )->name('attachments.destroy');
+
+    Route::post(
+        '/documents/{document}/attachments/{attachment}/restore',
+        [\App\Http\Controllers\DocumentAttachmentManagementController::class, 'restore']
+    )->whereNumber('attachment')->name('attachments.restore');
+
+    Route::get(
+        '/documents/{document}/attachments/{attachment}/archived-download',
+        [\App\Http\Controllers\DocumentAttachmentManagementController::class, 'archivedDownload']
+    )->whereNumber('attachment')->name('attachments.archived-download');
+
+    // attachment-history-controls-v83-1:start
+    Route::get(
+        '/documents/{document}/attachments/{attachment}/archived-preview',
+        [\App\Http\Controllers\DocumentAttachmentManagementController::class, 'archivedPreview']
+    )->whereNumber('attachment')->name('attachments.archived-preview');
+
+    Route::delete(
+        '/documents/{document}/attachments/{attachment}/force-delete',
+        [\App\Http\Controllers\DocumentAttachmentManagementController::class, 'forceDelete']
+    )->whereNumber('attachment')->name('attachments.force-delete');
+    // attachment-history-controls-v83-1:end
+    // attachment-management-v83:end
+
     Route::get('/shared-attachment-links', [SharedAttachmentLinkController::class, 'index'])
         ->name('shared-attachment-links.index');
 

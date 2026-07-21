@@ -691,12 +691,12 @@ class DocumentController extends Controller
     public function forceDelete(int $id)
     {
         $document = Document::onlyTrashed()
-            ->with('attachments')
+            ->with('attachmentsWithTrashed')
             ->findOrFail($id);
 
         $attachmentStorage = app(BookAttachmentSmartPathService::class);
 
-        foreach ($document->attachments as $attachment) {
+        foreach ($document->attachmentsWithTrashed as $attachment) {
             $attachmentStorage->deleteAttachmentFile($attachment);
         }
 

@@ -58,6 +58,10 @@ class ActivityLog extends Model
             'attachment.printed' => 'طباعة مرفق',
             'attachment.deleted' => 'حذف مرفق',
             'attachment.restored' => 'استعادة مرفق',
+            'attachment.replaced' => 'استبدال مرفق',
+            'attachment.version_downloaded' => 'تنزيل إصدار مرفق محفوظ',
+            'attachment.version_previewed' => 'معاينة إصدار مرفق محفوظ',
+            'attachment.force_deleted' => 'حذف مرفق نهائيًا',
 
             'user.created' => 'إضافة مستخدم',
             'user.updated' => 'تعديل مستخدم',
