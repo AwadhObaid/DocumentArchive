@@ -1,0 +1,8 @@
+@extends('errors.layout')
+@section('title','تعذر إكمال الطلب')
+@section('status','عطل مؤقت')
+@section('code','500')
+@section('label','خطأ داخلي في الخادم')
+@section('heading','تعذر إكمال العملية الآن')
+@section('message','حدث عطل تقني مؤقت أثناء معالجة الطلب. لم يتم حذف أو تغيير بياناتك، ويمكن إعادة المحاولة بعد لحظات.')
+@section('note','إذا استمرت المشكلة، تأكد من تشغيل Laragon وخدمات Apache وMySQL، ثم أعد تحميل الصفحة.')
