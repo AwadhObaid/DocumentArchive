@@ -723,7 +723,11 @@ class DocumentController extends Controller
             ['reference_number' => $document->reference_number]
         );
 
-        return view('documents.print-reference', compact('document'));
+        return response()
+            ->view('documents.print-reference', compact('document'))
+            ->header('Cache-Control', 'no-store, no-cache, must-revalidate, max-age=0')
+            ->header('Pragma', 'no-cache')
+            ->header('Expires', '0');
     }
 
     public function previewAttachment(DocumentAttachment $attachment)

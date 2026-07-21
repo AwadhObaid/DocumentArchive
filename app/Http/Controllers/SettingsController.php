@@ -2,7 +2,6 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Document;
 use App\Models\Setting;
 use App\Services\ActivityLogger;
 use App\Services\BookAttachmentSmartPathService;
@@ -125,7 +124,6 @@ class SettingsController extends Controller
             'print_column_gap_mm' => ['required', 'numeric', 'min:0', 'max:8'],
             'print_title_gap_mm' => ['required', 'numeric', 'min:0', 'max:15'],
             'print_row_gap_mm' => ['required', 'numeric', 'min:0', 'max:10'],
-            'apply_to_existing_documents' => ['nullable', 'boolean'],
         ], [
             'system_name.required' => 'اسم النظام مطلوب.',
             'system_department_name.required' => 'اسم القسم مطلوب.',
@@ -229,21 +227,13 @@ class SettingsController extends Controller
             Setting::setValue($key, $validated[$key] ?? '', $group, $type, $description);
         }
 
-        if ($request->boolean('apply_to_existing_documents')) {
-            Document::query()->update([
-                'print_title' => $validated['print_department_title'],
-                'print_top_mm' => $validated['print_top_mm'],
-                'print_left_mm' => $validated['print_left_mm'],
-            ]);
-        }
-
         ActivityLogger::log(
             'settings.updated',
             'تم تعديل إعدادات النظام العامة والطباعة.',
             null,
             [
                 'changed_keys' => $this->changedKeys($before, $validated),
-                'apply_to_existing_documents' => $request->boolean('apply_to_existing_documents'),
+                'print_settings_mode' => 'live_global',
             ]
         );
 

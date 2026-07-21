@@ -20,8 +20,18 @@
         return $default;
     };
 
-    $departmentTitle = data_get($doc, 'print_title')
-        ?: $setting('print_department_title', data_get($doc, 'department.name') ?: 'الشحن والتأمين');
+    /*
+     * PRINT_SETTINGS_LIVE_BINDING_V81_8
+     *
+     * Global print settings are the source of truth for every book.
+     * Per-document values remain only as legacy fallbacks when a global
+     * setting is genuinely absent.
+     */
+    $departmentTitle = (string) $setting(
+        'print_department_title',
+        data_get($doc, 'print_title')
+            ?: (data_get($doc, 'department.name') ?: 'الشحن والتأمين')
+    );
 
     $fontFamilyKey = (string) $setting('print_font_family', 'Cairo');
     $fontFamilyMap = [
@@ -34,8 +44,14 @@
     ];
     $printFontFamilyCss = $fontFamilyMap[$fontFamilyKey] ?? $fontFamilyMap['Cairo'];
 
-    $topMm = (float) (data_get($doc, 'print_top_mm') ?: $setting('print_top_mm', '32'));
-    $leftMm = (float) (data_get($doc, 'print_left_mm') ?: $setting('print_left_mm', '32'));
+    $topMm = (float) $setting(
+        'print_top_mm',
+        data_get($doc, 'print_top_mm', '32')
+    );
+    $leftMm = (float) $setting(
+        'print_left_mm',
+        data_get($doc, 'print_left_mm', '32')
+    );
     $fontSizePt = (float) $setting('print_font_size_pt', '10.2');
     $departmentFontSizePt = (float) $setting('print_department_font_size_pt', '10.8');
     $labelWidthMm = (float) $setting('print_label_width_mm', '18');
@@ -182,7 +198,11 @@
         <a class="da-btn da-btn-back" href="{{ $docId ? url('/documents/' . $docId) : url('/documents') }}">رجوع</a>
     </div>
 
-    <main class="da-a4-page" aria-label="صفحة طباعة رقم الكتاب">
+    <main class="da-a4-page"
+          aria-label="صفحة طباعة رقم الكتاب"
+          data-print-settings-source="global"
+          data-print-top-mm="{{ $topMm }}"
+          data-print-left-mm="{{ $leftMm }}">
         <section class="reference-print-block">
             <div class="reference-print-title">{{ $departmentTitle }}</div>
             <div class="reference-row">

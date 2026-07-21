@@ -1016,13 +1016,15 @@
                         <input type="number" step="0.1" data-print-preview="rowGap" name="print_row_gap_mm" value="{{ old('print_row_gap_mm', $settings['print_row_gap_mm']) }}" min="0" max="10" required>
                     </div>
 
+                    {{-- print-settings-live-binding-v81-8:start --}}
                     <div class="form-group full">
-                        <label style="display:flex; gap:8px; align-items:center;">
-                            <input type="checkbox" name="apply_to_existing_documents" value="1">
-                            تطبيق عنوان وموضع الطباعة الجديد على الكتب السابقة أيضاً
-                        </label>
-                        <small class="settings-small-note">هذا الخيار يطبق العنوان والموضع فقط على الكتب السابقة. أما المسافات والخطوط فهي إعدادات عامة تطبق فوراً على صفحة الطباعة.</small>
+                        <div class="settings-warning-box" style="margin-top:0;">
+                            <strong>تطبيق مباشر على جميع الكتب:</strong>
+                            بعد حفظ الإعدادات ستستخدم صفحة طباعة رقم الكتاب القيم الجديدة فورًا
+                            للكتب السابقة والجديدة، دون الحاجة إلى تعديل سجلات الكتب أو تحديد خيار إضافي.
+                        </div>
                     </div>
+                    {{-- print-settings-live-binding-v81-8:end --}}
                 </div>
 
                 <div class="settings-form-actions">
