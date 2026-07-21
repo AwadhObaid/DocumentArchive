@@ -161,7 +161,345 @@
                 <a href="{{ url('/documents/'.$docId.'/edit') }}" class="btn btn-primary">تعديل</a>
             @endif
             <a href="{{ url('/documents/'.$docId.'/activity') }}" class="btn btn-info">سجل الحركة</a>
-            <a href="{{ url('/documents/'.$docId.'/print-reference') }}" class="btn btn-warning">طباعة رقم الكتاب</a>
+                        {{-- REFERENCE_PRINT_CHOICE_V81_9:start --}}
+            <div class="da-reference-print-control"
+                 data-preview-url="{{ url('/documents/'.$docId.'/print-reference') }}?mode=preview"
+                 data-direct-url="{{ url('/documents/'.$docId.'/print-reference') }}?mode=direct">
+                <a class="btn btn-warning da-reference-print-primary"
+                   href="{{ url('/documents/'.$docId.'/print-reference') }}?mode=preview"
+                   target="_blank"
+                   rel="noopener">
+                    <span>طباعة رقم الكتاب</span>
+                    <small class="da-reference-print-mode-label">معاينة</small>
+                </a>
+
+                <button class="btn btn-warning da-reference-print-toggle"
+                        type="button"
+                        aria-label="خيارات طباعة رقم الكتاب"
+                        aria-expanded="false">
+                    ▾
+                </button>
+
+                <div class="da-reference-print-menu" hidden>
+                    <a href="{{ url('/documents/'.$docId.'/print-reference') }}?mode=direct"
+                       target="_blank"
+                       rel="noopener"
+                       data-reference-print-mode="direct">
+                        <strong>🖨️ طباعة مباشرة</strong>
+                        <small>فتح نافذة الطباعة فورًا دون الوقوف في صفحة المعاينة.</small>
+                    </a>
+
+                    <a href="{{ url('/documents/'.$docId.'/print-reference') }}?mode=preview"
+                       target="_blank"
+                       rel="noopener"
+                       data-reference-print-mode="preview">
+                        <strong>👁️ عرض صفحة الطباعة</strong>
+                        <small>مراجعة موضع رقم الكتاب والتاريخ قبل الطباعة.</small>
+                    </a>
+
+                    <label class="da-reference-print-remember">
+                        <input type="checkbox" class="da-reference-print-remember-input">
+                        <span>تذكّر آخر اختيار على هذا الجهاز</span>
+                    </label>
+                </div>
+            </div>
+
+            <style>
+                .da-reference-print-control {
+                    position: relative;
+                    display: inline-flex;
+                    direction: rtl;
+                    isolation: isolate;
+                }
+
+                .da-reference-print-primary {
+                    display: inline-flex !important;
+                    align-items: center;
+                    gap: 7px;
+                    border-start-end-radius: 0 !important;
+                    border-end-end-radius: 0 !important;
+                    white-space: nowrap;
+                }
+
+                .da-reference-print-mode-label {
+                    padding: 2px 6px;
+                    border-radius: 999px;
+                    background: rgba(255, 255, 255, 0.2);
+                    color: inherit;
+                    font-size: 10px;
+                    line-height: 1.35;
+                }
+
+                .da-reference-print-toggle {
+                    min-width: 35px;
+                    padding-inline: 10px !important;
+                    border-start-start-radius: 0 !important;
+                    border-end-start-radius: 0 !important;
+                    border-inline-start: 1px solid rgba(255, 255, 255, 0.3) !important;
+                }
+
+                .da-reference-print-menu {
+                    position: absolute;
+                    top: calc(100% + 8px);
+                    inset-inline-end: 0;
+                    z-index: 1100;
+                    width: min(330px, calc(100vw - 32px));
+                    overflow: hidden;
+                    border: 1px solid var(--border-color, #334155);
+                    border-radius: 13px;
+                    background: var(--card-bg, #111c2e);
+                    box-shadow: 0 18px 45px rgba(0, 0, 0, 0.35);
+                }
+
+                .da-reference-print-menu[hidden] {
+                    display: none !important;
+                }
+
+                .da-reference-print-menu > a {
+                    display: flex;
+                    flex-direction: column;
+                    gap: 4px;
+                    padding: 12px 14px;
+                    color: var(--text-color, #f8fafc);
+                    text-decoration: none;
+                    border-bottom: 1px solid var(--border-color, #334155);
+                    background: transparent;
+                }
+
+                .da-reference-print-menu > a:hover,
+                .da-reference-print-menu > a:focus {
+                    background: rgba(59, 130, 246, 0.14);
+                    outline: none;
+                }
+
+                .da-reference-print-menu > a small {
+                    color: var(--text-muted, #94a3b8);
+                    font-size: 11px;
+                    line-height: 1.6;
+                }
+
+                .da-reference-print-remember {
+                    display: flex;
+                    align-items: center;
+                    gap: 8px;
+                    padding: 10px 14px;
+                    color: var(--text-muted, #cbd5e1);
+                    font-size: 11px;
+                    cursor: pointer;
+                }
+
+                .da-reference-print-remember input {
+                    width: 15px;
+                    height: 15px;
+                    accent-color: #f59e0b;
+                }
+
+                @media (max-width: 640px) {
+                    .da-reference-print-primary > span {
+                        display: none;
+                    }
+
+                    .da-reference-print-mode-label {
+                        font-size: 11px;
+                    }
+                }
+            </style>
+
+            <script>
+                (function () {
+                    var controls = document.querySelectorAll('.da-reference-print-control');
+
+                    if (! controls.length) {
+                        return;
+                    }
+
+                    var rememberKey = 'documentArchive.referencePrint.remember';
+                    var modeKey = 'documentArchive.referencePrint.mode';
+
+                    controls.forEach(function (control) {
+                        var primary = control.querySelector('.da-reference-print-primary');
+                        var toggle = control.querySelector('.da-reference-print-toggle');
+                        var menu = control.querySelector('.da-reference-print-menu');
+                        var remember = control.querySelector('.da-reference-print-remember-input');
+                        var label = control.querySelector('.da-reference-print-mode-label');
+                        var previewUrl = control.getAttribute('data-preview-url');
+                        var directUrl = control.getAttribute('data-direct-url');
+
+                        if (! primary || ! toggle || ! menu || ! remember) {
+                            return;
+                        }
+
+                        var storageAvailable = true;
+
+                        try {
+                            remember.checked = window.localStorage.getItem(rememberKey) === '1';
+                        } catch (error) {
+                            storageAvailable = false;
+                            remember.checked = false;
+                        }
+
+                        var currentMode = 'preview';
+
+                        if (storageAvailable && remember.checked) {
+                            try {
+                                currentMode = window.localStorage.getItem(modeKey) === 'direct'
+                                    ? 'direct'
+                                    : 'preview';
+                            } catch (error) {
+                                currentMode = 'preview';
+                            }
+                        }
+
+                        /*
+                         * REFERENCE_PRINT_RETURN_V81_9_1
+                         *
+                         * Open direct printing from a real JavaScript-created
+                         * window. Browsers then permit window.close() after the
+                         * native print dialog finishes.
+                         */
+                        function openDirectPrint(url) {
+                            var popup = window.open(
+                                url,
+                                'documentArchiveReferencePrintWindow',
+                                'popup=yes,width=1100,height=850,resizable=yes,scrollbars=yes'
+                            );
+
+                            if (popup) {
+                                popup.focus();
+                                return;
+                            }
+
+                            // Popup blocked: continue in the current tab.
+                            // The direct-print page will return to this book.
+                            window.location.href = url;
+                        }
+                        function applyMode(mode) {
+                            currentMode = mode === 'direct' ? 'direct' : 'preview';
+                            primary.href = currentMode === 'direct' ? directUrl : previewUrl;
+                            primary.setAttribute(
+                                'title',
+                                currentMode === 'direct'
+                                    ? 'طباعة مباشرة'
+                                    : 'عرض صفحة الطباعة'
+                            );
+
+                            if (label) {
+                                label.textContent = currentMode === 'direct'
+                                    ? 'مباشرة'
+                                    : 'معاينة';
+                            }
+                        }
+
+                        function closeMenu() {
+                            menu.hidden = true;
+                            toggle.setAttribute('aria-expanded', 'false');
+                        }
+
+                        function saveChoice(mode) {
+                            applyMode(mode);
+
+                            if (! storageAvailable) {
+                                return;
+                            }
+
+                            try {
+                                if (remember.checked) {
+                                    window.localStorage.setItem(rememberKey, '1');
+                                    window.localStorage.setItem(modeKey, currentMode);
+                                } else {
+                                    window.localStorage.removeItem(rememberKey);
+                                    window.localStorage.removeItem(modeKey);
+                                }
+                            } catch (error) {
+                                storageAvailable = false;
+                            }
+                        }
+
+                        applyMode(currentMode);
+
+                        toggle.addEventListener('click', function (event) {
+                            event.preventDefault();
+                            event.stopPropagation();
+
+                            var willOpen = menu.hidden;
+
+                            document
+                                .querySelectorAll('.da-reference-print-menu:not([hidden])')
+                                .forEach(function (openMenu) {
+                                    openMenu.hidden = true;
+                                });
+
+                            menu.hidden = ! willOpen;
+                            toggle.setAttribute('aria-expanded', willOpen ? 'true' : 'false');
+                        });
+
+                        menu.querySelectorAll('[data-reference-print-mode]').forEach(function (link) {
+                            link.addEventListener('click', function (event) {
+                                var selectedMode = link.getAttribute('data-reference-print-mode');
+
+                                saveChoice(selectedMode);
+                                closeMenu();
+
+                                if (selectedMode === 'direct') {
+                                    event.preventDefault();
+                                    openDirectPrint(link.href);
+                                }
+                            });
+                        });
+
+                        primary.addEventListener('click', function (event) {
+                            if (currentMode !== 'direct') {
+                                return;
+                            }
+
+                            event.preventDefault();
+                            openDirectPrint(primary.href);
+                        });
+
+                        window.addEventListener('message', function (event) {
+                            if (event.origin !== window.location.origin) {
+                                return;
+                            }
+
+                            if (event.data
+                                && event.data.type === 'documentArchive.referencePrint.finished') {
+                                window.focus();
+                            }
+                        });
+
+                        remember.addEventListener('change', function () {
+                            if (! storageAvailable) {
+                                return;
+                            }
+
+                            try {
+                                if (remember.checked) {
+                                    window.localStorage.setItem(rememberKey, '1');
+                                    window.localStorage.setItem(modeKey, currentMode);
+                                } else {
+                                    window.localStorage.removeItem(rememberKey);
+                                    window.localStorage.removeItem(modeKey);
+                                }
+                            } catch (error) {
+                                storageAvailable = false;
+                            }
+                        });
+
+                        document.addEventListener('click', function (event) {
+                            if (! control.contains(event.target)) {
+                                closeMenu();
+                            }
+                        });
+
+                        document.addEventListener('keydown', function (event) {
+                            if (event.key === 'Escape') {
+                                closeMenu();
+                            }
+                        });
+                    });
+                })();
+            </script>
+            {{-- REFERENCE_PRINT_CHOICE_V81_9:end --}}
             @if($canSendEmail)
                 <a href="{{ route('documents.email.compose', $document) }}" class="btn btn-info">إرسال بالبريد</a>
             @endif

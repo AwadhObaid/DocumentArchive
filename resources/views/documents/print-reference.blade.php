@@ -61,6 +61,15 @@
     $titleGapMm = (float) $setting('print_title_gap_mm', '0.6');
     $rowGapMm = (float) $setting('print_row_gap_mm', '0.25');
     $blockWidthMm = $labelWidthMm + $colonWidthMm + $valueWidthMm + ($columnGapMm * 2);
+    /*
+     * REFERENCE_PRINT_DIRECT_MODE_V81_9
+     *
+     * "direct" skips the application's preview step and opens the browser's
+     * native print dialog automatically. Browsers still require their own
+     * print dialog unless kiosk/silent-print mode is configured externally.
+     */
+    $printMode = request()->query('mode') === 'direct' ? 'direct' : 'preview';
+    $isDirectPrintMode = $printMode === 'direct';
     $docId = data_get($doc, 'id');
 @endphp
 <!doctype html>
@@ -175,6 +184,21 @@
             letter-spacing: 0;
         }
 
+
+        .print-mode-direct .da-toolbar {
+            display: none !important;
+        }
+
+        @media screen {
+            .print-mode-direct {
+                background: #fff;
+            }
+
+            .print-mode-direct .da-a4-page {
+                margin-top: 0;
+            }
+        }
+
         @media print {
             html,
             body {
@@ -192,7 +216,8 @@
         }
     </style>
 </head>
-<body class="print-reference-page no-qr-print-page">
+<body class="print-reference-page no-qr-print-page print-mode-{{ $printMode }}"
+      data-print-mode="{{ $printMode }}">
     <div class="da-toolbar">
         <button class="da-btn da-btn-print" type="button" onclick="window.print()">طباعة</button>
         <a class="da-btn da-btn-back" href="{{ $docId ? url('/documents/' . $docId) : url('/documents') }}">رجوع</a>
@@ -217,5 +242,79 @@
             </div>
         </section>
     </main>
+
+    @if($isDirectPrintMode)
+        <script>
+            (function () {
+                var printStarted = false;
+
+                function startDirectPrint() {
+                    if (printStarted) {
+                        return;
+                    }
+
+                    printStarted = true;
+                    window.focus();
+
+                    window.setTimeout(function () {
+                        window.print();
+                    }, 180);
+                }
+
+                function waitForReady() {
+                    if (document.fonts && document.fonts.ready) {
+                        document.fonts.ready
+                            .then(startDirectPrint)
+                            .catch(startDirectPrint);
+
+                        return;
+                    }
+
+                    startDirectPrint();
+                }
+
+                if (document.readyState === 'complete') {
+                    waitForReady();
+                } else {
+                    window.addEventListener('load', waitForReady, { once: true });
+                }
+
+                /*
+                 * REFERENCE_PRINT_RETURN_V81_9_1
+                 *
+                 * A script-opened direct-print window closes automatically.
+                 * If the page was opened independently or the browser blocks
+                 * closing it, return to the originating book page.
+                 */
+                var returnToBookUrl = @json(url('/documents/' . $docId));
+
+                window.addEventListener('afterprint', function () {
+                    if (window.opener && ! window.opener.closed) {
+                        try {
+                            window.opener.postMessage(
+                                {
+                                    type: 'documentArchive.referencePrint.finished',
+                                    documentId: @json($docId)
+                                },
+                                window.location.origin
+                            );
+                        } catch (error) {
+                            // Returning focus is optional; closing still runs.
+                        }
+                    }
+
+                    window.setTimeout(function () {
+                        window.close();
+
+                        window.setTimeout(function () {
+                            if (! window.closed) {
+                                window.location.replace(returnToBookUrl);
+                            }
+                        }, 250);
+                    }, 120);
+                });
+            })();
+        </script>
+    @endif
 </body>
 </html>
