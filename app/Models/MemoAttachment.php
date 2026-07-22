@@ -18,6 +18,8 @@ class MemoAttachment extends Model
         'extension',
         'mime_type',
         'file_size',
+        'sha256',
+        'source_path',
         'uploaded_by',
     ];
 

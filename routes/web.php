@@ -36,6 +36,7 @@ use App\Http\Controllers\NotificationSettingsController;
 use App\Http\Controllers\LeaveCalculatorController;
 use App\Http\Controllers\SmartReportController;
 use App\Http\Controllers\LegacyArchiveImportController;
+use App\Http\Controllers\LegacyMemoImportController;
 
 
 Route::get('/shared/attachments/{token}', [SharedAttachmentLinkController::class, 'publicShow'])
@@ -108,6 +109,23 @@ Route::middleware(['auth', ApplyRoutePermissions::class])->group(function () {
             ->name('show');
     });
 // legacy-archive-import-v81-routes:end
+
+// legacy-memo-import-v84-routes:start
+    Route::prefix('tools/legacy-memo-import')
+        ->name('memo-legacy-import.')
+        ->group(function () {
+            Route::get('/', [LegacyMemoImportController::class, 'index'])
+                ->name('index');
+            Route::post('/scan', [LegacyMemoImportController::class, 'scan'])
+                ->name('scan');
+            Route::get('/runs/{run}', [LegacyMemoImportController::class, 'show'])
+                ->whereNumber('run')
+                ->name('show');
+            Route::post('/runs/{run}/import', [LegacyMemoImportController::class, 'import'])
+                ->whereNumber('run')
+                ->name('import');
+        });
+// legacy-memo-import-v84-routes:end
     // Smart Reports - Gemini
     Route::get('/smart-reports', [SmartReportController::class, 'index'])
         ->name('smart-reports.index');

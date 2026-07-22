@@ -51,6 +51,11 @@ class ActivityLog extends Model
             'memo.force_deleted' => 'حذف مذكرة نهائي',
             'memo_attachment.previewed' => 'معاينة مرفق مذكرة',
             'memo_attachment.downloaded' => 'تنزيل مرفق مذكرة',
+            'memo_legacy_import.scan_completed' => 'فحص المذكرات القديمة',
+            'memo_legacy_import.scan_failed' => 'فشل فحص المذكرات القديمة',
+            'memo_legacy_import.memo_imported' => 'استيراد مذكرة قديمة',
+            'memo_legacy_import.import_completed' => 'اكتمال استيراد المذكرات القديمة',
+            'memo_legacy_import.import_completed_with_errors' => 'استيراد مذكرات قديمة مع أخطاء',
 
             'attachment.uploaded' => 'رفع مرفق',
             'attachment.previewed' => 'معاينة مرفق',
@@ -156,6 +161,8 @@ class ActivityLog extends Model
 
         return match (true) {
             str_starts_with($action, 'document.') => 'الكتب',
+            str_starts_with($action, 'memo_legacy_import.') => 'استيراد المذكرات',
+            str_starts_with($action, 'memo.') || str_starts_with($action, 'memo_attachment.') => 'المذكرات',
             str_starts_with($action, 'attachment.') => 'المرفقات',
             str_starts_with($action, 'backup.') => 'النسخ الاحتياطي',
             str_starts_with($action, 'user.') => 'المستخدمون',
@@ -179,6 +186,9 @@ class ActivityLog extends Model
         return [
             'App\\Models\\Document' => 'كتاب',
             'App\\Models\\DocumentAttachment' => 'مرفق',
+            'App\\Models\\Memo' => 'مذكرة',
+            'App\\Models\\MemoAttachment' => 'مرفق مذكرة',
+            'App\\Models\\LegacyMemoImportRun' => 'عملية فحص مذكرات قديمة',
             'App\\Models\\Department' => 'إدارة',
             'App\\Models\\DocumentType' => 'نوع كتاب',
             'App\\Models\\User' => 'مستخدم',

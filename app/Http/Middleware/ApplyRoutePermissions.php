@@ -160,6 +160,7 @@ class ApplyRoutePermissions
         'settings.internal-chat.restore-deleted' => 'internal_chat.restore_deleted',
         'settings.internal-chat.purge-deleted' => 'internal_chat.force_delete',
         'legacy-archive-import.*' => 'legacy_import.manage',
+        'memo-legacy-import.*' => 'legacy_import.manage',
 
         'settings.*' => 'settings.manage',
         'system-health.*' => 'system_health.view',

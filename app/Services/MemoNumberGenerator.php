@@ -8,7 +8,7 @@ use Illuminate\Support\Facades\DB;
 
 class MemoNumberGenerator
 {
-    public const DEFAULT_START_NUMBER = 2600001;
+    public const DEFAULT_START_NUMBER = 2600000;
     private const COUNTER_KEY = 'default';
 
     public static function generate(): array
@@ -84,6 +84,67 @@ class MemoNumberGenerator
             'start_number' => $startNumber,
             'reserved' => false,
         ];
+    }
+
+    /**
+     * Preview a consecutive batch without reserving any numbers.
+     *
+     * The final import stage must call generate() inside its transaction;
+     * these values are only planning numbers for the V84 inventory report.
+     */
+    public static function previewBatch(int $count): array
+    {
+        $count = max(0, min($count, 100000));
+
+        if ($count === 0) {
+            return [];
+        }
+
+        self::ensureCounterExists();
+
+        $counter = MemoCounter::query()
+            ->where('counter_key', self::COUNTER_KEY)
+            ->first();
+
+        $startNumber = $counter
+            ? (int) ($counter->start_number ?: self::DEFAULT_START_NUMBER)
+            : self::DEFAULT_START_NUMBER;
+
+        $safeLastSequence = max(
+            $counter ? (int) $counter->last_sequence : -1,
+            self::maxMemoSequence($startNumber)
+        );
+
+        $usedNumbers = Memo::withTrashed()
+            ->pluck('memo_number')
+            ->mapWithKeys(function ($number) {
+                $number = trim((string) $number);
+
+                return $number !== '' ? [$number => true] : [];
+            })
+            ->all();
+
+        $results = [];
+        $sequence = $safeLastSequence + 1;
+
+        while (count($results) < $count) {
+            $memoNumber = (string) ($startNumber + $sequence);
+
+            if (! isset($usedNumbers[$memoNumber])) {
+                $results[] = [
+                    'memo_number' => $memoNumber,
+                    'memo_sequence' => $sequence,
+                    'start_number' => $startNumber,
+                    'reserved' => false,
+                ];
+
+                $usedNumbers[$memoNumber] = true;
+            }
+
+            $sequence++;
+        }
+
+        return $results;
     }
 
     public static function reset(int $startNumber = self::DEFAULT_START_NUMBER): void

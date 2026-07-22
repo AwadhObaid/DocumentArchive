@@ -2,7 +2,7 @@
 
 @section('title', 'المذكرات')
 @section('page_title', 'المذكرات')
-@section('page_subtitle', 'أرشفة المذكرات الواردة بترقيم مستقل يبدأ من 2600001')
+@section('page_subtitle', 'أرشفة المذكرات الواردة بترقيم مستقل يبدأ من 2600000')
 
 @section('content')
 <style>
@@ -53,6 +53,7 @@
     .memos-filter-grid { display:grid; grid-template-columns:2fr repeat(4, minmax(145px, 1fr)) auto; gap:10px; align-items:end; }
     .memos-filter-grid .form-group { margin:0; }
     .memos-actions { display:flex; gap:8px; flex-wrap:wrap; align-items:center; }
+    .memos-header-actions { display:flex; gap:8px; flex-wrap:wrap; align-items:center; }
 
     /* MEMOS_TABLE_INNER_SCROLL_V5_START */
     #memosTableScroll {
@@ -226,9 +227,17 @@
             <h1>المذكرات</h1>
             <p>وحدة مستقلة لحفظ وأرشفة المذكرات الواردة برقم مرجع خاص.</p>
         </div>
-        @if(auth()->user()?->hasPermission('memos.create'))
-            <a href="{{ route('memos.create') }}" class="btn btn-primary">+ إضافة مذكرة</a>
-        @endif
+        <div class="memos-header-actions">
+            @if(auth()->user()?->hasPermission('legacy_import.manage') || auth()->user()?->hasPermission('settings.manage'))
+                <a href="{{ route('memo-legacy-import.index') }}" class="btn btn-secondary">
+                    استيراد المذكرات القديمة
+                </a>
+            @endif
+
+            @if(auth()->user()?->hasPermission('memos.create'))
+                <a href="{{ route('memos.create') }}" class="btn btn-primary">+ إضافة مذكرة</a>
+            @endif
+        </div>
     </div>
 
     <div class="memos-stats">
