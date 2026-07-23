@@ -365,6 +365,84 @@ Route::middleware(['auth', ApplyRoutePermissions::class])->group(function () {
             'book-subjects' => 'bookSubject',
         ]);
 
+    // circulars-misc-books-v85-routes:start
+    Route::get('/circulars/trash', [\App\Http\Controllers\CircularController::class, 'trash'])
+        ->name('circulars.trash');
+    Route::post('/circulars/{circular}/restore', [\App\Http\Controllers\CircularController::class, 'restore'])
+        ->withTrashed()
+        ->name('circulars.restore');
+    Route::delete('/circulars/{circular}/force-delete', [\App\Http\Controllers\CircularController::class, 'forceDelete'])
+        ->withTrashed()
+        ->name('circulars.force-delete');
+    Route::get('/circulars/{circular}/attachments/{attachment}/preview', [\App\Http\Controllers\CircularController::class, 'previewAttachment'])
+        ->name('circulars.attachments.preview');
+    Route::get('/circulars/{circular}/attachments/{attachment}/inline', [\App\Http\Controllers\CircularController::class, 'inlineAttachment'])
+        ->name('circulars.attachments.inline');
+    Route::get('/circulars/{circular}/attachments/{attachment}/download', [\App\Http\Controllers\CircularController::class, 'downloadAttachment'])
+        ->name('circulars.attachments.download');
+    Route::resource('circulars', \App\Http\Controllers\CircularController::class);
+
+    Route::get('/misc-books/trash', [\App\Http\Controllers\MiscBookController::class, 'trash'])
+        ->name('misc-books.trash');
+    Route::post('/misc-books/{miscBook}/restore', [\App\Http\Controllers\MiscBookController::class, 'restore'])
+        ->withTrashed()
+        ->name('misc-books.restore');
+    Route::delete('/misc-books/{miscBook}/force-delete', [\App\Http\Controllers\MiscBookController::class, 'forceDelete'])
+        ->withTrashed()
+        ->name('misc-books.force-delete');
+    Route::get('/misc-books/{miscBook}/attachments/{attachment}/preview', [\App\Http\Controllers\MiscBookController::class, 'previewAttachment'])
+        ->name('misc-books.attachments.preview');
+    Route::get('/misc-books/{miscBook}/attachments/{attachment}/inline', [\App\Http\Controllers\MiscBookController::class, 'inlineAttachment'])
+        ->name('misc-books.attachments.inline');
+    Route::get('/misc-books/{miscBook}/attachments/{attachment}/download', [\App\Http\Controllers\MiscBookController::class, 'downloadAttachment'])
+        ->name('misc-books.attachments.download');
+    Route::resource('misc-books', \App\Http\Controllers\MiscBookController::class)
+        ->parameters(['misc-books' => 'miscBook']);
+
+    Route::get('/archive-categories', [\App\Http\Controllers\ArchiveCategoryController::class, 'index'])
+        ->name('archive-categories.index');
+    Route::post('/archive-categories', [\App\Http\Controllers\ArchiveCategoryController::class, 'store'])
+        ->name('archive-categories.store');
+    Route::put('/archive-categories/{archiveCategory}', [\App\Http\Controllers\ArchiveCategoryController::class, 'update'])
+        ->name('archive-categories.update');
+    Route::patch('/archive-categories/{archiveCategory}/toggle', [\App\Http\Controllers\ArchiveCategoryController::class, 'toggle'])
+        ->name('archive-categories.toggle');
+    Route::delete('/archive-categories/{archiveCategory}', [\App\Http\Controllers\ArchiveCategoryController::class, 'destroy'])
+        ->name('archive-categories.destroy');
+
+    // legacy-circulars-misc-compatibility-v86-0-1-routes:start
+    Route::prefix('tools/legacy-circular-misc-import')
+        ->name('legacy-circular-misc-import.')
+        ->group(function () {
+            Route::get(
+                '/',
+                [\App\Http\Controllers\LegacyCircularMiscImportController::class, 'index']
+            )->name('index');
+
+            Route::post(
+                '/',
+                [\App\Http\Controllers\LegacyCircularMiscImportController::class, 'store']
+            )->name('store');
+
+            Route::get(
+                '/runs/{legacyCircularMiscImportRun}',
+                [\App\Http\Controllers\LegacyCircularMiscImportController::class, 'show']
+            )->name('show');
+
+            // legacy-circular-misc-import-v86-1-route:start
+            Route::post(
+                '/runs/{legacyCircularMiscImportRun}/import',
+                [\App\Http\Controllers\LegacyCircularMiscImportController::class, 'import']
+            )->whereNumber('legacyCircularMiscImportRun')->name('import');
+            // legacy-circular-misc-import-v86-1-route:end
+            Route::delete(
+                '/runs/{legacyCircularMiscImportRun}',
+                [\App\Http\Controllers\LegacyCircularMiscImportController::class, 'destroy']
+            )->name('destroy');
+        });
+    // legacy-circulars-misc-compatibility-v86-0-1-routes:end
+    // circulars-misc-books-v85-routes:end
+
     Route::get('/memos/{memo}/attachments/{attachment}/preview', [MemoController::class, 'previewAttachment'])
         ->name('memos.attachments.preview');
 

@@ -52,6 +52,38 @@ class ApplyRoutePermissions
         'memos.attachments.inline' => 'memos.attachments',
         'memos.attachments.download' => 'memos.attachments',
 
+        // circulars-misc-books-v85-permissions:start
+        'circulars.index' => 'circulars.view',
+        'circulars.show' => 'circulars.view',
+        'circulars.create' => 'circulars.create',
+        'circulars.store' => 'circulars.create',
+        'circulars.edit' => 'circulars.edit',
+        'circulars.update' => 'circulars.edit',
+        'circulars.destroy' => 'circulars.delete',
+        'circulars.trash' => 'circulars.restore',
+        'circulars.restore' => 'circulars.restore',
+        'circulars.force-delete' => 'circulars.force_delete',
+        'circulars.attachments.preview' => 'circulars.attachments',
+        'circulars.attachments.inline' => 'circulars.attachments',
+        'circulars.attachments.download' => 'circulars.attachments',
+
+        'misc-books.index' => 'misc_books.view',
+        'misc-books.show' => 'misc_books.view',
+        'misc-books.create' => 'misc_books.create',
+        'misc-books.store' => 'misc_books.create',
+        'misc-books.edit' => 'misc_books.edit',
+        'misc-books.update' => 'misc_books.edit',
+        'misc-books.destroy' => 'misc_books.delete',
+        'misc-books.trash' => 'misc_books.restore',
+        'misc-books.restore' => 'misc_books.restore',
+        'misc-books.force-delete' => 'misc_books.force_delete',
+        'misc-books.attachments.preview' => 'misc_books.attachments',
+        'misc-books.attachments.inline' => 'misc_books.attachments',
+        'misc-books.attachments.download' => 'misc_books.attachments',
+
+        'archive-categories.*' => 'archive_categories.manage',
+        // circulars-misc-books-v85-permissions:end
+
         'memos.workflow.submit' => 'workflow.submit',
         'memos.workflow.approve' => 'workflow.approve',
         'memos.workflow.reject' => 'workflow.reject',
@@ -160,6 +192,7 @@ class ApplyRoutePermissions
         'settings.internal-chat.restore-deleted' => 'internal_chat.restore_deleted',
         'settings.internal-chat.purge-deleted' => 'internal_chat.force_delete',
         'legacy-archive-import.*' => 'legacy_import.manage',
+        'legacy-circular-misc-import.*' => 'legacy_import.manage',
         'memo-legacy-import.*' => 'legacy_import.manage',
 
         'settings.*' => 'settings.manage',

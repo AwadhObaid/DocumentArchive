@@ -90,6 +90,9 @@
 {{-- legacy-archive-import-v81-css:start --}}
     <link rel="stylesheet" href="{{ asset('css/legacy-archive-import-v81.css') }}?v={{ filemtime(public_path('css/legacy-archive-import-v81.css')) }}">
 {{-- legacy-archive-import-v81-css:end --}}
+    {{-- circulars-misc-books-v85-css:start --}}
+    <link rel="stylesheet" href="{{ asset('css/circulars-misc-books-v85.css') }}?v=85">
+    {{-- circulars-misc-books-v85-css:end --}}
 </head>
 <body
     data-auto-logout-enabled="{{ $daAutoLogoutEnabled ? '1' : '0' }}"
@@ -168,6 +171,29 @@
             @if(auth()->user()?->hasPermission('memos.view'))
                 <a href="{{ route('memos.index') }}" class="{{ request()->routeIs('memos.*') ? 'active' : '' }}">📒 المذكرات</a>
             @endif
+
+            {{-- circulars-misc-books-v85-nav:start --}}
+            @if(auth()->user()?->hasPermission('circulars.view'))
+                <a href="{{ route('circulars.index') }}" class="{{ request()->routeIs('circulars.*') ? 'active' : '' }}">📢 التعاميم</a>
+            @endif
+
+            @if(auth()->user()?->hasPermission('misc_books.view'))
+                <a href="{{ route('misc-books.index') }}" class="{{ request()->routeIs('misc-books.*') ? 'active' : '' }}">🗃️ الكتب المتفرقة</a>
+            @endif
+
+            @if(auth()->user()?->hasPermission('archive_categories.manage'))
+                <a href="{{ route('archive-categories.index') }}" class="{{ request()->routeIs('archive-categories.*') ? 'active' : '' }}">🗂️ تصنيفات التعاميم والمتفرقات</a>
+            @endif
+
+            {{-- legacy-circulars-misc-compatibility-v86-0-1-nav:start --}}
+            @if(auth()->user()?->hasPermission('legacy_import.manage') || auth()->user()?->hasPermission('settings.manage'))
+                <a href="{{ route('legacy-circular-misc-import.index') }}"
+                   class="{{ request()->routeIs('legacy-circular-misc-import.*') ? 'active' : '' }}">
+                    📥 استيراد التعاميم والمتفرقات القديمة
+                </a>
+            @endif
+            {{-- legacy-circulars-misc-compatibility-v86-0-1-nav:end --}}
+            {{-- circulars-misc-books-v85-nav:end --}}
 
             @if(auth()->user()?->hasPermission('documents.restore'))
                 <a href="{{ route('documents.trash') }}" class="{{ request()->routeIs('documents.trash') ? 'active' : '' }}">🗑️ سلة المحذوفات</a>
