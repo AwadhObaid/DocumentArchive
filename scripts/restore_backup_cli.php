@@ -41,6 +41,10 @@ if (!is_file($backupPath)) {
     fail('ملف النسخة الاحتياطية غير موجود: ' . $backupPath);
 }
 
+if ($mode === '--full') {
+    assertVerifiedFullBackupManifest($backupPath);
+}
+
 ensureDirectory($projectRoot . '/storage/app/private/backups');
 
 info('Backup file: ' . $backupPath);
@@ -81,9 +85,9 @@ if ($mode !== '--files') {
 }
 
 if ($mode !== '--database') {
-    info('Step 4/5: Restoring documents folder from ZIP if available.');
+    info('Step 4/5: Restoring supported attachment folders from ZIP if available.');
     createSafetyFilesBackup($projectRoot);
-    restoreDocumentsFromZip($backupPath, $projectRoot . '/storage/app/private/documents');
+    restoreAttachmentDirectoriesFromZip($backupPath, $projectRoot);
 }
 
 info('Step 5/5: Cleaning Laravel runtime files.');
@@ -91,6 +95,102 @@ cleanRuntime($projectRoot);
 
 success('تمت الاستعادة بنجاح. شغّل النظام ثم ادخل بـ admin / 12345678');
 exit(0);
+
+
+function assertVerifiedFullBackupManifest(string $backupPath): void
+{
+    $zip = new ZipArchive();
+
+    if ($zip->open($backupPath) !== true) {
+        fail('تعذر فتح ملف ZIP لفحص Manifest.');
+    }
+
+    $raw = $zip->getFromName('BACKUP_MANIFEST.json');
+
+    if ($raw === false) {
+        $zip->close();
+        fail('تم منع الاستعادة الكاملة: النسخة لا تحتوي على BACKUP_MANIFEST.json.');
+    }
+
+    $manifest = json_decode($raw, true);
+
+    if (!is_array($manifest) || (int) ($manifest['format_version'] ?? 0) < 2) {
+        $zip->close();
+        fail('تم منع الاستعادة الكاملة: Manifest غير صالح أو قديم.');
+    }
+
+    $expectedDirectories = (array) ($manifest['storage_directories'] ?? []);
+    $actual = [];
+
+    foreach ($expectedDirectories as $directory => $expected) {
+        $actual[$directory] = [
+            'present' => false,
+            'file_count' => 0,
+            'total_bytes' => 0,
+        ];
+    }
+
+    $sqlCount = 0;
+    $sqlBytes = 0;
+
+    for ($i = 0; $i < $zip->numFiles; $i++) {
+        $stat = $zip->statIndex($i);
+        $name = str_replace('\\', '/', (string) ($stat['name'] ?? ''));
+        $size = (int) ($stat['size'] ?? 0);
+        $isDirectory = str_ends_with($name, '/');
+
+        if (str_ends_with(strtolower($name), '.sql')) {
+            $sqlCount++;
+            $sqlBytes += $size;
+        }
+
+        foreach ($actual as $directory => &$stats) {
+            $prefix = $directory . '/';
+
+            if ($name === $directory . '/' || str_starts_with($name, $prefix)) {
+                $stats['present'] = true;
+
+                if (!$isDirectory && str_starts_with($name, $prefix)) {
+                    $stats['file_count']++;
+                    $stats['total_bytes'] += $size;
+                }
+
+                break;
+            }
+        }
+        unset($stats);
+    }
+
+    $zip->close();
+
+    if ($sqlCount === 0) {
+        fail('تم منع الاستعادة الكاملة: لا يوجد ملف SQL.');
+    }
+
+    $expectedSqlBytes = (int) ($manifest['database']['sql_bytes'] ?? 0);
+
+    if ($expectedSqlBytes > 0 && $sqlBytes !== $expectedSqlBytes) {
+        fail('تم منع الاستعادة الكاملة: حجم SQL لا يطابق Manifest.');
+    }
+
+    foreach ($expectedDirectories as $directory => $expected) {
+        $stats = $actual[$directory] ?? null;
+
+        if ($stats === null || !$stats['present']) {
+            fail('تم منع الاستعادة الكاملة: مجلد مفقود من ZIP: ' . $directory);
+        }
+
+        if ((int) $stats['file_count'] !== (int) ($expected['file_count'] ?? -1)) {
+            fail('تم منع الاستعادة الكاملة: عدد الملفات لا يطابق Manifest في ' . $directory);
+        }
+
+        if ((int) $stats['total_bytes'] !== (int) ($expected['total_bytes'] ?? -1)) {
+            fail('تم منع الاستعادة الكاملة: حجم الملفات لا يطابق Manifest في ' . $directory);
+        }
+    }
+
+    success('Verified full-backup Manifest passed.');
+}
 
 function readEnvFile(string $path): array
 {
@@ -374,52 +474,141 @@ function sqlValue(PDO $pdo, mixed $value): string
 
 function createSafetyFilesBackup(string $projectRoot): void
 {
-    $source = $projectRoot . '/storage/app/private/documents';
-    if (!is_dir($source)) { return; }
-    $target = $projectRoot . '/storage/app/private/backups/pre-cli-restore-documents-' . date('Ymd-His');
-    copyDirectory($source, $target);
-    info('Safety documents copy saved: ' . $target);
+    $targetRoot = $projectRoot . '/storage/app/private/backups/pre-cli-restore-files-' . date('Ymd-His');
+    $copied = 0;
+
+    foreach (attachmentDirectories($projectRoot) as $name => $source) {
+        if (!is_dir($source)) {
+            continue;
+        }
+
+        copyDirectory($source, $targetRoot . DIRECTORY_SEPARATOR . $name);
+        $copied++;
+    }
+
+    if ($copied > 0) {
+        info('Safety attachment folders saved: ' . $targetRoot);
+    }
 }
 
-function restoreDocumentsFromZip(string $backupPath, string $documentsPath): void
+function restoreAttachmentDirectoriesFromZip(string $backupPath, string $projectRoot): void
 {
     $zip = new ZipArchive();
-    if ($zip->open($backupPath) !== true) { fail('تعذر فتح ملف ZIP لاستعادة المرفقات.'); }
 
-    $hasDocuments = false;
+    if ($zip->open($backupPath) !== true) {
+        fail('تعذر فتح ملف ZIP لاستعادة المرفقات.');
+    }
+
+    $supported = attachmentDirectories($projectRoot);
+    $present = [];
+
+    foreach (array_keys($supported) as $directory) {
+        $present[$directory] = false;
+    }
+
     for ($i = 0; $i < $zip->numFiles; $i++) {
         $stat = $zip->statIndex($i);
         $name = str_replace('\\', '/', (string) ($stat['name'] ?? ''));
-        if (str_starts_with($name, 'documents/')) { $hasDocuments = true; break; }
+
+        foreach (array_keys($supported) as $directory) {
+            if ($name === $directory . '/' || str_starts_with($name, $directory . '/')) {
+                $present[$directory] = true;
+                break;
+            }
+        }
     }
-    if (!$hasDocuments) {
+
+    if (!in_array(true, $present, true)) {
         $zip->close();
-        warn('لا يوجد مجلد documents داخل النسخة. تم تخطي استعادة الملفات.');
+        warn('لا توجد مجلدات مرفقات مدعومة داخل النسخة. تم تخطي استعادة الملفات.');
         return;
     }
 
-    if (is_dir($documentsPath)) { deleteDirectory($documentsPath); }
-    ensureDirectory($documentsPath);
+    foreach ($present as $directory => $exists) {
+        if (!$exists) {
+            continue;
+        }
 
-    for ($i = 0; $i < $zip->numFiles; $i++) {
-        $stat = $zip->statIndex($i);
-        $zipName = str_replace('\\', '/', (string) ($stat['name'] ?? ''));
-        if (!str_starts_with($zipName, 'documents/')) { continue; }
-        $relative = trim(substr($zipName, strlen('documents/')), '/');
-        if ($relative === '' || isUnsafePath($relative)) { continue; }
-        $target = $documentsPath . DIRECTORY_SEPARATOR . str_replace('/', DIRECTORY_SEPARATOR, $relative);
-        if (str_ends_with($zipName, '/')) { ensureDirectory($target); continue; }
-        ensureDirectory(dirname($target));
-        $stream = $zip->getStream($zipName);
-        if ($stream === false) { continue; }
-        $out = fopen($target, 'wb');
-        if ($out === false) { fclose($stream); continue; }
-        stream_copy_to_stream($stream, $out);
-        fclose($stream);
-        fclose($out);
+        $targetRoot = $supported[$directory];
+
+        if (is_dir($targetRoot)) {
+            deleteDirectory($targetRoot);
+        }
+
+        ensureDirectory($targetRoot);
+
+        for ($i = 0; $i < $zip->numFiles; $i++) {
+            $stat = $zip->statIndex($i);
+            $zipName = str_replace('\\', '/', (string) ($stat['name'] ?? ''));
+            $prefix = $directory . '/';
+
+            if ($zipName !== $directory . '/' && !str_starts_with($zipName, $prefix)) {
+                continue;
+            }
+
+            $relative = trim(substr($zipName, strlen($prefix)), '/');
+
+            if ($relative === '') {
+                continue;
+            }
+
+            if (isUnsafePath($relative)) {
+                $zip->close();
+                fail('تم رفض مسار غير آمن داخل ZIP: ' . $zipName);
+            }
+
+            $target = $targetRoot . DIRECTORY_SEPARATOR
+                . str_replace('/', DIRECTORY_SEPARATOR, $relative);
+
+            if (str_ends_with($zipName, '/')) {
+                ensureDirectory($target);
+                continue;
+            }
+
+            ensureDirectory(dirname($target));
+            $stream = $zip->getStream($zipName);
+
+            if ($stream === false) {
+                $zip->close();
+                fail('تعذر قراءة الملف من ZIP: ' . $zipName);
+            }
+
+            $out = fopen($target, 'wb');
+
+            if ($out === false) {
+                fclose($stream);
+                $zip->close();
+                fail('تعذر إنشاء الملف: ' . $target);
+            }
+
+            $copied = stream_copy_to_stream($stream, $out);
+            fclose($stream);
+            fclose($out);
+
+            if ($copied === false || (int) $copied !== (int) ($stat['size'] ?? 0)) {
+                $zip->close();
+                fail('لم يكتمل نسخ الملف: ' . $zipName);
+            }
+        }
+
+        success('Attachment directory restored: ' . $directory);
     }
+
     $zip->close();
-    success('Documents restored.');
+}
+
+
+function attachmentDirectories(string $projectRoot): array
+{
+    $root = $projectRoot . '/storage/app/private';
+
+    return [
+        'Books' => $root . '/Books',
+        'documents' => $root . '/documents',
+        'memos' => $root . '/memos',
+        'circulars' => $root . '/circulars',
+        'misc-books' => $root . '/misc-books',
+    ];
 }
 
 function cleanRuntime(string $projectRoot): void

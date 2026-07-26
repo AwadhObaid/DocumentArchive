@@ -101,7 +101,7 @@
 <div class="page-header backup-polish-v1">
     <div>
         <h1>النسخ الاحتياطي</h1>
-        <p>إنشاء نسخ احتياطية آمنة من بيانات الأرشيف وملفات المرفقات، وفحص النسخة قبل أي استعادة.</p>
+        <p>إنشاء نسخ موثقة من قاعدة البيانات وجميع مجلدات المرفقات، مع فحص Manifest قبل أي استعادة.</p>
     </div>
 </div>
 
@@ -114,29 +114,29 @@
 
 <div class="backup-safety-banner">
     <strong>🛡️ تنبيه أمان:</strong>
-    <span>قبل أي استعادة كبيرة، يفضّل إنشاء نسخة كاملة والاحتفاظ بها خارج الجهاز الرئيسي.</span>
+    <span>النسخ الجديدة تشمل Books وdocuments وmemos وcirculars وmisc-books، وتحتوي على Manifest للتحقق من الاكتمال.</span>
 </div>
 
 <div class="backup-actions-grid">
     <div class="card backup-action-card">
         <h3>نسخة قاعدة البيانات</h3>
-        <p>تصدير بيانات الأرشيف الأساسية إلى ملف SQL داخل ZIP. الاستعادة لا تغيّر المستخدمين أو كلمات المرور.</p>
+        <p>تصدير جميع جداول قاعدة البيانات إلى SQL داخل ZIP. الاستعادة عبر الواجهة تحافظ على المستخدمين وكلمات المرور.</p>
         @if(auth()->user()?->hasPermission('backups.create'))
-        <form method="POST" action="{{ route('backups.database') }}">@csrf<button type="submit" class="btn btn-primary">إنشاء نسخة قاعدة البيانات</button></form>
+        <form method="POST" action="{{ route('backups.database') }}" data-backup-create>@csrf<button type="submit" class="btn btn-primary" data-backup-button>إنشاء نسخة قاعدة البيانات</button></form>
         @endif
     </div>
     <div class="card backup-action-card">
         <h3>نسخة ملفات المرفقات</h3>
-        <p>نسخ ملفات الكتب والمرفقات من التخزين الخاص إلى ملف ZIP مستقل.</p>
+        <p>نسخ جميع مجلدات المرفقات التشغيلية: Books وdocuments وmemos وcirculars وmisc-books.</p>
         @if(auth()->user()?->hasPermission('backups.create'))
-        <form method="POST" action="{{ route('backups.files') }}">@csrf<button type="submit" class="btn btn-secondary">إنشاء نسخة الملفات</button></form>
+        <form method="POST" action="{{ route('backups.files') }}" data-backup-create>@csrf<button type="submit" class="btn btn-secondary" data-backup-button>إنشاء نسخة الملفات</button></form>
         @endif
     </div>
     <div class="card backup-action-card highlighted">
         <h3>نسخة كاملة</h3>
-        <p>الخيار الأفضل قبل التحديثات: قاعدة البيانات + ملفات المرفقات في ملف ZIP واحد.</p>
+        <p>قاعدة البيانات الكاملة + جميع مجلدات المرفقات + Manifest في ملف ZIP واحد. قد يستغرق إنشاؤها عدة دقائق.</p>
         @if(auth()->user()?->hasPermission('backups.create'))
-        <form method="POST" action="{{ route('backups.full') }}">@csrf<button type="submit" class="btn btn-success">إنشاء نسخة كاملة</button></form>
+        <form method="POST" action="{{ route('backups.full') }}" data-backup-create>@csrf<button type="submit" class="btn btn-success" data-backup-button>إنشاء نسخة كاملة موثقة</button></form>
         @endif
     </div>
 </div>
@@ -183,6 +183,18 @@
 <style>
 .backup-safety-banner{display:flex;gap:8px;align-items:center;padding:14px 16px;border-radius:16px;background:rgba(245,158,11,.12);border:1px solid rgba(245,158,11,.25);margin-bottom:16px;flex-wrap:wrap}.backup-safety-banner span{color:#64748b}.backup-actions-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:16px}.backup-action-card{padding:18px}.backup-action-card.highlighted{border-color:rgba(34,197,94,.35)}.backup-action-card p{color:#64748b;min-height:58px}.backup-list-card{padding:0;overflow:hidden}.backup-list-header{padding:18px 20px}.backup-list-header h3{margin:0 0 4px}.backup-table-wrap{overflow-x:auto}.backup-table{min-width:820px}.backup-file-name{direction:ltr;text-align:left;font-weight:700;white-space:nowrap}.table-actions{display:flex;gap:8px;flex-wrap:wrap}.backup-badge{display:inline-flex;border-radius:999px;padding:4px 10px;font-size:12px;font-weight:700;white-space:nowrap}.backup-badge.success{background:rgba(34,197,94,.14);color:#15803d}.backup-badge.primary{background:rgba(59,130,246,.14);color:#1d4ed8}.backup-badge.info{background:rgba(14,165,233,.14);color:#0369a1}.backup-badge.warning{background:rgba(245,158,11,.16);color:#b45309}.backup-badge.neutral{background:rgba(148,163,184,.18);color:#475569}
 </style>
+
+<script>
+document.querySelectorAll('[data-backup-create]').forEach(function(form){
+    form.addEventListener('submit', function(){
+        const button=form.querySelector('[data-backup-button]');
+        if(!button) return;
+        button.disabled=true;
+        button.dataset.originalText=button.textContent;
+        button.textContent='جارٍ إنشاء النسخة والتحقق منها...';
+    });
+});
+</script>
 
 </div>
 @endsection
