@@ -452,29 +452,30 @@
         @endif
     </div>
 
+    {{-- LIVE_DATA_SYNC_V91_DASHBOARD --}}
     <div class="da-grid da-grid-stats">
         <div class="da-card da-stat">
             <div class="da-stat-icon">📚</div>
             <div class="da-stat-label">إجمالي الكتب</div>
-            <div class="da-stat-value">{{ $num(da_dashboard_value($stats, 'documents_total', 0)) }}</div>
+            <div class="da-stat-value" data-live-sync-count="documents_total">{{ $num(da_dashboard_value($stats, 'documents_total', 0)) }}</div>
             <div class="da-stat-note">كل الكتب المسجلة في النظام.</div>
         </div>
         <div class="da-card da-stat">
             <div class="da-stat-icon">✅</div>
             <div class="da-stat-label">الكتب الفعالة</div>
-            <div class="da-stat-value">{{ $num(da_dashboard_value($stats, 'documents_active', 0)) }}</div>
+            <div class="da-stat-value" data-live-sync-count="documents_active">{{ $num(da_dashboard_value($stats, 'documents_active', 0)) }}</div>
             <div class="da-stat-note">بدون الكتب الموجودة في سلة المحذوفات.</div>
         </div>
         <div class="da-card da-stat">
             <div class="da-stat-icon">📅</div>
             <div class="da-stat-label">كتب اليوم</div>
-            <div class="da-stat-value">{{ $num(da_dashboard_value($stats, 'documents_today', 0)) }}</div>
+            <div class="da-stat-value" data-live-sync-count="documents_today">{{ $num(da_dashboard_value($stats, 'documents_today', 0)) }}</div>
             <div class="da-stat-note">حسب تاريخ الكتاب أو تاريخ الإضافة.</div>
         </div>
         <div class="da-card da-stat">
             <div class="da-stat-icon">🗓️</div>
             <div class="da-stat-label">كتب الشهر</div>
-            <div class="da-stat-value">{{ $num(da_dashboard_value($stats, 'documents_month', 0)) }}</div>
+            <div class="da-stat-value" data-live-sync-count="documents_month">{{ $num(da_dashboard_value($stats, 'documents_month', 0)) }}</div>
             <div class="da-stat-note">إجمالي الكتب خلال الشهر الحالي.</div>
         </div>
     </div>
@@ -483,25 +484,25 @@
         <div class="da-card da-stat">
             <div class="da-stat-icon">📎</div>
             <div class="da-stat-label">كتب لديها مرفقات</div>
-            <div class="da-stat-value">{{ $num(da_dashboard_value($stats, 'documents_with_attachments', 0)) }}</div>
+            <div class="da-stat-value" data-live-sync-count="documents_with_attachments">{{ $num(da_dashboard_value($stats, 'documents_with_attachments', 0)) }}</div>
             <div class="da-stat-note">كتب تحتوي على ملف واحد أو أكثر.</div>
         </div>
         <div class="da-card da-stat">
             <div class="da-stat-icon">⚠️</div>
             <div class="da-stat-label">كتب بلا مرفقات</div>
-            <div class="da-stat-value">{{ $num(da_dashboard_value($stats, 'documents_without_attachments', 0)) }}</div>
+            <div class="da-stat-value" data-live-sync-count="documents_without_attachments">{{ $num(da_dashboard_value($stats, 'documents_without_attachments', 0)) }}</div>
             <div class="da-stat-note">تحتاج مراجعة إذا كان المرفق إلزامياً.</div>
         </div>
         <div class="da-card da-stat">
             <div class="da-stat-icon">🗑️</div>
             <div class="da-stat-label">كتب محذوفة</div>
-            <div class="da-stat-value">{{ $num(da_dashboard_value($stats, 'documents_trashed', 0)) }}</div>
+            <div class="da-stat-value" data-live-sync-count="documents_trashed">{{ $num(da_dashboard_value($stats, 'documents_trashed', 0)) }}</div>
             <div class="da-stat-note">موجودة في سلة المحذوفات.</div>
         </div>
         <div class="da-card da-stat">
             <div class="da-stat-icon">📎</div>
             <div class="da-stat-label">إجمالي المرفقات</div>
-            <div class="da-stat-value">{{ $num(da_dashboard_value($stats, 'attachments_total', 0)) }}</div>
+            <div class="da-stat-value" data-live-sync-count="attachments_total">{{ $num(da_dashboard_value($stats, 'attachments_total', 0)) }}</div>
             <div class="da-stat-note">كل ملفات PDF والصور المرفوعة.</div>
         </div>
     </div>
@@ -528,7 +529,7 @@
                             <span class="da-module-arrow" aria-hidden="true">←</span>
                         </div>
                         <h3 class="da-module-title">المذكرات</h3>
-                        <div class="da-module-count">{{ $num(da_dashboard_value($stats, 'memos_total', 0)) }}</div>
+                        <div class="da-module-count" data-live-sync-count="memos_total">{{ $num(da_dashboard_value($stats, 'memos_total', 0)) }}</div>
                         <div class="da-module-note">المذكرات المسجلة والفعالة، دون العناصر الموجودة في سلة المحذوفات.</div>
                     </a>
                 @endif
@@ -540,7 +541,7 @@
                             <span class="da-module-arrow" aria-hidden="true">←</span>
                         </div>
                         <h3 class="da-module-title">التعاميم</h3>
-                        <div class="da-module-count">{{ $num(da_dashboard_value($stats, 'circulars_total', 0)) }}</div>
+                        <div class="da-module-count" data-live-sync-count="circulars_total">{{ $num(da_dashboard_value($stats, 'circulars_total', 0)) }}</div>
                         <div class="da-module-note">التعاميم المسجلة والفعالة، دون العناصر الموجودة في سلة المحذوفات.</div>
                     </a>
                 @endif
@@ -552,7 +553,7 @@
                             <span class="da-module-arrow" aria-hidden="true">←</span>
                         </div>
                         <h3 class="da-module-title">المتفرقات</h3>
-                        <div class="da-module-count">{{ $num(da_dashboard_value($stats, 'misc_books_total', 0)) }}</div>
+                        <div class="da-module-count" data-live-sync-count="misc_books_total">{{ $num(da_dashboard_value($stats, 'misc_books_total', 0)) }}</div>
                         <div class="da-module-note">الكتب المتفرقة المسجلة والفعالة، دون العناصر الموجودة في سلة المحذوفات.</div>
                     </a>
                 @endif

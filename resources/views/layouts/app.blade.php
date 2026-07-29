@@ -96,8 +96,13 @@
     {{-- global-operation-loading-v90-css:start --}}
     <link rel="stylesheet" href="{{ asset('css/global-operation-loading-v90.css') }}?v={{ filemtime(public_path('css/global-operation-loading-v90.css')) }}">
     {{-- global-operation-loading-v90-css:end --}}
+    {{-- live-data-sync-v91-css:start --}}
+    <link rel="stylesheet" href="{{ asset('css/live-data-sync-v91.css') }}?v={{ filemtime(public_path('css/live-data-sync-v91.css')) }}">
+    {{-- live-data-sync-v91-css:end --}}
 </head>
 <body
+    data-live-sync-url="{{ route('live-sync.status') }}"
+    data-live-sync-route="{{ request()->route()?->getName() ?? '' }}"
     data-auto-logout-enabled="{{ $daAutoLogoutEnabled ? '1' : '0' }}"
     data-auto-logout-timeout="{{ $daAutoLogoutTimeoutSeconds }}"
     data-auto-logout-warning="{{ min($daAutoLogoutWarningSeconds, max(10, $daAutoLogoutTimeoutSeconds - 5)) }}"
@@ -393,5 +398,8 @@
     {{-- global-operation-loading-v90-js:start --}}
     <script src="{{ asset('js/global-operation-loading-v90.js') }}?v={{ filemtime(public_path('js/global-operation-loading-v90.js')) }}" defer></script>
     {{-- global-operation-loading-v90-js:end --}}
+    {{-- live-data-sync-v91-js:start --}}
+    <script src="{{ asset('js/live-data-sync-v91.js') }}?v={{ filemtime(public_path('js/live-data-sync-v91.js')) }}" defer></script>
+    {{-- live-data-sync-v91-js:end --}}
 </body>
 </html>

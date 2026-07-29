@@ -79,6 +79,11 @@ Route::middleware(['auth', ApplyRoutePermissions::class])->group(function () {
 
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
 
+    // live-data-sync-v91-route:start
+    Route::get('/live-sync/status', [\App\Http\Controllers\LiveSyncController::class, 'status'])
+        ->name('live-sync.status');
+    // live-data-sync-v91-route:end
+
     Route::get('/tools/leave-calculator', [LeaveCalculatorController::class, 'index'])
         ->name('tools.leave-calculator.index');
 

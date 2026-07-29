@@ -1,0 +1,146 @@
+/* DocumentArchive Live Data Synchronization V91.1.3 - notice position fix */
+.da-live-sync-notice {
+    position: fixed;
+    inset-inline-end: 22px;
+    /* Keep the notice above the notification bell and internal-chat launcher. */
+    bottom: 96px;
+    z-index: 9990;
+    width: min(430px, calc(100vw - 28px));
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr);
+    gap: 12px;
+    padding: 16px;
+    border: 1px solid rgba(96, 165, 250, .38);
+    border-radius: 18px;
+    background: rgba(15, 23, 42, .96);
+    color: #f8fafc;
+    box-shadow: 0 22px 60px rgba(0, 0, 0, .34);
+    backdrop-filter: blur(14px);
+    transform: translateY(22px);
+    opacity: 0;
+    visibility: hidden;
+    pointer-events: none;
+    transition: opacity .2s ease, transform .2s ease, visibility .2s ease;
+}
+
+.da-live-sync-notice.is-visible {
+    transform: translateY(0);
+    opacity: 1;
+    visibility: visible;
+    pointer-events: auto;
+}
+
+.da-live-sync-notice__icon {
+    width: 44px;
+    height: 44px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 14px;
+    background: rgba(37, 99, 235, .18);
+    border: 1px solid rgba(96, 165, 250, .28);
+    font-size: 22px;
+}
+
+.da-live-sync-notice__content {
+    min-width: 0;
+}
+
+.da-live-sync-notice__content strong {
+    display: block;
+    margin-bottom: 5px;
+    color: #fff;
+    font-size: 14px;
+    font-weight: 900;
+}
+
+.da-live-sync-notice__content p {
+    margin: 0;
+    color: #cbd5e1;
+    font-size: 12px;
+    font-weight: 700;
+    line-height: 1.75;
+}
+
+.da-live-sync-notice__actions {
+    grid-column: 1 / -1;
+    display: flex;
+    justify-content: flex-end;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+
+.da-live-sync-notice__actions button {
+    min-height: 36px;
+    padding: 7px 13px;
+    border-radius: 10px;
+    border: 1px solid transparent;
+    cursor: pointer;
+    font: inherit;
+    font-size: 12px;
+    font-weight: 850;
+}
+
+.da-live-sync-notice__refresh {
+    color: #fff;
+    background: #2563eb;
+    border-color: rgba(96, 165, 250, .5) !important;
+}
+
+.da-live-sync-notice__dismiss {
+    color: #dbeafe;
+    background: rgba(30, 41, 59, .86);
+    border-color: rgba(148, 163, 184, .25) !important;
+}
+
+.da-live-sync-notice.is-refreshing .da-live-sync-notice__refresh {
+    opacity: .65;
+    pointer-events: none;
+}
+
+.da-live-sync-count-updated {
+    animation: da-live-sync-count-pulse .85s ease;
+}
+
+@keyframes da-live-sync-count-pulse {
+    0% { transform: scale(1); }
+    35% { transform: scale(1.12); color: #93c5fd; }
+    100% { transform: scale(1); }
+}
+
+html[data-theme="light"] .da-live-sync-notice {
+    background: rgba(255, 255, 255, .97);
+    color: #0f172a;
+    border-color: rgba(37, 99, 235, .28);
+    box-shadow: 0 20px 55px rgba(15, 23, 42, .2);
+}
+
+html[data-theme="light"] .da-live-sync-notice__content strong {
+    color: #0f172a;
+}
+
+html[data-theme="light"] .da-live-sync-notice__content p {
+    color: #475569;
+}
+
+html[data-theme="light"] .da-live-sync-notice__dismiss {
+    color: #1e3a8a;
+    background: #eff6ff;
+}
+
+@media (max-width: 640px) {
+    .da-live-sync-notice {
+        inset-inline: 14px;
+        /* Leave enough room for the floating notification/chat controls. */
+        bottom: 88px;
+        width: auto;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .da-live-sync-notice,
+    .da-live-sync-count-updated {
+        transition: none;
+        animation: none;
+    }
+}
