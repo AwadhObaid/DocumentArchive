@@ -2,7 +2,7 @@
 
 @section('title', 'بحث داخل ملفات PDF')
 @section('page_title', 'بحث داخل ملفات PDF')
-@section('page_subtitle', 'البحث داخل النص المفهرس من مرفقات الكتب والمذكرات')
+@section('page_subtitle', 'البحث داخل النص المفهرس من مرفقات الكتب والمذكرات والتعاميم والكتب المتفرقة')
 
 @section('content')
 @php
@@ -15,10 +15,12 @@
         'pending' => 'بانتظار الفهرسة',
         'skipped' => 'تم تجاوزه',
     ];
-    $sourceOptions = [
-        'all' => 'الكتب والمذكرات',
+    $sourceOptions = $sourceOptions ?? [
+        'all' => 'جميع المصادر المتاحة',
         'documents' => 'الكتب فقط',
         'memos' => 'المذكرات فقط',
+        'circulars' => 'التعاميم فقط',
+        'misc_books' => 'الكتب المتفرقة فقط',
     ];
     $toolLabels = [
         'pdftotext' => [
@@ -59,7 +61,7 @@
         <div class="pdf-search-card">
             <h1>🔎 بحث داخل محتوى ملفات PDF</h1>
             <p>
-                هذه الصفحة تبحث داخل النص المستخرج من مرفقات الكتب والمذكرات.
+                هذه الصفحة تبحث داخل النص المستخرج من مرفقات الكتب والمذكرات والتعاميم والكتب المتفرقة.
                 ملفات PDF النصية تُفهرس مباشرة، أما ملفات السكانر والصور فتحتاج إلى <strong>التعرف الضوئي على النصوص</strong>.
             </p>
             <div class="pdf-search-stats" style="margin-top:14px;">
@@ -143,9 +145,9 @@
                 <div class="form-group">
                     <label>المصدر</label>
                     <select name="source">
-                        <option value="all">الكتب والمذكرات</option>
-                        <option value="documents">الكتب فقط</option>
-                        <option value="memos">المذكرات فقط</option>
+                        @foreach($sourceOptions as $value => $label)
+                            <option value="{{ $value }}">{{ $label }}</option>
+                        @endforeach
                     </select>
                 </div>
                 <div class="form-group">
@@ -171,6 +173,10 @@
                 <span dir="ltr">php artisan archive:index-pdfs --limit=25</span>
                 ، ولتشغيل التعرف الضوئي:
                 <span dir="ltr">php artisan archive:index-pdfs --limit=5 --ocr</span>
+                ، ويمكن تحديد المصدر مثل:
+                <span dir="ltr">--source=circulars</span>
+                أو
+                <span dir="ltr">--source=misc_books</span>
             </div>
         </div>
     @endif

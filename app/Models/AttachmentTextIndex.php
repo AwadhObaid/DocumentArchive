@@ -56,6 +56,16 @@ class AttachmentTextIndex extends Model
         return $this->belongsTo(Memo::class, 'source_id');
     }
 
+    public function circular()
+    {
+        return $this->belongsTo(Circular::class, 'source_id');
+    }
+
+    public function miscBook()
+    {
+        return $this->belongsTo(MiscBook::class, 'source_id');
+    }
+
     public function documentAttachment()
     {
         return $this->belongsTo(DocumentAttachment::class, 'attachment_id');
@@ -66,9 +76,24 @@ class AttachmentTextIndex extends Model
         return $this->belongsTo(MemoAttachment::class, 'attachment_id');
     }
 
+    public function circularAttachment()
+    {
+        return $this->belongsTo(CircularAttachment::class, 'attachment_id');
+    }
+
+    public function miscBookAttachment()
+    {
+        return $this->belongsTo(MiscBookAttachment::class, 'attachment_id');
+    }
+
     public function getSourceLabelAttribute(): string
     {
-        return $this->source_type === 'memo' ? 'مذكرة' : 'كتاب';
+        return match ($this->source_type) {
+            'memo' => 'مذكرة',
+            'circular' => 'تعميم',
+            'misc_book' => 'كتاب متفرق',
+            default => 'كتاب',
+        };
     }
 
     public function getStatusNameAttribute(): string
@@ -146,38 +171,44 @@ class AttachmentTextIndex extends Model
 
     public function recordTitle(): string
     {
-        if ($this->source_type === 'memo') {
-            return $this->memo?->subject ?: ('مذكرة ' . ($this->memo?->memo_number ?: $this->source_id));
-        }
-
-        return $this->document?->title ?: $this->document?->subject ?: ('كتاب ' . ($this->document?->reference_number ?: $this->source_id));
+        return match ($this->source_type) {
+            'memo' => $this->memo?->subject
+                ?: ('مذكرة ' . ($this->memo?->memo_number ?: $this->source_id)),
+            'circular' => $this->circular?->subject
+                ?: ('تعميم ' . ($this->circular?->circular_number ?: $this->source_id)),
+            'misc_book' => $this->miscBook?->subject
+                ?: ('كتاب متفرق ' . ($this->miscBook?->misc_number ?: $this->source_id)),
+            default => $this->document?->title
+                ?: $this->document?->subject
+                ?: ('كتاب ' . ($this->document?->reference_number ?: $this->source_id)),
+        };
     }
 
     public function recordNumber(): string
     {
-        if ($this->source_type === 'memo') {
-            return (string) ($this->memo?->memo_number ?: $this->source_id);
-        }
-
-        return (string) ($this->document?->reference_number ?: $this->source_id);
+        return match ($this->source_type) {
+            'memo' => (string) ($this->memo?->memo_number ?: $this->source_id),
+            'circular' => (string) ($this->circular?->circular_number ?: $this->source_id),
+            'misc_book' => (string) ($this->miscBook?->misc_number ?: $this->source_id),
+            default => (string) ($this->document?->reference_number ?: $this->source_id),
+        };
     }
 
     public function recordRoute(): ?string
     {
-        if ($this->source_type === 'memo' && $this->memo) {
-            return route('memos.show', $this->memo);
-        }
-
-        if ($this->source_type === 'document' && $this->document) {
-            return route('documents.show', $this->document);
-        }
-
-        return null;
+        return match ($this->source_type) {
+            'memo' => $this->memo ? route('memos.show', $this->memo) : null,
+            'circular' => $this->circular ? route('circulars.show', $this->circular) : null,
+            'misc_book' => $this->miscBook ? route('misc-books.show', $this->miscBook) : null,
+            'document' => $this->document ? route('documents.show', $this->document) : null,
+            default => null,
+        };
     }
 
     public function snippet(?string $query = null, int $limit = 260): string
     {
         $text = trim((string) $this->indexed_text);
+
         if ($text === '') {
             return '';
         }
@@ -187,13 +218,18 @@ class AttachmentTextIndex extends Model
 
         if ($query !== '') {
             $pos = mb_stripos($text, $query, 0, 'UTF-8');
+
             if ($pos !== false) {
                 $start = max(0, $pos - 80);
                 $snippet = mb_substr($text, $start, $limit, 'UTF-8');
-                return ($start > 0 ? '… ' : '') . $snippet . (mb_strlen($text, 'UTF-8') > ($start + $limit) ? ' …' : '');
+
+                return ($start > 0 ? '… ' : '')
+                    . $snippet
+                    . (mb_strlen($text, 'UTF-8') > ($start + $limit) ? ' …' : '');
             }
         }
 
-        return mb_substr($text, 0, $limit, 'UTF-8') . (mb_strlen($text, 'UTF-8') > $limit ? ' …' : '');
+        return mb_substr($text, 0, $limit, 'UTF-8')
+            . (mb_strlen($text, 'UTF-8') > $limit ? ' …' : '');
     }
 }

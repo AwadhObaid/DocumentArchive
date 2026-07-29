@@ -53,6 +53,12 @@ class MiscBookAttachment extends Model
         return $this->belongsTo(User::class, 'uploaded_by');
     }
 
+    public function textIndex()
+    {
+        return $this->hasOne(AttachmentTextIndex::class, 'attachment_id')
+            ->where('source_type', 'misc_book');
+    }
+
     public function existsOnDisk(): bool
     {
         return Storage::disk($this->disk ?: 'local')->exists($this->file_path);

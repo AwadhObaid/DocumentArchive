@@ -8,11 +8,19 @@ Artisan::command('inspire', function () {
     $this->comment(Inspiring::quote());
 })->purpose('Display an inspiring quote');
 
-Artisan::command('archive:index-pdfs {--source=all : all|documents|memos} {--limit=50 : عدد الملفات في التشغيل الواحد} {--force : إعادة فهرسة الملفات المفهرسة سابقاً} {--ocr : تشغيل OCR للملفات التي لا تحتوي نصاً قابلاً للنسخ}', function () {
+Artisan::command('archive:index-pdfs {--source=all : all|documents|memos|circulars|misc_books} {--limit=50 : عدد الملفات في التشغيل الواحد} {--force : إعادة فهرسة الملفات المفهرسة سابقاً} {--ocr : تشغيل OCR للملفات التي لا تحتوي نصاً قابلاً للنسخ}', function () {
     $source = (string) $this->option('source');
     $limit = (int) $this->option('limit');
     $force = (bool) $this->option('force');
     $ocr = (bool) $this->option('ocr');
+
+    $allowedSources = ['all', 'documents', 'memos', 'circulars', 'misc_books'];
+
+    if (! in_array($source, $allowedSources, true)) {
+        $this->error('مصدر الفهرسة غير صحيح. القيم المتاحة: ' . implode(', ', $allowedSources));
+
+        return 1;
+    }
 
     /** @var PdfTextIndexingService $service */
     $service = app(PdfTextIndexingService::class);
@@ -33,4 +41,4 @@ Artisan::command('archive:index-pdfs {--source=all : all|documents|memos} {--lim
     );
 
     $this->info('انتهت الفهرسة.');
-})->purpose('فهرسة نصوص مرفقات PDF للكتب والمذكرات مع OCR اختياري');
+})->purpose('فهرسة نصوص مرفقات PDF للكتب والمذكرات والتعاميم والكتب المتفرقة مع OCR اختياري');
