@@ -159,6 +159,7 @@
     .da-grid { display: grid; gap: 14px; }
     .da-grid-stats { grid-template-columns: repeat(4, minmax(0, 1fr)); }
     .da-grid-secondary { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+    .da-grid-modules { grid-template-columns: repeat(3, minmax(0, 1fr)); }
     .da-grid-main { grid-template-columns: minmax(0, 1.4fr) minmax(320px, .9fr); align-items: start; }
     .da-grid-charts { grid-template-columns: minmax(0, 1.2fr) minmax(320px, .85fr); align-items: stretch; }
 
@@ -193,6 +194,75 @@
     .da-stat-label { color: var(--da-muted); font-weight: 850; font-size: 13px; margin-bottom: 9px; }
     .da-stat-value { color: #fff; font-size: 30px; font-weight: 950; line-height: 1; }
     .da-stat-note { margin-top: 10px; color: var(--da-muted); font-size: 12px; line-height: 1.7; }
+
+    /* DASHBOARD_MODULES_V89 */
+    .da-module-card {
+        position: relative;
+        overflow: hidden;
+        display: flex;
+        flex-direction: column;
+        min-height: 178px;
+        text-decoration: none;
+        color: var(--da-text);
+        transition: transform .18s ease, border-color .18s ease, box-shadow .18s ease;
+    }
+
+    .da-module-card:hover {
+        transform: translateY(-2px);
+        color: #fff;
+        border-color: rgba(96, 165, 250, .48);
+        box-shadow: 0 16px 38px rgba(0, 0, 0, .22);
+    }
+
+    .da-module-card::after {
+        content: '';
+        position: absolute;
+        width: 150px;
+        height: 150px;
+        border-radius: 999px;
+        inset-inline-end: -58px;
+        top: -62px;
+        background: var(--da-module-glow, rgba(96, 165, 250, .14));
+        pointer-events: none;
+    }
+
+    .da-module-card > * { position: relative; z-index: 1; }
+    .da-module-card-memos { --da-module-glow: rgba(168, 85, 247, .18); }
+    .da-module-card-circulars { --da-module-glow: rgba(245, 158, 11, .18); }
+    .da-module-card-misc { --da-module-glow: rgba(34, 197, 94, .17); }
+
+    .da-module-head {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+        margin-bottom: 18px;
+    }
+
+    .da-module-icon {
+        width: 48px;
+        height: 48px;
+        border-radius: 15px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        background: rgba(30, 41, 59, .82);
+        border: 1px solid rgba(148, 163, 184, .18);
+        font-size: 25px;
+    }
+
+    .da-module-arrow {
+        color: #bfdbfe;
+        font-size: 20px;
+        font-weight: 950;
+        transform: translateX(0);
+        transition: transform .18s ease;
+    }
+
+    .da-module-card:hover .da-module-arrow { transform: translateX(-3px); }
+    .da-module-title { margin: 0; color: #fff; font-size: 17px; font-weight: 950; }
+    .da-module-count { margin-top: 9px; color: #fff; font-size: 34px; font-weight: 950; line-height: 1; }
+    .da-module-note { margin-top: auto; padding-top: 14px; color: var(--da-muted); font-size: 12px; font-weight: 750; line-height: 1.7; }
 
     .da-section-title { margin-bottom: 14px; align-items: center; }
     .da-section-title h2 { margin: 0; font-size: 18px; font-weight: 950; }
@@ -293,7 +363,8 @@
 
     @media (max-width: 1200px) {
         .da-grid-stats,
-        .da-grid-secondary { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+        .da-grid-secondary,
+        .da-grid-modules { grid-template-columns: repeat(2, minmax(0, 1fr)); }
         .da-grid-main,
         .da-grid-charts,
         .da-admin-alerts { grid-template-columns: 1fr; }
@@ -301,7 +372,8 @@
 
     @media (max-width: 640px) {
         .da-grid-stats,
-        .da-grid-secondary { grid-template-columns: 1fr; }
+        .da-grid-secondary,
+        .da-grid-modules { grid-template-columns: 1fr; }
         .da-page-head { align-items: stretch; }
         .da-actions, .da-actions .da-btn, .da-quick-links, .da-quick-links .da-btn { width: 100%; }
         .da-admin-alert-item { grid-template-columns: auto minmax(0, 1fr); }
@@ -433,6 +505,60 @@
             <div class="da-stat-note">كل ملفات PDF والصور المرفوعة.</div>
         </div>
     </div>
+
+
+    @php
+        $canViewMemos = $hasPermission('memos.view') && $routeExists('memos.index');
+        $canViewCirculars = $hasPermission('circulars.view') && $routeExists('circulars.index');
+        $canViewMiscBooks = $hasPermission('misc_books.view') && $routeExists('misc-books.index');
+    @endphp
+
+    @if($canViewMemos || $canViewCirculars || $canViewMiscBooks)
+        <div class="da-card">
+            <div class="da-section-title">
+                <h2>المذكرات والتعاميم والمتفرقات</h2>
+                <span class="da-section-hint">إجمالي السجلات الفعالة مع وصول مباشر إلى كل وحدة</span>
+            </div>
+
+            <div class="da-grid da-grid-modules">
+                @if($canViewMemos)
+                    <a class="da-card da-module-card da-module-card-memos" href="{{ route('memos.index') }}">
+                        <div class="da-module-head">
+                            <span class="da-module-icon">📒</span>
+                            <span class="da-module-arrow" aria-hidden="true">←</span>
+                        </div>
+                        <h3 class="da-module-title">المذكرات</h3>
+                        <div class="da-module-count">{{ $num(da_dashboard_value($stats, 'memos_total', 0)) }}</div>
+                        <div class="da-module-note">المذكرات المسجلة والفعالة، دون العناصر الموجودة في سلة المحذوفات.</div>
+                    </a>
+                @endif
+
+                @if($canViewCirculars)
+                    <a class="da-card da-module-card da-module-card-circulars" href="{{ route('circulars.index') }}">
+                        <div class="da-module-head">
+                            <span class="da-module-icon">📢</span>
+                            <span class="da-module-arrow" aria-hidden="true">←</span>
+                        </div>
+                        <h3 class="da-module-title">التعاميم</h3>
+                        <div class="da-module-count">{{ $num(da_dashboard_value($stats, 'circulars_total', 0)) }}</div>
+                        <div class="da-module-note">التعاميم المسجلة والفعالة، دون العناصر الموجودة في سلة المحذوفات.</div>
+                    </a>
+                @endif
+
+                @if($canViewMiscBooks)
+                    <a class="da-card da-module-card da-module-card-misc" href="{{ route('misc-books.index') }}">
+                        <div class="da-module-head">
+                            <span class="da-module-icon">🗃️</span>
+                            <span class="da-module-arrow" aria-hidden="true">←</span>
+                        </div>
+                        <h3 class="da-module-title">المتفرقات</h3>
+                        <div class="da-module-count">{{ $num(da_dashboard_value($stats, 'misc_books_total', 0)) }}</div>
+                        <div class="da-module-note">الكتب المتفرقة المسجلة والفعالة، دون العناصر الموجودة في سلة المحذوفات.</div>
+                    </a>
+                @endif
+            </div>
+        </div>
+    @endif
 
     <div class="da-card">
         <div class="da-section-title">

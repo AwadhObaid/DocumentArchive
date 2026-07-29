@@ -27,6 +27,11 @@ class DashboardController extends Controller
             'departments_total' => $this->countRows('departments'),
             'document_types_total' => $this->countRows('document_types'),
             'activities_total' => $this->countRows('activity_logs'),
+
+            // DASHBOARD_MODULES_V89: active records only (soft-deleted rows are excluded).
+            'memos_total' => $this->countActiveRows('memos'),
+            'circulars_total' => $this->countActiveRows('circulars'),
+            'misc_books_total' => $this->countActiveRows('misc_books'),
         ];
 
         $latestDocuments = $this->latestDocuments();
@@ -78,6 +83,31 @@ class DashboardController extends Controller
             }
 
             return (int) DB::table($table)->count();
+        } catch (\Throwable $e) {
+            return 0;
+        }
+    }
+
+    /**
+     * Count visible records in a module table.
+     *
+     * Tables that support soft deletes are counted without deleted rows.
+     * The method remains safe when a module has not been migrated yet.
+     */
+    private function countActiveRows(string $table): int
+    {
+        try {
+            if (!$this->tableExists($table)) {
+                return 0;
+            }
+
+            $query = DB::table($table);
+
+            if ($this->columnExists($table, 'deleted_at')) {
+                $query->whereNull($table . '.deleted_at');
+            }
+
+            return (int) $query->count();
         } catch (\Throwable $e) {
             return 0;
         }
