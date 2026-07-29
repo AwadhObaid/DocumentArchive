@@ -1,0 +1,178 @@
+/* DocumentArchive Global Operation Loading V90.0.0 */
+:root {
+    --da-loading-accent: #2563eb;
+    --da-loading-accent-soft: rgba(37, 99, 235, 0.18);
+    --da-loading-panel: rgba(255, 255, 255, 0.96);
+    --da-loading-text: #0f172a;
+    --da-loading-muted: #64748b;
+    --da-loading-backdrop: rgba(15, 23, 42, 0.38);
+    --da-loading-shadow: 0 24px 70px rgba(15, 23, 42, 0.24);
+}
+
+html[data-theme="dark"] {
+    --da-loading-accent: #60a5fa;
+    --da-loading-accent-soft: rgba(96, 165, 250, 0.2);
+    --da-loading-panel: rgba(15, 23, 42, 0.96);
+    --da-loading-text: #f8fafc;
+    --da-loading-muted: #cbd5e1;
+    --da-loading-backdrop: rgba(2, 6, 23, 0.62);
+    --da-loading-shadow: 0 24px 80px rgba(0, 0, 0, 0.48);
+}
+
+.da-page-progress {
+    position: fixed;
+    inset: 0 0 auto 0;
+    z-index: 2147483646;
+    height: 4px;
+    overflow: hidden;
+    pointer-events: none;
+    opacity: 0;
+    transition: opacity 120ms ease;
+}
+
+.da-page-progress__bar {
+    display: block;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, #38bdf8, var(--da-loading-accent), #818cf8);
+    box-shadow: 0 0 14px var(--da-loading-accent);
+    transform: scaleX(0);
+    transform-origin: right center;
+    transition: transform 220ms ease-out;
+}
+
+html.da-loading-running .da-page-progress {
+    opacity: 1;
+}
+
+.da-global-loading {
+    position: fixed;
+    inset: 0;
+    z-index: 2147483645;
+    display: grid;
+    place-items: center;
+    padding: 22px;
+    visibility: hidden;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 160ms ease, visibility 0s linear 160ms;
+}
+
+.da-global-loading.is-visible {
+    visibility: visible;
+    opacity: 1;
+    pointer-events: auto;
+    transition-delay: 0s;
+}
+
+.da-global-loading__backdrop {
+    position: absolute;
+    inset: 0;
+    background: var(--da-loading-backdrop);
+    -webkit-backdrop-filter: blur(2px);
+    backdrop-filter: blur(2px);
+}
+
+.da-global-loading__panel {
+    position: relative;
+    width: min(92vw, 390px);
+    display: grid;
+    justify-items: center;
+    gap: 14px;
+    padding: 26px 28px 24px;
+    color: var(--da-loading-text);
+    background: var(--da-loading-panel);
+    border: 1px solid var(--da-loading-accent-soft);
+    border-radius: 22px;
+    box-shadow: var(--da-loading-shadow);
+    text-align: center;
+}
+
+.da-global-loading__spinner {
+    width: 52px;
+    height: 52px;
+    border: 5px solid var(--da-loading-accent-soft);
+    border-top-color: var(--da-loading-accent);
+    border-radius: 50%;
+    animation: da-loading-spin 0.78s linear infinite;
+}
+
+.da-global-loading__message {
+    max-width: 100%;
+    font-size: 1rem;
+    font-weight: 800;
+    line-height: 1.7;
+    overflow-wrap: anywhere;
+}
+
+.da-global-loading__hint {
+    margin-top: -8px;
+    color: var(--da-loading-muted);
+    font-size: 0.82rem;
+    line-height: 1.6;
+}
+
+.da-global-loading__track {
+    width: 100%;
+    height: 8px;
+    overflow: hidden;
+    background: var(--da-loading-accent-soft);
+    border-radius: 999px;
+}
+
+.da-global-loading__value {
+    display: block;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, #38bdf8, var(--da-loading-accent), #818cf8);
+    border-radius: inherit;
+    transform: scaleX(0);
+    transform-origin: right center;
+    transition: transform 220ms ease-out;
+}
+
+.da-global-loading__percent {
+    color: var(--da-loading-muted);
+    font-size: 0.82rem;
+    font-variant-numeric: tabular-nums;
+}
+
+.da-global-loading.is-error .da-global-loading__spinner {
+    animation: none;
+    border-color: rgba(220, 38, 38, 0.22);
+    border-top-color: #dc2626;
+}
+
+body.da-loading-active {
+    cursor: progress;
+}
+
+@keyframes da-loading-spin {
+    to { transform: rotate(360deg); }
+}
+
+@media (max-width: 640px) {
+    .da-global-loading__panel {
+        width: min(94vw, 360px);
+        padding: 22px 20px 20px;
+        border-radius: 18px;
+    }
+
+    .da-global-loading__spinner {
+        width: 46px;
+        height: 46px;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .da-page-progress,
+    .da-page-progress__bar,
+    .da-global-loading,
+    .da-global-loading__value {
+        transition: none !important;
+    }
+
+    .da-global-loading__spinner {
+        animation-duration: 1.6s;
+    }
+}

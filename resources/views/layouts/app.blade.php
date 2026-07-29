@@ -93,6 +93,9 @@
     {{-- circulars-misc-books-v85-css:start --}}
     <link rel="stylesheet" href="{{ asset('css/circulars-misc-books-v85.css') }}?v=85">
     {{-- circulars-misc-books-v85-css:end --}}
+    {{-- global-operation-loading-v90-css:start --}}
+    <link rel="stylesheet" href="{{ asset('css/global-operation-loading-v90.css') }}?v={{ filemtime(public_path('css/global-operation-loading-v90.css')) }}">
+    {{-- global-operation-loading-v90-css:end --}}
 </head>
 <body
     data-auto-logout-enabled="{{ $daAutoLogoutEnabled ? '1' : '0' }}"
@@ -103,6 +106,23 @@
     data-auto-logout-logout-url="{{ route('logout') }}"
 >
 
+{{-- global-operation-loading-v90-ui:start --}}
+<div class="da-page-progress" aria-hidden="true">
+    <span class="da-page-progress__bar" data-da-page-progress></span>
+</div>
+<div class="da-global-loading" id="daGlobalLoading" aria-hidden="true" role="status" aria-live="polite" aria-atomic="true">
+    <div class="da-global-loading__backdrop"></div>
+    <div class="da-global-loading__panel">
+        <div class="da-global-loading__spinner" aria-hidden="true"></div>
+        <div class="da-global-loading__message" data-da-loading-message>جارٍ تنفيذ العملية...</div>
+        <div class="da-global-loading__hint">يرجى الانتظار وعدم إغلاق الصفحة</div>
+        <div class="da-global-loading__track" aria-hidden="true">
+            <span class="da-global-loading__value" data-da-loading-progress></span>
+        </div>
+        <div class="da-global-loading__percent" data-da-loading-percent hidden>0%</div>
+    </div>
+</div>
+{{-- global-operation-loading-v90-ui:end --}}
 <div class="app-shell">
     <aside class="sidebar" id="sidebar">
         <div class="brand">
@@ -370,5 +390,8 @@
 {{-- attachments-scanner-v75-v80-js:start --}}
     <script src="{{ asset('js/attachments-scanner-v75-v80.js') }}?v={{ filemtime(public_path('js/attachments-scanner-v75-v80.js')) }}" defer></script>
 {{-- attachments-scanner-v75-v80-js:end --}}
+    {{-- global-operation-loading-v90-js:start --}}
+    <script src="{{ asset('js/global-operation-loading-v90.js') }}?v={{ filemtime(public_path('js/global-operation-loading-v90.js')) }}" defer></script>
+    {{-- global-operation-loading-v90-js:end --}}
 </body>
 </html>
