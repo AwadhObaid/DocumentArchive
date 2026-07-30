@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Setting;
 use App\Services\ActivityLogger;
 use App\Services\BookAttachmentSmartPathService;
+use App\Services\SmartAttachmentBrowserService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Crypt;
 use Illuminate\Validation\Rule;
@@ -41,6 +42,14 @@ class SettingsController extends Controller
         'pdf_search_enable_ocr' => '0',
         'pdf_search_pages_limit' => '20',
         'book_attachment_storage_root' => '',
+        'smart_attachment_browser_enabled' => '1',
+        'smart_attachment_outgoing_path' => '',
+        'smart_attachment_incoming_path' => '',
+        'smart_attachment_general_path' => '',
+        'smart_attachment_recursive' => '1',
+        'smart_attachment_result_limit' => '80',
+        'smart_attachment_timeout_seconds' => '8',
+        'smart_attachment_max_file_mb' => '20',
         'smart_reports_enabled' => '0',
         'smart_reports_gemini_api_key' => '',
         'smart_reports_gemini_model' => 'gemini-3.5-flash',
@@ -76,6 +85,13 @@ class SettingsController extends Controller
             'book_attachment_storage' => ($settings['book_attachment_storage_root'] ?? '') !== ''
                 ? $settings['book_attachment_storage_root']
                 : storage_path('app/private'),
+            'smart_attachment_browser' => ((string) ($settings['smart_attachment_browser_enabled'] ?? '1') === '1')
+                ? 'مفعل - ' . collect([
+                    $settings['smart_attachment_outgoing_path'] ?? '',
+                    $settings['smart_attachment_incoming_path'] ?? '',
+                    $settings['smart_attachment_general_path'] ?? '',
+                ])->filter(fn ($path) => trim((string) $path) !== '')->count() . ' مسارات'
+                : 'غير مفعل',
             'smart_reports' => ((string) ($settings['smart_reports_enabled'] ?? '0') === '1')
                 ? (((string) ($settings['smart_reports_gemini_api_key_configured'] ?? '0') === '1') ? ('مفعلة - ' . ($settings['smart_reports_gemini_model'] ?? 'gemini-3.5-flash')) : 'مفعلة بدون مفتاح API')
                 : 'غير مفعلة',
@@ -107,6 +123,14 @@ class SettingsController extends Controller
             'pdf_search_enable_ocr' => ['nullable', 'boolean'],
             'pdf_search_pages_limit' => ['required', 'integer', 'min:1', 'max:200'],
             'book_attachment_storage_root' => ['nullable', 'string', 'max:1000'],
+            'smart_attachment_browser_enabled' => ['nullable', 'boolean'],
+            'smart_attachment_outgoing_path' => ['nullable', 'string', 'max:1500'],
+            'smart_attachment_incoming_path' => ['nullable', 'string', 'max:1500'],
+            'smart_attachment_general_path' => ['nullable', 'string', 'max:1500'],
+            'smart_attachment_recursive' => ['nullable', 'boolean'],
+            'smart_attachment_result_limit' => ['required', 'integer', 'min:10', 'max:200'],
+            'smart_attachment_timeout_seconds' => ['required', 'integer', 'min:2', 'max:30'],
+            'smart_attachment_max_file_mb' => ['required', 'integer', 'min:1', 'max:100'],
             'smart_reports_enabled' => ['nullable', 'boolean'],
             'smart_reports_gemini_api_key' => ['nullable', 'string', 'max:1000'],
             'smart_reports_gemini_model' => ['required', 'string', 'max:100'],
@@ -141,6 +165,12 @@ class SettingsController extends Controller
             'pdf_search_ocr_languages.required' => 'لغات OCR مطلوبة، مثال: ara+eng.',
             'pdf_search_pages_limit.required' => 'حد صفحات OCR مطلوب.',
             'book_attachment_storage_root.max' => 'مسار حفظ مرفقات الكتب طويل جداً.',
+            'smart_attachment_outgoing_path.max' => 'مسار البحث في الصادر طويل جداً.',
+            'smart_attachment_incoming_path.max' => 'مسار البحث في الوارد طويل جداً.',
+            'smart_attachment_general_path.max' => 'مسار البحث العام طويل جداً.',
+            'smart_attachment_result_limit.required' => 'حد نتائج البحث الذكي مطلوب.',
+            'smart_attachment_timeout_seconds.required' => 'مهلة البحث الذكي مطلوبة.',
+            'smart_attachment_max_file_mb.required' => 'الحد الأقصى لحجم الملف مطلوب.',
             'smart_reports_gemini_model.required' => 'موديل Gemini مطلوب.',
             'smart_reports_gemini_api_key.max' => 'Gemini API Key طويل جداً.',
             'reference_start_number.integer' => 'رقم بداية الكتاب يجب أن يكون رقماً صحيحاً.',
@@ -151,6 +181,8 @@ class SettingsController extends Controller
         $validated['auto_logout_enabled'] = $request->boolean('auto_logout_enabled') ? '1' : '0';
         $validated['internal_chat_enabled'] = $request->boolean('internal_chat_enabled') ? '1' : '0';
         $validated['internal_chat_sound_enabled'] = $request->boolean('internal_chat_sound_enabled') ? '1' : '0';
+        $validated['smart_attachment_browser_enabled'] = $request->boolean('smart_attachment_browser_enabled') ? '1' : '0';
+        $validated['smart_attachment_recursive'] = $request->boolean('smart_attachment_recursive') ? '1' : '0';
         $validated['smart_reports_enabled'] = $request->boolean('smart_reports_enabled') ? '1' : '0';
         $validated['smart_reports_include_titles'] = $request->boolean('smart_reports_include_titles') ? '1' : '0';
         $validated['internal_chat_sound_volume'] = (string) max(0, min(100, (int) ($validated['internal_chat_sound_volume'] ?? 85)));
@@ -165,6 +197,23 @@ class SettingsController extends Controller
         } catch (\Throwable $exception) {
             return back()
                 ->withErrors(['book_attachment_storage_root' => $exception->getMessage()])
+                ->withInput();
+        }
+
+        try {
+            $smartAttachmentBrowser = app(SmartAttachmentBrowserService::class);
+
+            foreach ([
+                'smart_attachment_outgoing_path',
+                'smart_attachment_incoming_path',
+                'smart_attachment_general_path',
+            ] as $smartPathKey) {
+                $validated[$smartPathKey] = $smartAttachmentBrowser
+                    ->normalizeConfiguredPath($validated[$smartPathKey] ?? '');
+            }
+        } catch (\Throwable $exception) {
+            return back()
+                ->withErrors(['smart_attachment_outgoing_path' => $exception->getMessage()])
                 ->withInput();
         }
 
@@ -204,6 +253,14 @@ class SettingsController extends Controller
             'pdf_search_enable_ocr' => ['pdf_search', 'boolean', 'تفعيل OCR عند فهرسة ملفات PDF الممسوحة ضوئياً'],
             'pdf_search_pages_limit' => ['pdf_search', 'number', 'أقصى عدد صفحات تتم معالجتها OCR في الملف الواحد'],
             'book_attachment_storage_root' => ['book_attachments', 'text', 'المسار الافتراضي الخارجي لحفظ مرفقات الكتب المصنفة. إذا ترك فارغاً يستخدم النظام storage/app/private داخل المشروع'],
+            'smart_attachment_browser_enabled' => ['smart_attachment_browser', 'boolean', 'تفعيل نافذة البحث الذكي عن مرفقات الكتب في مسارات السيرفر والشبكة'],
+            'smart_attachment_outgoing_path' => ['smart_attachment_browser', 'text', 'مسار ملفات الصادر على السيرفر أو الشبكة، ويدعم المتغير {year}'],
+            'smart_attachment_incoming_path' => ['smart_attachment_browser', 'text', 'مسار ملفات الوارد على السيرفر أو الشبكة، ويدعم المتغير {year}'],
+            'smart_attachment_general_path' => ['smart_attachment_browser', 'text', 'مسار عام إضافي للبحث عن مرفقات الكتب'],
+            'smart_attachment_recursive' => ['smart_attachment_browser', 'boolean', 'البحث داخل المجلدات الفرعية افتراضياً'],
+            'smart_attachment_result_limit' => ['smart_attachment_browser', 'number', 'الحد الأعلى لنتائج البحث الذكي في الطلب الواحد'],
+            'smart_attachment_timeout_seconds' => ['smart_attachment_browser', 'number', 'المهلة الزمنية القصوى لمسح مسار البحث'],
+            'smart_attachment_max_file_mb' => ['smart_attachment_browser', 'number', 'الحد الأقصى لحجم الملف الذي يمكن اختياره من المسار الذكي'],
             'smart_reports_enabled' => ['smart_reports', 'boolean', 'تفعيل التقارير الذكية عبر Gemini API'],
             'smart_reports_gemini_api_key' => ['smart_reports', 'password', 'Gemini API Key محفوظ بشكل مشفر'],
             'smart_reports_gemini_model' => ['smart_reports', 'text', 'موديل Gemini المستخدم في التقارير الذكية'],

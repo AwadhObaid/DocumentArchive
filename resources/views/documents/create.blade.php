@@ -215,8 +215,15 @@
 
                 <div class="form-group full">
                     <label>نسخة الكتاب الممسوحة ضوئياً / مرفق اختياري</label>
-                    <input type="file" name="attachment" accept=".pdf,.jpg,.jpeg,.png,.gif,.webp,.bmp,.tif,.tiff,.doc,.docx,.xls,.xlsx">
-                    <small>يمكن رفع PDF أو صورة أو ملف Word/Excel، والحد الأقصى 20 MB.</small>
+
+                    @include('partials.smart-attachment-browser-field', [
+                        'referenceNumber' => $initialNextReference['reference_number'] ?? '',
+                        'referenceYear' => $initialNextReference['reference_year'] ?? date('Y'),
+                        'referenceElement' => '#daNextReferenceNumber',
+                        'yearElement' => '#daNextReferenceYear',
+                        'defaultSource' => 'outgoing',
+                    ])
+
                     <small>يمكن إنشاء الكتاب أولاً وطباعة رقمه، ثم رفع النسخة الممسوحة لاحقاً بعد رجوع المندوب.</small>
                 </div>
 

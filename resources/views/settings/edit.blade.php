@@ -782,6 +782,136 @@
 
                 <hr style="margin: 25px 0; border: 0; border-top: 1px solid rgba(148,163,184,.35);">
 
+                {{-- smart-attachment-browser-v94-1-settings:start --}}
+                <div class="settings-section-header">
+                    <div>
+                        <h2>البحث الذكي عن ملفات الكتب</h2>
+                        <p>حدد مسارات ملفات الصادر والوارد على جهاز السيرفر أو مجلدات الشبكة المشتركة. عند تعديل الكتاب يمكن البحث برقم الكتاب واختيار الملف دون فتح نافذة Windows التقليدية.</p>
+                    </div>
+                </div>
+
+                <div class="form-grid">
+                    <div class="form-group full">
+                        <label style="display:flex; gap:8px; align-items:center;">
+                            <input
+                                type="checkbox"
+                                name="smart_attachment_browser_enabled"
+                                value="1"
+                                @checked(old('smart_attachment_browser_enabled', $settings['smart_attachment_browser_enabled'] ?? '1') == '1')
+                            >
+                            تفعيل نافذة البحث الذكي عن المرفقات
+                        </label>
+                        <small class="settings-small-note">يبقى زر «اختيار من الجهاز» متاحاً دائماً كحل احتياطي للملفات الموجودة محلياً على جهاز المستخدم.</small>
+                    </div>
+
+                    <div class="form-group full">
+                        <label>مسار ملفات الصادر</label>
+                        <input
+                            type="text"
+                            name="smart_attachment_outgoing_path"
+                            value="{{ old('smart_attachment_outgoing_path', $settings['smart_attachment_outgoing_path'] ?? '') }}"
+                            maxlength="1500"
+                            dir="ltr"
+                            placeholder="\\192.168.1.202\ارشيف {year}\الصادر - {year}"
+                        >
+                        @error('smart_attachment_outgoing_path')
+                            <small class="settings-small-note" style="color:#fecaca;">{{ $message }}</small>
+                        @enderror
+                        <small class="settings-small-note">مثال: <span dir="ltr">\\192.168.1.202\ارشيف {year}\الصادر - {year}</span></small>
+                    </div>
+
+                    <div class="form-group full">
+                        <label>مسار ملفات الوارد</label>
+                        <input
+                            type="text"
+                            name="smart_attachment_incoming_path"
+                            value="{{ old('smart_attachment_incoming_path', $settings['smart_attachment_incoming_path'] ?? '') }}"
+                            maxlength="1500"
+                            dir="ltr"
+                            placeholder="\\192.168.1.202\ارشيف {year}\الوارد - {year}"
+                        >
+                        @error('smart_attachment_incoming_path')
+                            <small class="settings-small-note" style="color:#fecaca;">{{ $message }}</small>
+                        @enderror
+                    </div>
+
+                    <div class="form-group full">
+                        <label>مسار عام إضافي — اختياري</label>
+                        <input
+                            type="text"
+                            name="smart_attachment_general_path"
+                            value="{{ old('smart_attachment_general_path', $settings['smart_attachment_general_path'] ?? '') }}"
+                            maxlength="1500"
+                            dir="ltr"
+                            placeholder="D:\Archive\Shared"
+                        >
+                        @error('smart_attachment_general_path')
+                            <small class="settings-small-note" style="color:#fecaca;">{{ $message }}</small>
+                        @enderror
+                        <small class="settings-small-note">يمكن أن يكون مساراً محلياً على السيرفر أو مسار UNC مشتركاً.</small>
+                    </div>
+
+                    <div class="form-group">
+                        <label style="display:flex; gap:8px; align-items:center;">
+                            <input
+                                type="checkbox"
+                                name="smart_attachment_recursive"
+                                value="1"
+                                @checked(old('smart_attachment_recursive', $settings['smart_attachment_recursive'] ?? '1') == '1')
+                            >
+                            البحث داخل المجلدات الفرعية
+                        </label>
+                        <small class="settings-small-note">يفيد عند تقسيم الأرشيف إلى مجلدات حسب الشهر أو الشركة.</small>
+                    </div>
+
+                    <div class="form-group">
+                        <label>الحد الأعلى للنتائج</label>
+                        <input
+                            type="number"
+                            name="smart_attachment_result_limit"
+                            value="{{ old('smart_attachment_result_limit', $settings['smart_attachment_result_limit'] ?? 80) }}"
+                            min="10"
+                            max="200"
+                            required
+                        >
+                    </div>
+
+                    <div class="form-group">
+                        <label>مهلة البحث بالثواني</label>
+                        <input
+                            type="number"
+                            name="smart_attachment_timeout_seconds"
+                            value="{{ old('smart_attachment_timeout_seconds', $settings['smart_attachment_timeout_seconds'] ?? 8) }}"
+                            min="2"
+                            max="30"
+                            required
+                        >
+                        <small class="settings-small-note">تمنع استمرار البحث طويلاً عند انقطاع مجلد الشبكة.</small>
+                    </div>
+
+                    <div class="form-group">
+                        <label>الحد الأقصى لحجم الملف MB</label>
+                        <input
+                            type="number"
+                            name="smart_attachment_max_file_mb"
+                            value="{{ old('smart_attachment_max_file_mb', $settings['smart_attachment_max_file_mb'] ?? 20) }}"
+                            min="1"
+                            max="100"
+                            required
+                        >
+                    </div>
+                </div>
+
+                <div class="settings-warning-box">
+                    <strong>مهم:</strong>
+                    يجب أن يستطيع حساب Windows الذي يشغل Apache وPHP قراءة المسار. أقراص الشبكة المرتبطة بحرف مثل
+                    <span dir="ltr">Z:\</span>
+                    قد لا تظهر للخدمة؛ استخدم مسار UNC مثل
+                    <span dir="ltr">\\SERVER\Share</span>.
+                    المسارات المحلية على جهاز المستخدم لا يمكن للمتصفح فحصها تلقائياً، ولذلك يستخدم زر «اختيار من الجهاز».
+                </div>
+                {{-- smart-attachment-browser-v94-1-settings:end --}}
+
                 {{-- smart-reports-settings-v65:start --}}
                 <div class="settings-section-header">
                     <div>

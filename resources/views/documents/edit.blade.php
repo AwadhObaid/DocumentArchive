@@ -154,8 +154,14 @@
 
                 <div class="form-group full">
                     <label>رفع نسخة كتاب ممسوحة / مرفق جديد</label>
-                    <input type="file" name="attachment" accept=".pdf,.jpg,.jpeg,.png,.gif,.webp,.bmp,.tif,.tiff,.doc,.docx,.xls,.xlsx">
-                    <small>عند رفع مرفق جديد سيتم حفظه كنسخة جديدة، ولن يتم حذف النسخ السابقة. الحد الأقصى 20 MB.</small>
+
+                    @include('partials.smart-attachment-browser-field', [
+                        'referenceNumber' => $document->reference_number,
+                        'referenceYear' => $document->reference_year ?: optional($document->reference_date)->format('Y'),
+                        'defaultSource' => 'outgoing',
+                    ])
+
+                    <small>عند إرفاق ملف جديد سيتم حفظ نسخة مستقلة داخل تخزين النظام، ولن يعتمد الكتاب لاحقاً على بقاء المسار الخارجي.</small>
                 </div>
 
                 <div class="form-group full">

@@ -99,6 +99,10 @@
     {{-- live-data-sync-v91-css:start --}}
     <link rel="stylesheet" href="{{ asset('css/live-data-sync-v91.css') }}?v={{ filemtime(public_path('css/live-data-sync-v91.css')) }}">
     {{-- live-data-sync-v91-css:end --}}
+
+    {{-- smart-attachment-browser-v94-1-css:start --}}
+    <link rel="stylesheet" href="{{ asset('css/smart-attachment-browser-v94-1.css') }}?v={{ filemtime(public_path('css/smart-attachment-browser-v94-1.css')) }}">
+    {{-- smart-attachment-browser-v94-1-css:end --}}
 </head>
 <body
     data-live-sync-url="{{ route('live-sync.status') }}"
@@ -401,5 +405,9 @@
     {{-- live-data-sync-v91-js:start --}}
     <script src="{{ asset('js/live-data-sync-v91.js') }}?v={{ filemtime(public_path('js/live-data-sync-v91.js')) }}" defer></script>
     {{-- live-data-sync-v91-js:end --}}
+
+    {{-- smart-attachment-browser-v94-1-js:start --}}
+    <script src="{{ asset('js/smart-attachment-browser-v94-1.js') }}?v={{ filemtime(public_path('js/smart-attachment-browser-v94-1.js')) }}" defer></script>
+    {{-- smart-attachment-browser-v94-1-js:end --}}
 </body>
 </html>

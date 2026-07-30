@@ -22,6 +22,7 @@ use App\Http\Controllers\WhatsappController;
 use App\Http\Controllers\SharedAttachmentLinkController;
 use App\Http\Controllers\FormLinkController;
 use App\Http\Controllers\SettingsController;
+use App\Http\Controllers\SmartAttachmentBrowserController;
 use App\Http\Controllers\SystemAboutController;
 use App\Http\Controllers\WorkflowController;
 use App\Http\Controllers\PdfSearchController;
@@ -226,6 +227,17 @@ Route::middleware(['auth', ApplyRoutePermissions::class])->group(function () {
 
     Route::post('/settings/book-attachment-storage/directories', [SettingsController::class, 'createBookAttachmentStorageDirectory'])
         ->name('settings.book-attachment-storage.directories.create');
+
+    // smart-attachment-browser-v94-1-routes:start
+    Route::get('/smart-attachment-browser/sources', [SmartAttachmentBrowserController::class, 'sources'])
+        ->name('smart-attachment-browser.sources');
+
+    Route::get('/smart-attachment-browser/search', [SmartAttachmentBrowserController::class, 'search'])
+        ->name('smart-attachment-browser.search');
+
+    Route::get('/smart-attachment-browser/preview', [SmartAttachmentBrowserController::class, 'preview'])
+        ->name('smart-attachment-browser.preview');
+    // smart-attachment-browser-v94-1-routes:end
 
     Route::get('/activity-logs', [ActivityLogController::class, 'index'])
         ->name('activity-logs.index');

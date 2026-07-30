@@ -13,11 +13,13 @@ use App\Models\Memo;
 use App\Models\Setting;
 use App\Services\ReferenceNumberGenerator;
 use App\Services\BookAttachmentSmartPathService;
+use App\Services\SmartAttachmentBrowserService;
 use App\Services\ActivityLogger;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
+use Illuminate\Validation\ValidationException;
 
 class DocumentController extends Controller
 {
@@ -452,8 +454,15 @@ class DocumentController extends Controller
             'confidentiality' => ['required', 'in:normal,confidential,very_confidential'],
             'priority' => ['required', 'in:normal,high,urgent'],
             'attachment' => ['nullable', 'file', 'max:20480'],
+            'smart_attachment_token' => ['nullable', 'string', 'max:12000'],
             'notes' => ['nullable', 'string'],
         ]);
+
+        if ($request->hasFile('attachment') && filled($validated['smart_attachment_token'] ?? null)) {
+            throw ValidationException::withMessages([
+                'attachment' => 'اختر ملفاً من الجهاز أو من البحث الذكي، وليس الاثنين معاً.',
+            ]);
+        }
 
         $validated['main_policy_number'] = $this->normalizeDocumentNumber($validated['main_policy_number'] ?? null);
         $validated['sub_policy_number'] = $this->normalizeDocumentNumber($validated['sub_policy_number'] ?? null);
@@ -501,6 +510,11 @@ class DocumentController extends Controller
 
             if ($request->hasFile('attachment')) {
                 $this->storeAttachment($request, $document);
+            } elseif (filled($validated['smart_attachment_token'] ?? null)) {
+                $this->storeSmartAttachment(
+                    (string) $validated['smart_attachment_token'],
+                    $document
+                );
             }
 
             return $document;
@@ -579,8 +593,15 @@ class DocumentController extends Controller
             'priority' => ['required', 'in:normal,high,urgent'],
             'status' => ['required', 'in:active,archived,cancelled'],
             'attachment' => ['nullable', 'file', 'max:20480'],
+            'smart_attachment_token' => ['nullable', 'string', 'max:12000'],
             'notes' => ['nullable', 'string'],
         ]);
+
+        if ($request->hasFile('attachment') && filled($validated['smart_attachment_token'] ?? null)) {
+            throw ValidationException::withMessages([
+                'attachment' => 'اختر ملفاً من الجهاز أو من البحث الذكي، وليس الاثنين معاً.',
+            ]);
+        }
 
         $validated['main_policy_number'] = $this->normalizeDocumentNumber($validated['main_policy_number'] ?? null);
         $validated['sub_policy_number'] = $this->normalizeDocumentNumber($validated['sub_policy_number'] ?? null);
@@ -610,13 +631,20 @@ class DocumentController extends Controller
                 'notes' => $validated['notes'] ?? null,
             ]);
 
-            if ($request->hasFile('attachment')) {
+            if ($request->hasFile('attachment') || filled($validated['smart_attachment_token'] ?? null)) {
                 DocumentAttachment::query()
                     ->where('document_id', $document->id)
                     ->where('is_main', true)
                     ->update(['is_main' => false]);
 
-                $this->storeAttachment($request, $document);
+                if ($request->hasFile('attachment')) {
+                    $this->storeAttachment($request, $document);
+                } else {
+                    $this->storeSmartAttachment(
+                        (string) $validated['smart_attachment_token'],
+                        $document
+                    );
+                }
             }
         });
 
@@ -1104,6 +1132,94 @@ class DocumentController extends Controller
             }
 
             throw $e;
+        }
+    }
+
+    private function storeSmartAttachment(string $token, Document $document): void
+    {
+        $browser = app(SmartAttachmentBrowserService::class);
+
+        try {
+            $sourceFile = $browser->resolveToken($token);
+        } catch (\Throwable $exception) {
+            throw ValidationException::withMessages([
+                'smart_attachment_token' => $exception->getMessage(),
+            ]);
+        }
+
+        $duplicate = DocumentAttachment::query()
+            ->where('document_id', $document->id)
+            ->where('original_name', $sourceFile['name'])
+            ->where('file_size', $sourceFile['size'])
+            ->exists();
+
+        if ($duplicate) {
+            throw ValidationException::withMessages([
+                'smart_attachment_token' => 'هذا الملف مرفق بالفعل بالكتاب بالاسم والحجم نفسيهما.',
+            ]);
+        }
+
+        $latestVersion = DocumentAttachment::query()
+            ->where('document_id', $document->id)
+            ->max('version_no');
+
+        $versionNo = ((int) $latestVersion) + 1;
+        $pathService = app(BookAttachmentSmartPathService::class);
+        $storedFile = $pathService->storeExistingFile(
+            $document,
+            $sourceFile['absolute_path'],
+            $sourceFile['name'],
+            $versionNo
+        );
+        $classification = $storedFile['classification'];
+
+        try {
+            $attachment = DocumentAttachment::create([
+                'document_id' => $document->id,
+                'attachment_type' => 'smart_browser',
+                'version_no' => $versionNo,
+                'is_main' => true,
+                'original_name' => $sourceFile['name'],
+                'file_name' => $storedFile['file_name'],
+                'file_path' => $storedFile['file_path'],
+                'disk' => $storedFile['disk'],
+                'storage_root_path' => $storedFile['storage_root_path'],
+                'classification_company_name' => $classification['company'],
+                'classification_operation_name' => $classification['operation'],
+                'classification_year' => $classification['year'],
+                'classification_folder' => $classification['folder'],
+                'extension' => $sourceFile['extension'],
+                'mime_type' => $browser->mimeType(
+                    $sourceFile['absolute_path'],
+                    $sourceFile['extension']
+                ),
+                'file_size' => $sourceFile['size'],
+                'ocr_status' => 'pending',
+                'uploaded_by' => Auth::id(),
+            ]);
+
+            ActivityLogger::log(
+                'attachment.smart_browser_imported',
+                'تم اختيار مرفق من مسار الأرشيف للكتاب رقم ' . $document->reference_number,
+                $attachment,
+                [
+                    'document_id' => $document->id,
+                    'reference_number' => $document->reference_number,
+                    'original_name' => $sourceFile['name'],
+                    'source' => $sourceFile['source'],
+                    'source_label' => $sourceFile['source_label'],
+                    'source_relative_path' => $sourceFile['relative_path'],
+                    'classification_folder' => $classification['folder'],
+                ]
+            );
+        } catch (\Throwable $exception) {
+            $absolutePath = $storedFile['absolute_path'] ?? null;
+
+            if (is_string($absolutePath) && $absolutePath !== '' && is_file($absolutePath)) {
+                @unlink($absolutePath);
+            }
+
+            throw $exception;
         }
     }
 

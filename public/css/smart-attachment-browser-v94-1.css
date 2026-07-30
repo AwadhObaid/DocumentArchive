@@ -1,0 +1,310 @@
+/* DocumentArchive Smart Attachment Browser V94.1 */
+
+.da-smart-native-input {
+    display: none !important;
+}
+
+.da-smart-attachment-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 9px;
+    align-items: center;
+}
+
+.da-smart-attachment-selected {
+    margin-top: 10px;
+    padding: 10px 12px;
+    border: 1px solid rgba(34, 197, 94, .35);
+    border-radius: 11px;
+    background: rgba(34, 197, 94, .10);
+    color: #bbf7d0;
+    font-weight: 800;
+    line-height: 1.7;
+    overflow-wrap: anywhere;
+}
+
+.da-smart-attachment-error {
+    display: block;
+    margin-top: 8px;
+    color: #fecaca !important;
+    font-weight: 800;
+}
+
+.da-smart-browser-dialog {
+    width: min(960px, calc(100vw - 28px));
+    max-height: min(820px, calc(100vh - 28px));
+    padding: 0;
+    border: 1px solid rgba(96, 165, 250, .36);
+    border-radius: 19px;
+    background: #0f172a;
+    color: #e2e8f0;
+    box-shadow: 0 28px 90px rgba(0, 0, 0, .55);
+    overflow: hidden;
+}
+
+.da-smart-browser-dialog::backdrop {
+    background: rgba(2, 6, 23, .76);
+    backdrop-filter: blur(3px);
+}
+
+.da-smart-browser-shell {
+    display: flex;
+    flex-direction: column;
+    max-height: min(820px, calc(100vh - 28px));
+}
+
+.da-smart-browser-head {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 14px;
+    padding: 18px 20px;
+    border-bottom: 1px solid rgba(148, 163, 184, .22);
+    background: linear-gradient(135deg, rgba(37, 99, 235, .17), rgba(15, 23, 42, .96));
+}
+
+.da-smart-browser-head h2 {
+    margin: 0 0 5px;
+    font-size: 20px;
+}
+
+.da-smart-browser-head p {
+    margin: 0;
+    color: #94a3b8;
+    line-height: 1.7;
+    font-size: 13px;
+}
+
+.da-smart-browser-close {
+    flex: 0 0 auto;
+    min-width: 42px;
+    min-height: 38px;
+}
+
+.da-smart-browser-body {
+    padding: 18px 20px;
+    overflow: auto;
+}
+
+.da-smart-browser-filters {
+    display: grid;
+    grid-template-columns: minmax(170px, .8fr) minmax(230px, 1.5fr) 110px auto;
+    gap: 10px;
+    align-items: end;
+}
+
+.da-smart-browser-field {
+    display: grid;
+    gap: 6px;
+}
+
+.da-smart-browser-field label {
+    font-size: 12px;
+    color: #cbd5e1;
+    font-weight: 850;
+}
+
+.da-smart-browser-field input,
+.da-smart-browser-field select {
+    width: 100%;
+    min-height: 42px;
+    padding: 9px 11px;
+    border: 1px solid rgba(148, 163, 184, .30);
+    border-radius: 10px;
+    background: rgba(15, 23, 42, .75);
+    color: #f8fafc;
+}
+
+.da-smart-browser-recursive {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    min-height: 42px;
+    font-size: 13px;
+    font-weight: 800;
+}
+
+.da-smart-browser-status {
+    margin-top: 13px;
+    padding: 10px 12px;
+    border: 1px solid rgba(148, 163, 184, .25);
+    border-radius: 11px;
+    color: #cbd5e1;
+    background: rgba(15, 23, 42, .42);
+    line-height: 1.7;
+    overflow-wrap: anywhere;
+}
+
+.da-smart-browser-status.is-error {
+    border-color: rgba(248, 113, 113, .42);
+    background: rgba(127, 29, 29, .18);
+    color: #fecaca;
+}
+
+.da-smart-browser-status.is-success {
+    border-color: rgba(34, 197, 94, .35);
+    background: rgba(20, 83, 45, .18);
+    color: #bbf7d0;
+}
+
+.da-smart-browser-results {
+    display: grid;
+    gap: 9px;
+    margin-top: 14px;
+}
+
+.da-smart-browser-result {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr) auto;
+    gap: 11px;
+    align-items: center;
+    padding: 12px;
+    border: 1px solid rgba(148, 163, 184, .24);
+    border-radius: 13px;
+    background: rgba(15, 23, 42, .58);
+    cursor: pointer;
+    transition: border-color .16s ease, transform .16s ease, background .16s ease;
+}
+
+.da-smart-browser-result:hover {
+    transform: translateY(-1px);
+    border-color: rgba(96, 165, 250, .52);
+    background: rgba(30, 41, 59, .80);
+}
+
+.da-smart-browser-result.is-selected {
+    border-color: rgba(59, 130, 246, .85);
+    box-shadow: 0 0 0 2px rgba(59, 130, 246, .16);
+}
+
+.da-smart-browser-result input {
+    width: 18px;
+    height: 18px;
+}
+
+.da-smart-browser-result-name {
+    font-weight: 900;
+    color: #f8fafc;
+    overflow-wrap: anywhere;
+}
+
+.da-smart-browser-result-meta,
+.da-smart-browser-result-path {
+    margin-top: 4px;
+    color: #94a3b8;
+    font-size: 12px;
+    line-height: 1.55;
+    overflow-wrap: anywhere;
+}
+
+.da-smart-browser-result-preview {
+    white-space: nowrap;
+}
+
+.da-smart-browser-empty {
+    padding: 30px 14px;
+    border: 1px dashed rgba(148, 163, 184, .28);
+    border-radius: 13px;
+    color: #94a3b8;
+    text-align: center;
+}
+
+.da-smart-browser-foot {
+    display: flex;
+    justify-content: space-between;
+    gap: 12px;
+    align-items: center;
+    padding: 15px 20px;
+    border-top: 1px solid rgba(148, 163, 184, .22);
+    background: rgba(15, 23, 42, .96);
+}
+
+.da-smart-browser-foot-note {
+    color: #94a3b8;
+    font-size: 12px;
+    line-height: 1.6;
+}
+
+.da-smart-browser-foot-actions {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+
+html[data-theme="light"] .da-smart-attachment-selected,
+body.light-mode .da-smart-attachment-selected {
+    color: #166534;
+    background: #f0fdf4;
+}
+
+html[data-theme="light"] .da-smart-browser-dialog,
+body.light-mode .da-smart-browser-dialog {
+    background: #ffffff;
+    color: #0f172a;
+}
+
+html[data-theme="light"] .da-smart-browser-head,
+body.light-mode .da-smart-browser-head {
+    background: linear-gradient(135deg, #eff6ff, #ffffff);
+}
+
+html[data-theme="light"] .da-smart-browser-field input,
+html[data-theme="light"] .da-smart-browser-field select,
+html[data-theme="light"] .da-smart-browser-result,
+html[data-theme="light"] .da-smart-browser-status,
+body.light-mode .da-smart-browser-field input,
+body.light-mode .da-smart-browser-field select,
+body.light-mode .da-smart-browser-result,
+body.light-mode .da-smart-browser-status {
+    background: #ffffff;
+    color: #0f172a;
+}
+
+html[data-theme="light"] .da-smart-browser-result-name,
+body.light-mode .da-smart-browser-result-name {
+    color: #0f172a;
+}
+
+html[data-theme="light"] .da-smart-browser-foot,
+body.light-mode .da-smart-browser-foot {
+    background: #f8fafc;
+}
+
+@media (max-width: 760px) {
+    .da-smart-browser-dialog {
+        width: calc(100vw - 14px);
+        max-height: calc(100vh - 14px);
+    }
+
+    .da-smart-browser-shell {
+        max-height: calc(100vh - 14px);
+    }
+
+    .da-smart-browser-filters {
+        grid-template-columns: 1fr;
+    }
+
+    .da-smart-browser-result {
+        grid-template-columns: auto minmax(0, 1fr);
+    }
+
+    .da-smart-browser-result-preview {
+        grid-column: 1 / -1;
+        width: 100%;
+    }
+
+    .da-smart-browser-foot {
+        align-items: stretch;
+        flex-direction: column;
+    }
+
+    .da-smart-browser-foot-actions > * {
+        flex: 1;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .da-smart-browser-result {
+        transition: none;
+    }
+}
