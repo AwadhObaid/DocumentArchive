@@ -159,7 +159,7 @@ class LiveSyncController extends Controller
             'documents_active' => $this->countActiveRows('documents'),
             'documents_today' => $this->countDocumentsForPeriod('today'),
             'documents_month' => $this->countDocumentsForPeriod('month'),
-            'attachments_total' => $this->countRows('document_attachments'),
+            'attachments_total' => $this->countActiveRows('document_attachments'),
             'documents_with_attachments' => $this->countDocumentsByAttachmentPresence(true),
             'documents_without_attachments' => $this->countDocumentsByAttachmentPresence(false),
             'documents_trashed' => $this->countTrashedRows('documents'),
@@ -243,10 +243,16 @@ class LiveSyncController extends Controller
             return $hasAttachments ? 0 : (int) $query->count();
         }
 
-        $callback = function ($subQuery): void {
+        $attachmentsUseSoftDeletes = $this->columnExists('document_attachments', 'deleted_at');
+
+        $callback = function ($subQuery) use ($attachmentsUseSoftDeletes): void {
             $subQuery->select(DB::raw(1))
                 ->from('document_attachments')
                 ->whereColumn('document_attachments.document_id', 'documents.id');
+
+            if ($attachmentsUseSoftDeletes) {
+                $subQuery->whereNull('document_attachments.deleted_at');
+            }
         };
 
         $hasAttachments ? $query->whereExists($callback) : $query->whereNotExists($callback);

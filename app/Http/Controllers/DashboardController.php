@@ -18,7 +18,7 @@ class DashboardController extends Controller
             'documents_today' => $this->countDocumentsForPeriod('today'),
             'documents_month' => $this->countDocumentsForPeriod('month'),
             'documents_year' => $this->countDocumentsForPeriod('year'),
-            'attachments_total' => $this->countRows('document_attachments'),
+            'attachments_total' => $this->countActiveRows('document_attachments'),
             'documents_with_attachments' => $this->countDocumentsWithAttachments(),
             'documents_without_attachments' => $this->countDocumentsWithoutAttachments(),
             'documents_trashed' => $this->countDocumentsTrashed(),
@@ -188,11 +188,17 @@ class DashboardController extends Controller
                 return 0;
             }
 
+            $attachmentsUseSoftDeletes = $this->columnExists('document_attachments', 'deleted_at');
+
             return (int) $this->documentsQuery()
-                ->whereExists(function ($subQuery) {
+                ->whereExists(function ($subQuery) use ($attachmentsUseSoftDeletes) {
                     $subQuery->select(DB::raw(1))
                         ->from('document_attachments')
                         ->whereColumn('document_attachments.document_id', 'documents.id');
+
+                    if ($attachmentsUseSoftDeletes) {
+                        $subQuery->whereNull('document_attachments.deleted_at');
+                    }
                 })
                 ->count();
         } catch (\Throwable $e) {
@@ -211,11 +217,17 @@ class DashboardController extends Controller
                 return (int) $this->documentsQuery()->count();
             }
 
+            $attachmentsUseSoftDeletes = $this->columnExists('document_attachments', 'deleted_at');
+
             return (int) $this->documentsQuery()
-                ->whereNotExists(function ($subQuery) {
+                ->whereNotExists(function ($subQuery) use ($attachmentsUseSoftDeletes) {
                     $subQuery->select(DB::raw(1))
                         ->from('document_attachments')
                         ->whereColumn('document_attachments.document_id', 'documents.id');
+
+                    if ($attachmentsUseSoftDeletes) {
+                        $subQuery->whereNull('document_attachments.deleted_at');
+                    }
                 })
                 ->count();
         } catch (\Throwable $e) {
@@ -542,16 +554,19 @@ class DashboardController extends Controller
                 ];
             }
 
-            if (($stats['documents_without_attachments'] ?? 0) > 0) {
-                $alerts[] = [
-                    'type' => 'warning',
-                    'icon' => '📎',
-                    'title' => 'كتب بدون مرفقات',
-                    'message' => 'يوجد ' . number_format((int) $stats['documents_without_attachments']) . ' كتاب بدون مرفقات.',
-                    'url' => Route::has('documents.index') ? route('documents.index', ['has_attachment' => 'no']) : url('/documents'),
-                    'action' => 'عرض الكتب',
-                ];
-            }
+            $documentsWithoutAttachments = (int) ($stats['documents_without_attachments'] ?? 0);
+
+            $alerts[] = [
+                'key' => 'documents_without_attachments',
+                'type' => 'warning',
+                'icon' => '📎',
+                'title' => 'كتب بدون مرفقات',
+                'message' => 'يوجد ' . number_format($documentsWithoutAttachments) . ' كتاب بدون مرفقات.',
+                'count' => $documentsWithoutAttachments,
+                'hidden' => $documentsWithoutAttachments <= 0,
+                'url' => Route::has('documents.index') ? route('documents.index', ['has_attachment' => 'no']) : url('/documents'),
+                'action' => 'عرض الكتب',
+            ];
 
             if (($stats['duplicate_main_policies'] ?? 0) > 0) {
                 $alerts[] = [

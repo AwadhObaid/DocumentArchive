@@ -1,4 +1,4 @@
-/* DocumentArchive Live Data Synchronization V91.1.2 */
+/* DocumentArchive Live Data Synchronization V93 - dashboard alert consistency */
 (() => {
     'use strict';
 
@@ -142,13 +142,28 @@
         element.setAttribute('aria-hidden', 'false');
     };
 
+    const syncAdministrativeAlertEmptyState = () => {
+        const alertsContainer = document.querySelector('[data-live-sync-alerts]');
+        const emptyState = document.querySelector('[data-live-sync-alert-empty]');
+
+        if (!alertsContainer || !emptyState) return;
+
+        const visibleAlerts = alertsContainer.querySelectorAll(
+            '.da-admin-alert-item:not([hidden])'
+        ).length;
+
+        emptyState.hidden = visibleAlerts > 0;
+    };
+
     const updateDashboardCounts = (counts) => {
         if (!counts || typeof counts !== 'object') return false;
 
         let changed = false;
         Object.entries(counts).forEach(([key, value]) => {
+            const next = formatNumber(value);
+            const numericValue = Number(value);
+
             document.querySelectorAll(`[data-live-sync-count="${CSS.escape(key)}"]`).forEach((node) => {
-                const next = formatNumber(value);
                 if (node.textContent.trim() !== next) {
                     node.textContent = next;
                     node.classList.remove('da-live-sync-count-updated');
@@ -157,7 +172,21 @@
                     changed = true;
                 }
             });
+
+            document.querySelectorAll(`[data-live-sync-alert-count="${CSS.escape(key)}"]`).forEach((node) => {
+                if (node.textContent.trim() !== next) {
+                    node.textContent = next;
+                    changed = true;
+                }
+
+                const alert = node.closest('[data-live-sync-alert]');
+                if (alert) {
+                    alert.hidden = !Number.isFinite(numericValue) || numericValue <= 0;
+                }
+            });
         });
+
+        syncAdministrativeAlertEmptyState();
 
         return changed;
     };

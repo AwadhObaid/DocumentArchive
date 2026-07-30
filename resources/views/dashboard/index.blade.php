@@ -58,6 +58,10 @@
     $maxType = max(array_merge([1], array_map(fn ($item) => (int) da_dashboard_value($item, 'count', 0), $typeRows ?: [])));
 
     $alerts = $dashboardAlerts ?? [];
+    $visibleAlerts = array_values(array_filter(
+        $alerts,
+        fn ($alert) => ! (bool) da_dashboard_value($alert, 'hidden', false)
+    ));
 
     $activityLabel = function (?string $action): string {
         $labels = [
@@ -378,6 +382,7 @@
         .da-actions, .da-actions .da-btn, .da-quick-links, .da-quick-links .da-btn { width: 100%; }
         .da-admin-alert-item { grid-template-columns: auto minmax(0, 1fr); }
         .da-admin-alert-link { grid-column: 2; }
+        .da-admin-alert-item[hidden] { display: none !important; }
         .da-bar-row { grid-template-columns: 1fr; gap: 6px; }
         .da-bar-count { text-align: right; }
         .da-info-row { align-items: flex-start; flex-direction: column; }
@@ -426,30 +431,51 @@
             <span class="da-section-hint">مؤشرات تحتاج مراجعة سريعة</span>
         </div>
 
-        @if(!empty($alerts))
-            <div class="da-admin-alerts">
-                @foreach($alerts as $alert)
-                    <div class="da-admin-alert-item {{ da_dashboard_value($alert, 'type', 'info') }}">
-                        <div class="da-admin-alert-icon">{{ da_dashboard_value($alert, 'icon', '🔔') }}</div>
-                        <div>
-                            <div class="da-admin-alert-title">{{ da_dashboard_value($alert, 'title', 'تنبيه') }}</div>
+        <div class="da-admin-alerts" data-live-sync-alerts>
+            @foreach($alerts as $alert)
+                @php
+                    $alertKey = (string) da_dashboard_value($alert, 'key', '');
+                    $alertHidden = (bool) da_dashboard_value($alert, 'hidden', false);
+                @endphp
+
+                <div
+                    class="da-admin-alert-item {{ da_dashboard_value($alert, 'type', 'info') }}"
+                    @if($alertKey !== '') data-live-sync-alert="{{ $alertKey }}" @endif
+                    @if($alertHidden) hidden @endif
+                >
+                    <div class="da-admin-alert-icon">{{ da_dashboard_value($alert, 'icon', '🔔') }}</div>
+                    <div>
+                        <div class="da-admin-alert-title">{{ da_dashboard_value($alert, 'title', 'تنبيه') }}</div>
+
+                        @if($alertKey === 'documents_without_attachments')
+                            <div class="da-admin-alert-message">
+                                يوجد
+                                <span data-live-sync-alert-count="documents_without_attachments">{{ $num(da_dashboard_value($alert, 'count', 0)) }}</span>
+                                كتاب بدون مرفقات.
+                            </div>
+                        @else
                             <div class="da-admin-alert-message">{{ da_dashboard_value($alert, 'message', '') }}</div>
-                        </div>
-                        @if(!empty(da_dashboard_value($alert, 'url')))
-                            <a class="da-admin-alert-link" href="{{ da_dashboard_value($alert, 'url') }}">{{ da_dashboard_value($alert, 'action', 'فتح') }}</a>
                         @endif
                     </div>
-                @endforeach
-            </div>
-        @else
-            <div class="da-admin-alert-item da-admin-alert-ok">
-                <div class="da-admin-alert-icon">✅</div>
-                <div>
-                    <div class="da-admin-alert-title">لا توجد تنبيهات حالياً</div>
-                    <div class="da-admin-alert-message">النسخ الاحتياطي والكتب والمرفقات وحالة النظام تبدو مستقرة.</div>
+
+                    @if(!empty(da_dashboard_value($alert, 'url')))
+                        <a class="da-admin-alert-link" href="{{ da_dashboard_value($alert, 'url') }}">{{ da_dashboard_value($alert, 'action', 'فتح') }}</a>
+                    @endif
                 </div>
+            @endforeach
+        </div>
+
+        <div
+            class="da-admin-alert-item da-admin-alert-ok"
+            data-live-sync-alert-empty
+            @if(!empty($visibleAlerts)) hidden @endif
+        >
+            <div class="da-admin-alert-icon">✅</div>
+            <div>
+                <div class="da-admin-alert-title">لا توجد تنبيهات حالياً</div>
+                <div class="da-admin-alert-message">النسخ الاحتياطي والكتب والمرفقات وحالة النظام تبدو مستقرة.</div>
             </div>
-        @endif
+        </div>
     </div>
 
     {{-- LIVE_DATA_SYNC_V91_DASHBOARD --}}
