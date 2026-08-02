@@ -1,4 +1,4 @@
-/* DocumentArchive Global Operation Loading V90.0.0 */
+/* DocumentArchive Global Operation Loading V90.0.1 - File Bridge compatibility */
 (() => {
     'use strict';
 
@@ -218,6 +218,11 @@
     }, true);
 
     window.addEventListener('beforeunload', () => {
+        if (window.__daSkipNextBeforeUnloadLoading === true) {
+            window.__daSkipNextBeforeUnloadLoading = false;
+            return;
+        }
+
         if (!state.active) {
             start('جارٍ تحميل الصفحة...', { overlayDelay: 0 });
         }

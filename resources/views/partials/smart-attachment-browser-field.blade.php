@@ -5,6 +5,8 @@
     $smartYearElement = (string) ($yearElement ?? '');
     $smartDefaultSource = (string) ($defaultSource ?? 'outgoing');
     $smartOldToken = (string) old('smart_attachment_token', '');
+    $fileBridgeOldToken = (string) old('file_bridge_token', '');
+    $fileBridgeDocumentId = isset($document) && $document ? (string) $document->getKey() : '';
 @endphp
 
 <div
@@ -18,6 +20,9 @@
     data-reference-element="{{ $smartReferenceElement }}"
     data-year-element="{{ $smartYearElement }}"
     data-default-source="{{ $smartDefaultSource }}"
+    data-file-bridge-create-url="{{ route('file-bridge.create') }}"
+    data-file-bridge-download-url="{{ route('file-bridge.download-client') }}"
+    data-file-bridge-document-id="{{ $fileBridgeDocumentId }}"
 >
     <input
         type="file"
@@ -34,16 +39,27 @@
         data-smart-attachment-token
     >
 
+    <input
+        type="hidden"
+        name="file_bridge_token"
+        value="{{ $fileBridgeOldToken }}"
+        data-file-bridge-token
+    >
+
     <div class="da-smart-attachment-actions">
         <button type="button" class="btn btn-primary" data-smart-attachment-open>
-            🔎 البحث في الأرشيف
+            🔎 البحث في أرشيف الشبكة
+        </button>
+
+        <button type="button" class="btn da-file-bridge-button" data-file-bridge-open>
+            🖥️ البحث في ملفات الجهاز
         </button>
 
         <button type="button" class="btn btn-secondary" data-smart-attachment-native>
-            📁 اختيار من الجهاز
+            📁 اختيار ملف مباشرة
         </button>
 
-        <button type="button" class="btn btn-light" data-smart-attachment-clear hidden>
+        <button type="button" class="btn btn-light" data-smart-attachment-clear @if($smartOldToken === '' && $fileBridgeOldToken === '') hidden @endif>
             إزالة الاختيار
         </button>
     </div>
@@ -51,16 +67,22 @@
     <div
         class="da-smart-attachment-selected"
         data-smart-attachment-selected
-        @if($smartOldToken === '') hidden @endif
+        @if($smartOldToken === '' && $fileBridgeOldToken === '') hidden @endif
     >
-        @if($smartOldToken !== '')
+        @if($fileBridgeOldToken !== '')
+            تم الاحتفاظ باختيار من File Bridge. يمكن إزالته أو اختيار ملف آخر.
+        @elseif($smartOldToken !== '')
             تم الاحتفاظ باختيار من البحث الذكي. يمكن إزالته أو اختيار ملف آخر.
         @endif
     </div>
 
     <small>
-        البحث الذكي يقرأ المسارات المحفوظة في الإعدادات على السيرفر أو الشبكة. للملفات الموجودة على جهازك استخدم «اختيار من الجهاز».
+        «أرشيف الشبكة» يبحث في المسارات المحفوظة على السيرفر، و«ملفات الجهاز» يستخدم أداة File Bridge للبحث بالرقم داخل المجلدات المحلية المسموح بها، بينما «اختيار ملف مباشرة» يفتح نافذة Windows التقليدية.
     </small>
+
+    @error('file_bridge_token')
+        <small class="da-smart-attachment-error">{{ $message }}</small>
+    @enderror
 
     @error('smart_attachment_token')
         <small class="da-smart-attachment-error">{{ $message }}</small>

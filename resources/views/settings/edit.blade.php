@@ -912,6 +912,64 @@
                 </div>
                 {{-- smart-attachment-browser-v94-1-settings:end --}}
 
+                <hr style="margin: 25px 0; border: 0; border-top: 1px solid rgba(148,163,184,.35);">
+
+                {{-- file-bridge-v94-2-settings:start --}}
+                <div class="settings-section-header">
+                    <div>
+                        <h2>DocumentArchive File Bridge</h2>
+                        <p>يسمح للمستخدم بالبحث برقم الكتاب داخل المجلدات المحلية المعتمدة على جهازه، ثم يرفع الملف المختار مؤقتاً إلى النظام عبر HTTPS.</p>
+                    </div>
+                    <a class="btn btn-secondary" href="{{ route('file-bridge.download-client') }}">
+                        تنزيل أداة Windows
+                    </a>
+                </div>
+
+                <div class="form-grid">
+                    <div class="form-group full">
+                        <label style="display:flex; gap:8px; align-items:center;">
+                            <input
+                                type="checkbox"
+                                name="file_bridge_enabled"
+                                value="1"
+                                @checked(old('file_bridge_enabled', $settings['file_bridge_enabled'] ?? '1') == '1')
+                            >
+                            تفعيل البحث المحلي عبر File Bridge
+                        </label>
+                        <small class="settings-small-note">يحتاج تثبيت أداة Windows مرة واحدة على كل جهاز مستخدم. لا تفتح الأداة أي منفذ محلي ولا تمنح المتصفح وصولاً مباشراً إلى القرص.</small>
+                    </div>
+
+                    <div class="form-group">
+                        <label>مدة صلاحية طلب الاختيار بالدقائق</label>
+                        <input
+                            type="number"
+                            name="file_bridge_request_minutes"
+                            value="{{ old('file_bridge_request_minutes', $settings['file_bridge_request_minutes'] ?? 10) }}"
+                            min="3"
+                            max="30"
+                            required
+                        >
+                        <small class="settings-small-note">بعد انتهاء المدة يُلغى الرمز المؤقت ويُحذف الملف غير المستخدم.</small>
+                    </div>
+
+                    <div class="form-group">
+                        <label>الحد الأقصى لحجم الملف MB</label>
+                        <input
+                            type="number"
+                            name="file_bridge_max_file_mb"
+                            value="{{ old('file_bridge_max_file_mb', $settings['file_bridge_max_file_mb'] ?? 20) }}"
+                            min="1"
+                            max="100"
+                            required
+                        >
+                    </div>
+                </div>
+
+                <div class="settings-warning-box">
+                    الأداة تبحث فقط داخل المجلدات التي يعتمدها المستخدم محلياً. كل طلب يحمل رمزاً عشوائياً لمرة واحدة، مرتبطاً بالمستخدم والكتاب عند توفره، وتنتهي صلاحيته تلقائياً.
+                </div>
+                {{-- file-bridge-v94-2-settings:end --}}
+
                 {{-- smart-reports-settings-v65:start --}}
                 <div class="settings-section-header">
                     <div>

@@ -14,6 +14,7 @@ use App\Models\Setting;
 use App\Services\ReferenceNumberGenerator;
 use App\Services\BookAttachmentSmartPathService;
 use App\Services\SmartAttachmentBrowserService;
+use App\Services\FileBridgeService;
 use App\Services\ActivityLogger;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -455,12 +456,19 @@ class DocumentController extends Controller
             'priority' => ['required', 'in:normal,high,urgent'],
             'attachment' => ['nullable', 'file', 'max:20480'],
             'smart_attachment_token' => ['nullable', 'string', 'max:12000'],
+            'file_bridge_token' => ['nullable', 'string', 'max:12000'],
             'notes' => ['nullable', 'string'],
         ]);
 
-        if ($request->hasFile('attachment') && filled($validated['smart_attachment_token'] ?? null)) {
+        $attachmentSelectionCount = collect([
+            $request->hasFile('attachment'),
+            filled($validated['smart_attachment_token'] ?? null),
+            filled($validated['file_bridge_token'] ?? null),
+        ])->filter()->count();
+
+        if ($attachmentSelectionCount > 1) {
             throw ValidationException::withMessages([
-                'attachment' => 'اختر ملفاً من الجهاز أو من البحث الذكي، وليس الاثنين معاً.',
+                'attachment' => 'اختر طريقة واحدة فقط للمرفق: ملف مباشر، أرشيف الشبكة، أو File Bridge.',
             ]);
         }
 
@@ -513,6 +521,11 @@ class DocumentController extends Controller
             } elseif (filled($validated['smart_attachment_token'] ?? null)) {
                 $this->storeSmartAttachment(
                     (string) $validated['smart_attachment_token'],
+                    $document
+                );
+            } elseif (filled($validated['file_bridge_token'] ?? null)) {
+                $this->storeFileBridgeAttachment(
+                    (string) $validated['file_bridge_token'],
                     $document
                 );
             }
@@ -594,12 +607,19 @@ class DocumentController extends Controller
             'status' => ['required', 'in:active,archived,cancelled'],
             'attachment' => ['nullable', 'file', 'max:20480'],
             'smart_attachment_token' => ['nullable', 'string', 'max:12000'],
+            'file_bridge_token' => ['nullable', 'string', 'max:12000'],
             'notes' => ['nullable', 'string'],
         ]);
 
-        if ($request->hasFile('attachment') && filled($validated['smart_attachment_token'] ?? null)) {
+        $attachmentSelectionCount = collect([
+            $request->hasFile('attachment'),
+            filled($validated['smart_attachment_token'] ?? null),
+            filled($validated['file_bridge_token'] ?? null),
+        ])->filter()->count();
+
+        if ($attachmentSelectionCount > 1) {
             throw ValidationException::withMessages([
-                'attachment' => 'اختر ملفاً من الجهاز أو من البحث الذكي، وليس الاثنين معاً.',
+                'attachment' => 'اختر طريقة واحدة فقط للمرفق: ملف مباشر، أرشيف الشبكة، أو File Bridge.',
             ]);
         }
 
@@ -631,7 +651,9 @@ class DocumentController extends Controller
                 'notes' => $validated['notes'] ?? null,
             ]);
 
-            if ($request->hasFile('attachment') || filled($validated['smart_attachment_token'] ?? null)) {
+            if ($request->hasFile('attachment')
+                || filled($validated['smart_attachment_token'] ?? null)
+                || filled($validated['file_bridge_token'] ?? null)) {
                 DocumentAttachment::query()
                     ->where('document_id', $document->id)
                     ->where('is_main', true)
@@ -639,9 +661,14 @@ class DocumentController extends Controller
 
                 if ($request->hasFile('attachment')) {
                     $this->storeAttachment($request, $document);
-                } else {
+                } elseif (filled($validated['smart_attachment_token'] ?? null)) {
                     $this->storeSmartAttachment(
                         (string) $validated['smart_attachment_token'],
+                        $document
+                    );
+                } else {
+                    $this->storeFileBridgeAttachment(
+                        (string) $validated['file_bridge_token'],
                         $document
                     );
                 }
@@ -1212,6 +1239,80 @@ class DocumentController extends Controller
                     'classification_folder' => $classification['folder'],
                 ]
             );
+        } catch (\Throwable $exception) {
+            $absolutePath = $storedFile['absolute_path'] ?? null;
+
+            if (is_string($absolutePath) && $absolutePath !== '' && is_file($absolutePath)) {
+                @unlink($absolutePath);
+            }
+
+            throw $exception;
+        }
+    }
+
+    private function storeFileBridgeAttachment(string $selectionToken, Document $document): void
+    {
+        $bridge = app(FileBridgeService::class);
+        $user = Auth::user();
+
+        if (! $user) {
+            throw ValidationException::withMessages([
+                'file_bridge_token' => 'انتهت جلسة المستخدم. سجّل الدخول ثم أعد اختيار الملف.',
+            ]);
+        }
+
+        $sourceFile = $bridge->claimSelection($selectionToken, $user, $document);
+        $bridgeRequest = $sourceFile['request'];
+
+        $duplicate = DocumentAttachment::query()
+            ->where('document_id', $document->id)
+            ->where('original_name', $sourceFile['name'])
+            ->where('file_size', $sourceFile['size'])
+            ->exists();
+
+        if ($duplicate) {
+            throw ValidationException::withMessages([
+                'file_bridge_token' => 'هذا الملف مرفق بالفعل بالكتاب بالاسم والحجم نفسيهما.',
+            ]);
+        }
+
+        $latestVersion = DocumentAttachment::query()
+            ->where('document_id', $document->id)
+            ->max('version_no');
+
+        $versionNo = ((int) $latestVersion) + 1;
+        $pathService = app(BookAttachmentSmartPathService::class);
+        $storedFile = $pathService->storeExistingFile(
+            $document,
+            $sourceFile['absolute_path'],
+            $sourceFile['name'],
+            $versionNo
+        );
+        $classification = $storedFile['classification'];
+
+        try {
+            $attachment = DocumentAttachment::create([
+                'document_id' => $document->id,
+                'attachment_type' => 'file_bridge',
+                'version_no' => $versionNo,
+                'is_main' => true,
+                'original_name' => $sourceFile['name'],
+                'file_name' => $storedFile['file_name'],
+                'file_path' => $storedFile['file_path'],
+                'disk' => $storedFile['disk'],
+                'storage_root_path' => $storedFile['storage_root_path'],
+                'classification_company_name' => $classification['company'],
+                'classification_operation_name' => $classification['operation'],
+                'classification_year' => $classification['year'],
+                'classification_folder' => $classification['folder'],
+                'extension' => $sourceFile['extension'],
+                'mime_type' => $sourceFile['mime_type'],
+                'file_size' => $sourceFile['size'],
+                'ocr_status' => 'pending',
+                'uploaded_by' => Auth::id(),
+            ]);
+
+            $bridge->markConsumed($bridgeRequest, $document, $attachment);
         } catch (\Throwable $exception) {
             $absolutePath = $storedFile['absolute_path'] ?? null;
 

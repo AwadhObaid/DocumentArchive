@@ -335,11 +335,14 @@
         if (!activeField || !selectedItem) return;
 
         const tokenInput = activeField.querySelector('[data-smart-attachment-token]');
+        const bridgeInput = activeField.querySelector('[data-file-bridge-token]');
         const nativeInput = activeField.querySelector('[data-smart-native-file]');
         const selectedNode = activeField.querySelector('[data-smart-attachment-selected]');
         const clearButton = activeField.querySelector('[data-smart-attachment-clear]');
 
         tokenInput.value = selectedItem.token;
+        tokenInput.dispatchEvent(new Event('change', { bubbles: true }));
+        if (bridgeInput) bridgeInput.value = '';
         nativeInput.value = '';
         selectedNode.textContent = `تم اختيار: ${selectedItem.name} — ${selectedItem.size_human}`;
         selectedNode.hidden = false;
@@ -350,11 +353,13 @@
 
     const clearField = (field) => {
         const tokenInput = field.querySelector('[data-smart-attachment-token]');
+        const bridgeInput = field.querySelector('[data-file-bridge-token]');
         const nativeInput = field.querySelector('[data-smart-native-file]');
         const selectedNode = field.querySelector('[data-smart-attachment-selected]');
         const clearButton = field.querySelector('[data-smart-attachment-clear]');
 
         tokenInput.value = '';
+        if (bridgeInput) bridgeInput.value = '';
         nativeInput.value = '';
         selectedNode.textContent = '';
         selectedNode.hidden = true;
@@ -366,6 +371,7 @@
         const nativeButton = field.querySelector('[data-smart-attachment-native]');
         const nativeInput = field.querySelector('[data-smart-native-file]');
         const tokenInput = field.querySelector('[data-smart-attachment-token]');
+        const bridgeInput = field.querySelector('[data-file-bridge-token]');
         const selectedNode = field.querySelector('[data-smart-attachment-selected]');
         const clearButton = field.querySelector('[data-smart-attachment-clear]');
 
@@ -375,6 +381,7 @@
 
         nativeInput?.addEventListener('change', () => {
             tokenInput.value = '';
+            if (bridgeInput) bridgeInput.value = '';
 
             const file = nativeInput.files?.[0];
             if (file) {
@@ -388,7 +395,7 @@
             }
         });
 
-        if (tokenInput?.value) {
+        if (tokenInput?.value || bridgeInput?.value) {
             clearButton.hidden = false;
         }
     });

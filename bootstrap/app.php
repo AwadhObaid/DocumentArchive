@@ -26,6 +26,14 @@ return Application::configure(basePath: dirname(__DIR__))
             \App\Http\Middleware\PersistImportantFlashNotifications::class,
             \App\Http\Middleware\AutoLogoutIfInactive::class,
         ]);
+
+        // file-bridge-v94-2-csrf:start
+        // The Windows helper authenticates with a one-time high-entropy token,
+        // not a browser session. Keep the exclusion limited to these endpoints.
+        $middleware->preventRequestForgery(except: [
+            'file-bridge/client/*',
+        ]);
+        // file-bridge-v94-2-csrf:end
     })
     ->withExceptions(function (Exceptions $exceptions): void {
         

@@ -23,6 +23,7 @@ use App\Http\Controllers\SharedAttachmentLinkController;
 use App\Http\Controllers\FormLinkController;
 use App\Http\Controllers\SettingsController;
 use App\Http\Controllers\SmartAttachmentBrowserController;
+use App\Http\Controllers\FileBridgeController;
 use App\Http\Controllers\SystemAboutController;
 use App\Http\Controllers\WorkflowController;
 use App\Http\Controllers\PdfSearchController;
@@ -48,6 +49,20 @@ Route::post('/shared/attachments/{token}/unlock', [SharedAttachmentLinkControlle
 
 Route::get('/shared/attachments/{token}/files/{item}/download', [SharedAttachmentLinkController::class, 'publicDownload'])
     ->name('shared-attachments.public.download');
+
+// file-bridge-v94-2-public-routes:start
+Route::prefix('file-bridge/client/{uuid}')
+    ->name('file-bridge.client.')
+    ->whereUuid('uuid')
+    ->middleware('throttle:30,1')
+    ->group(function () {
+        Route::get('/', [FileBridgeController::class, 'clientInfo'])->name('info');
+        Route::post('/upload', [FileBridgeController::class, 'clientUpload'])
+            ->middleware('throttle:10,1')
+            ->name('upload');
+        Route::post('/failure', [FileBridgeController::class, 'clientFailure'])->name('failure');
+    });
+// file-bridge-v94-2-public-routes:end
 
 Route::middleware('guest')->group(function () {
     Route::get('/login', [AuthController::class, 'showLoginForm'])->name('login');
@@ -238,6 +253,19 @@ Route::middleware(['auth', ApplyRoutePermissions::class])->group(function () {
     Route::get('/smart-attachment-browser/preview', [SmartAttachmentBrowserController::class, 'preview'])
         ->name('smart-attachment-browser.preview');
     // smart-attachment-browser-v94-1-routes:end
+
+    // file-bridge-v94-2-auth-routes:start
+    Route::post('/file-bridge/requests', [FileBridgeController::class, 'create'])
+        ->name('file-bridge.create');
+    Route::get('/file-bridge/requests/{uuid}/status', [FileBridgeController::class, 'status'])
+        ->whereUuid('uuid')
+        ->name('file-bridge.status');
+    Route::post('/file-bridge/requests/{uuid}/cancel', [FileBridgeController::class, 'cancel'])
+        ->whereUuid('uuid')
+        ->name('file-bridge.cancel');
+    Route::get('/file-bridge/download-client', [FileBridgeController::class, 'downloadClient'])
+        ->name('file-bridge.download-client');
+    // file-bridge-v94-2-auth-routes:end
 
     Route::get('/activity-logs', [ActivityLogController::class, 'index'])
         ->name('activity-logs.index');

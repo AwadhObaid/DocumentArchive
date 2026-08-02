@@ -103,6 +103,10 @@
     {{-- smart-attachment-browser-v94-1-css:start --}}
     <link rel="stylesheet" href="{{ asset('css/smart-attachment-browser-v94-1.css') }}?v={{ filemtime(public_path('css/smart-attachment-browser-v94-1.css')) }}">
     {{-- smart-attachment-browser-v94-1-css:end --}}
+
+    {{-- file-bridge-v94-2-css:start --}}
+    <link rel="stylesheet" href="{{ asset('css/file-bridge-v94-2.css') }}?v={{ filemtime(public_path('css/file-bridge-v94-2.css')) }}">
+    {{-- file-bridge-v94-2-css:end --}}
 </head>
 <body
     data-live-sync-url="{{ route('live-sync.status') }}"
@@ -409,5 +413,9 @@
     {{-- smart-attachment-browser-v94-1-js:start --}}
     <script src="{{ asset('js/smart-attachment-browser-v94-1.js') }}?v={{ filemtime(public_path('js/smart-attachment-browser-v94-1.js')) }}" defer></script>
     {{-- smart-attachment-browser-v94-1-js:end --}}
+
+    {{-- file-bridge-v94-2-js:start --}}
+    <script src="{{ asset('js/file-bridge-v94-2.js') }}?v={{ filemtime(public_path('js/file-bridge-v94-2.js')) }}" defer></script>
+    {{-- file-bridge-v94-2-js:end --}}
 </body>
 </html>

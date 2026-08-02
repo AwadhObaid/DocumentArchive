@@ -89,6 +89,9 @@ class ActivityLog extends Model
             'attachment.version_downloaded' => 'تنزيل إصدار مرفق محفوظ',
             'attachment.version_previewed' => 'معاينة إصدار مرفق محفوظ',
             'attachment.force_deleted' => 'حذف مرفق نهائيًا',
+            'file_bridge.request_created' => 'إنشاء طلب File Bridge',
+            'file_bridge.upload_ready' => 'رفع ملف عبر File Bridge',
+            'file_bridge.attachment_imported' => 'ربط ملف File Bridge بالكتاب',
 
             'user.created' => 'إضافة مستخدم',
             'user.updated' => 'تعديل مستخدم',
@@ -191,6 +194,7 @@ class ActivityLog extends Model
             str_starts_with($action, 'legacy_archive_import.') => 'استيراد الأرشيف القديم',
             str_starts_with($action, 'archive_category.') => 'تصنيفات الأرشيف',
             str_starts_with($action, 'attachment.') => 'المرفقات',
+            str_starts_with($action, 'file_bridge.') => 'File Bridge',
             str_starts_with($action, 'backup.') => 'النسخ الاحتياطي',
             str_starts_with($action, 'user.') => 'المستخدمون',
             str_starts_with($action, 'department.') => 'الإدارات',

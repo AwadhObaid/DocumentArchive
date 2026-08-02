@@ -33,6 +33,10 @@ class ApplyRoutePermissions
         'smart-attachment-browser.sources' => ['documents.create', 'documents.edit', 'settings.manage'],
         'smart-attachment-browser.search' => ['documents.create', 'documents.edit', 'settings.manage'],
         'smart-attachment-browser.preview' => ['documents.create', 'documents.edit', 'settings.manage'],
+        'file-bridge.create' => ['documents.create', 'documents.edit', 'settings.manage'],
+        'file-bridge.status' => ['documents.create', 'documents.edit', 'settings.manage'],
+        'file-bridge.cancel' => ['documents.create', 'documents.edit', 'settings.manage'],
+        'file-bridge.download-client' => ['documents.create', 'documents.edit', 'settings.manage'],
 
         'documents.workflow.submit' => 'workflow.submit',
         'documents.workflow.approve' => 'workflow.approve',

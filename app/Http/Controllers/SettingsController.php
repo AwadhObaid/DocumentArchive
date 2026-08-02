@@ -50,6 +50,9 @@ class SettingsController extends Controller
         'smart_attachment_result_limit' => '80',
         'smart_attachment_timeout_seconds' => '8',
         'smart_attachment_max_file_mb' => '20',
+        'file_bridge_enabled' => '1',
+        'file_bridge_request_minutes' => '10',
+        'file_bridge_max_file_mb' => '20',
         'smart_reports_enabled' => '0',
         'smart_reports_gemini_api_key' => '',
         'smart_reports_gemini_model' => 'gemini-3.5-flash',
@@ -92,6 +95,9 @@ class SettingsController extends Controller
                     $settings['smart_attachment_general_path'] ?? '',
                 ])->filter(fn ($path) => trim((string) $path) !== '')->count() . ' مسارات'
                 : 'غير مفعل',
+            'file_bridge' => ((string) ($settings['file_bridge_enabled'] ?? '1') === '1')
+                ? 'مفعل - صلاحية الطلب ' . ($settings['file_bridge_request_minutes'] ?? '10') . ' دقائق'
+                : 'غير مفعل',
             'smart_reports' => ((string) ($settings['smart_reports_enabled'] ?? '0') === '1')
                 ? (((string) ($settings['smart_reports_gemini_api_key_configured'] ?? '0') === '1') ? ('مفعلة - ' . ($settings['smart_reports_gemini_model'] ?? 'gemini-3.5-flash')) : 'مفعلة بدون مفتاح API')
                 : 'غير مفعلة',
@@ -131,6 +137,9 @@ class SettingsController extends Controller
             'smart_attachment_result_limit' => ['required', 'integer', 'min:10', 'max:200'],
             'smart_attachment_timeout_seconds' => ['required', 'integer', 'min:2', 'max:30'],
             'smart_attachment_max_file_mb' => ['required', 'integer', 'min:1', 'max:100'],
+            'file_bridge_enabled' => ['nullable', 'boolean'],
+            'file_bridge_request_minutes' => ['required', 'integer', 'min:3', 'max:30'],
+            'file_bridge_max_file_mb' => ['required', 'integer', 'min:1', 'max:100'],
             'smart_reports_enabled' => ['nullable', 'boolean'],
             'smart_reports_gemini_api_key' => ['nullable', 'string', 'max:1000'],
             'smart_reports_gemini_model' => ['required', 'string', 'max:100'],
@@ -171,6 +180,8 @@ class SettingsController extends Controller
             'smart_attachment_result_limit.required' => 'حد نتائج البحث الذكي مطلوب.',
             'smart_attachment_timeout_seconds.required' => 'مهلة البحث الذكي مطلوبة.',
             'smart_attachment_max_file_mb.required' => 'الحد الأقصى لحجم الملف مطلوب.',
+            'file_bridge_request_minutes.required' => 'مدة صلاحية طلب File Bridge مطلوبة.',
+            'file_bridge_max_file_mb.required' => 'الحد الأقصى لحجم ملف File Bridge مطلوب.',
             'smart_reports_gemini_model.required' => 'موديل Gemini مطلوب.',
             'smart_reports_gemini_api_key.max' => 'Gemini API Key طويل جداً.',
             'reference_start_number.integer' => 'رقم بداية الكتاب يجب أن يكون رقماً صحيحاً.',
@@ -183,6 +194,7 @@ class SettingsController extends Controller
         $validated['internal_chat_sound_enabled'] = $request->boolean('internal_chat_sound_enabled') ? '1' : '0';
         $validated['smart_attachment_browser_enabled'] = $request->boolean('smart_attachment_browser_enabled') ? '1' : '0';
         $validated['smart_attachment_recursive'] = $request->boolean('smart_attachment_recursive') ? '1' : '0';
+        $validated['file_bridge_enabled'] = $request->boolean('file_bridge_enabled') ? '1' : '0';
         $validated['smart_reports_enabled'] = $request->boolean('smart_reports_enabled') ? '1' : '0';
         $validated['smart_reports_include_titles'] = $request->boolean('smart_reports_include_titles') ? '1' : '0';
         $validated['internal_chat_sound_volume'] = (string) max(0, min(100, (int) ($validated['internal_chat_sound_volume'] ?? 85)));
@@ -261,6 +273,9 @@ class SettingsController extends Controller
             'smart_attachment_result_limit' => ['smart_attachment_browser', 'number', 'الحد الأعلى لنتائج البحث الذكي في الطلب الواحد'],
             'smart_attachment_timeout_seconds' => ['smart_attachment_browser', 'number', 'المهلة الزمنية القصوى لمسح مسار البحث'],
             'smart_attachment_max_file_mb' => ['smart_attachment_browser', 'number', 'الحد الأقصى لحجم الملف الذي يمكن اختياره من المسار الذكي'],
+            'file_bridge_enabled' => ['file_bridge', 'boolean', 'تفعيل البحث في الملفات المحلية عبر DocumentArchive File Bridge'],
+            'file_bridge_request_minutes' => ['file_bridge', 'number', 'مدة صلاحية طلب اختيار الملف المحلي بالدقائق'],
+            'file_bridge_max_file_mb' => ['file_bridge', 'number', 'الحد الأقصى لحجم الملف المرفوع عبر File Bridge'],
             'smart_reports_enabled' => ['smart_reports', 'boolean', 'تفعيل التقارير الذكية عبر Gemini API'],
             'smart_reports_gemini_api_key' => ['smart_reports', 'password', 'Gemini API Key محفوظ بشكل مشفر'],
             'smart_reports_gemini_model' => ['smart_reports', 'text', 'موديل Gemini المستخدم في التقارير الذكية'],

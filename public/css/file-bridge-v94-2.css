@@ -1,0 +1,28 @@
+/* DocumentArchive File Bridge V94.2 */
+.da-file-bridge-button {
+    border-color: #0f766e;
+    background: linear-gradient(135deg, #0f766e, #0d9488);
+    color: #fff;
+}
+
+.da-file-bridge-button:hover,
+.da-file-bridge-button:focus {
+    background: linear-gradient(135deg, #115e59, #0f766e);
+    color: #fff;
+}
+
+.da-smart-attachment-selected.is-error {
+    border-color: rgba(239, 68, 68, .55);
+    background: rgba(239, 68, 68, .10);
+    color: #b91c1c;
+}
+
+.da-file-bridge-install-link {
+    font-weight: 700;
+    text-decoration: underline;
+}
+
+[data-theme="dark"] .da-smart-attachment-selected.is-error,
+.dark .da-smart-attachment-selected.is-error {
+    color: #fecaca;
+}

@@ -1,6 +1,7 @@
 <?php
 
 use App\Services\PdfTextIndexingService;
+use App\Services\FileBridgeService;
 use Illuminate\Foundation\Inspiring;
 use Illuminate\Support\Facades\Artisan;
 
@@ -42,3 +43,11 @@ Artisan::command('archive:index-pdfs {--source=all : all|documents|memos|circula
 
     $this->info('انتهت الفهرسة.');
 })->purpose('فهرسة نصوص مرفقات PDF للكتب والمذكرات والتعاميم والكتب المتفرقة مع OCR اختياري');
+
+
+// file-bridge-v94-2-console:start
+Artisan::command('file-bridge:purge', function () {
+    $count = app(FileBridgeService::class)->purgeExpired();
+    $this->info('Expired File Bridge requests purged: ' . $count);
+})->purpose('حذف طلبات وملفات File Bridge المؤقتة المنتهية');
+// file-bridge-v94-2-console:end
