@@ -212,6 +212,8 @@ Route::middleware(['auth', ApplyRoutePermissions::class])->group(function () {
         ->name('pdf-search.index');
     Route::post('/pdf-search/run', [PdfSearchController::class, 'run'])
         ->name('pdf-search.run');
+    Route::get('/pdf-search/selection', [PdfSearchController::class, 'selection'])
+        ->name('pdf-search.selection');
     Route::post('/pdf-search/indexes/{attachmentTextIndex}/reindex', [PdfSearchController::class, 'reindex'])
         ->name('pdf-search.reindex');
     Route::post('/pdf-search/attachments/{sourceType}/{attachmentId}/index', [PdfSearchController::class, 'indexAttachment'])

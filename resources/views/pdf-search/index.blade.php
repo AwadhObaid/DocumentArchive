@@ -192,57 +192,162 @@
             <h2>نتائج البحث والفهرسة</h2>
             <span class="pdf-status-pill pdf-status-info">{{ $indexes->total() }} نتيجة</span>
         </div>
+        {{-- V95.1.2: raw PHP control flow avoids Blade directive ambiguity in the bulk results table. --}}
+        <?php if ($canIndex && $indexes->count() > 0): ?>
+            <section
+                class="pdf-bulk-index-panel no-print"
+                data-pdf-bulk-indexing
+                data-selection-url="{{ route('pdf-search.selection') }}"
+                data-selection-limit="500"
+                data-filter-q="{{ $filters['q'] }}"
+                data-filter-source="{{ $filters['source'] }}"
+                data-filter-status="{{ $filters['status'] }}"
+            >
+                <div class="pdf-bulk-index-intro">
+                    <div>
+                        <strong>فهرسة المرفقات المحددة</strong>
+                        <span>حدّد المرفقات غير المفهرسة من الصفحة الحالية، أو اجلب جميع النتائج المطابقة للفلتر الحالي.</span>
+                    </div>
+                    <span class="pdf-bulk-selected-badge">
+                        المحدد: <strong data-pdf-selected-count>0</strong>
+                    </span>
+                </div>
 
-        @if($indexes->count())
+                <div class="pdf-bulk-index-actions">
+                    <button type="button" class="btn btn-secondary btn-sm" data-pdf-select-page>
+                        تحديد غير المفهرس في الصفحة
+                    </button>
+                    <button type="button" class="btn btn-secondary btn-sm" data-pdf-select-filtered>
+                        تحديد جميع القابلة للمعالجة من النتائج
+                    </button>
+                    <button type="button" class="btn btn-light btn-sm" data-pdf-clear-selection disabled>
+                        إلغاء التحديد
+                    </button>
+
+                    <label class="pdf-bulk-ocr-option">
+                        <input type="checkbox" data-pdf-enable-ocr>
+                        تشغيل التعرف الضوئي للمحدد
+                    </label>
+
+                    <button type="button" class="btn btn-success btn-sm" data-pdf-run-selected disabled>
+                        فهرسة المحدد
+                    </button>
+                    <button type="button" class="btn btn-danger btn-sm" data-pdf-cancel-run hidden>
+                        إيقاف بعد الملف الحالي
+                    </button>
+                    <button type="button" class="btn btn-primary btn-sm" data-pdf-reload-results hidden>
+                        تحديث النتائج
+                    </button>
+                </div>
+
+                <div class="pdf-bulk-progress" hidden data-pdf-progress-wrap>
+                    <div class="pdf-bulk-progress-head">
+                        <span data-pdf-progress-text>بانتظار بدء الفهرسة...</span>
+                        <strong data-pdf-progress-percent>0%</strong>
+                    </div>
+                    <div class="pdf-bulk-progress-track" aria-hidden="true">
+                        <span data-pdf-progress-bar style="width:0%"></span>
+                    </div>
+                </div>
+
+                <div class="pdf-bulk-message" data-pdf-bulk-message aria-live="polite"></div>
+            </section>
+        <?php endif; ?>
+
+        <?php if ($indexes->count() > 0): ?>
             <div class="pdf-search-table-wrap">
                 <table class="pdf-search-table">
                     <thead>
                         <tr>
+                            <?php if ($canIndex): ?>
+                                <th class="no-print pdf-bulk-checkbox-column">
+                                    <label class="pdf-bulk-master-label" title="تحديد جميع المرفقات القابلة للمعالجة في الصفحة الحالية">
+                                        <input type="checkbox" data-pdf-select-page-checkbox>
+                                        <span>تحديد</span>
+                                    </label>
+                                </th>
+                            <?php endif; ?>
                             <th>نوع السجل</th>
                             <th>اسم الملف</th>
                             <th>حالة الفهرسة</th>
                             <th>النص المستخرج</th>
                             <th>آخر فهرسة</th>
-                            @if($canIndex)<th class="no-print">إجراء</th>@endif
+                            <?php if ($canIndex): ?>
+                                <th class="no-print">إجراء</th>
+                            <?php endif; ?>
                         </tr>
                     </thead>
                     <tbody>
-                        @foreach($indexes as $index)
-                            @php($route = $index->recordRoute())
-                            <tr>
+                        <?php foreach ($indexes as $index): ?>
+                            <?php
+                                $route = $index->recordRoute();
+                                $bulkSelectable = (int) $index->is_indexable === 1
+                                    && $index->resolved_status !== 'indexed';
+                                $indexUrl = route('pdf-search.index-attachment', [
+                                    $index->source_type,
+                                    $index->attachment_id,
+                                ]);
+                            ?>
+                            <tr data-pdf-index-row="{{ $index->source_type }}:{{ $index->attachment_id }}">
+                                <?php if ($canIndex): ?>
+                                    <td class="no-print pdf-bulk-checkbox-column">
+                                        <?php if ($bulkSelectable): ?>
+                                            <input
+                                                type="checkbox"
+                                                class="pdf-bulk-item-checkbox"
+                                                value="{{ $index->source_type }}:{{ $index->attachment_id }}"
+                                                data-pdf-bulk-item
+                                                data-source-type="{{ $index->source_type }}"
+                                                data-attachment-id="{{ $index->attachment_id }}"
+                                                data-index-url="{{ $indexUrl }}"
+                                                data-status="{{ $index->resolved_status }}"
+                                                data-label="{{ $index->original_name ?: $index->file_name ?: $index->record_number }}"
+                                                aria-label="تحديد المرفق {{ $index->original_name ?: $index->file_name ?: $index->attachment_id }}"
+                                            >
+                                        <?php else: ?>
+                                            <span class="pdf-bulk-checkbox-placeholder">—</span>
+                                        <?php endif; ?>
+                                    </td>
+                                <?php endif; ?>
+
                                 <td>
                                     <strong>{{ $index->sourceLabel() }}</strong><br>
-                                    @if($route)
+                                    <?php if ($route): ?>
                                         <a href="{{ $route }}" class="pdf-source-number">{{ $index->record_number ?: $index->source_id }}</a>
-                                    @else
+                                    <?php else: ?>
                                         <span class="pdf-source-number">{{ $index->record_number ?: $index->source_id }}</span>
-                                    @endif
-                                    <div style="color:#94a3b8; max-width:240px; word-break:break-word;">{{ $index->record_title ?: '-' }}</div>
+                                    <?php endif; ?>
+                                    <div class="pdf-record-title">{{ $index->record_title ?: '-' }}</div>
                                 </td>
+
                                 <td class="pdf-file-name">
                                     {{ $index->original_name ?: $index->file_name ?: '-' }}<br>
-                                    <small style="color:#94a3b8;">{{ strtoupper($index->extension ?: '-') }} / {{ number_format((int) $index->index_text_length) }} حرف مستخرج</small>
+                                    <small>{{ strtoupper($index->extension ?: '-') }} / {{ number_format((int) $index->index_text_length) }} حرف مستخرج</small>
                                 </td>
+
                                 <td>
                                     <span class="pdf-status-pill pdf-status-{{ $index->statusClass() }}">{{ $index->statusName() }}</span>
-                                    @if($index->extractor)
-                                        <div style="color:#94a3b8;font-size:12px;margin-top:6px;">طريقة المعالجة: {{ $index->extractorName() }}</div>
-                                    @endif
-                                    @if($index->error_message)
+                                    <?php if ($index->extractor): ?>
+                                        <div class="pdf-processing-method">طريقة المعالجة: {{ $index->extractorName() }}</div>
+                                    <?php endif; ?>
+                                    <?php if ($index->error_message): ?>
                                         <div class="pdf-error-box">{{ $index->friendlyErrorMessage() }}</div>
-                                    @endif
+                                    <?php endif; ?>
+                                    <div class="pdf-bulk-row-state" data-pdf-row-state></div>
                                 </td>
+
                                 <td class="pdf-snippet">{{ $index->snippet($filters['q']) ?: 'لا يوجد نص مستخرج بعد.' }}</td>
                                 <td>{{ $index->lastIndexedAt()?->format('Y-m-d H:i') ?: '-' }}</td>
-                                @if($canIndex)
+
+                                <?php if ($canIndex): ?>
                                     <td class="no-print">
-                                        @if((int) $index->is_indexable === 1)
-                                            <form method="POST" action="{{ route('pdf-search.index-attachment', [$index->source_type, $index->attachment_id]) }}" class="pdf-inline-form">
+                                        <?php if ((int) $index->is_indexable === 1): ?>
+                                            <form method="POST" action="{{ $indexUrl }}" class="pdf-inline-form">
                                                 @csrf
-                                                @if($index->resolved_status !== 'unindexed')
+                                                <?php if ($index->resolved_status !== 'unindexed'): ?>
                                                     <input type="hidden" name="force" value="1">
-                                                @endif
-                                                <label style="display:flex; gap:5px; align-items:center; font-size:12px; color:#cbd5e1;">
+                                                <?php endif; ?>
+                                                <label class="pdf-inline-ocr-option">
                                                     <input type="checkbox" name="enable_ocr" value="1">
                                                     تشغيل التعرف الضوئي
                                                 </label>
@@ -250,21 +355,23 @@
                                                     {{ $index->resolved_status === 'unindexed' ? 'فهرسة المرفق' : 'إعادة الفهرسة' }}
                                                 </button>
                                             </form>
-                                        @else
+                                        <?php else: ?>
                                             <span class="pdf-status-pill pdf-status-muted">غير مدعوم</span>
-                                        @endif
+                                        <?php endif; ?>
                                     </td>
-                                @endif
+                                <?php endif; ?>
                             </tr>
-                        @endforeach
+                        <?php endforeach; ?>
                     </tbody>
                 </table>
             </div>
 
-            <div style="margin-top:14px;">{{ $indexes->links() }}</div>
-        @else
+            <div class="pdf-pagination-wrap">{{ $indexes->links() }}</div>
+        <?php else: ?>
             <p class="empty-state">لا توجد مرفقات مطابقة لشروط البحث الحالية.</p>
-        @endif
+        <?php endif; ?>
     </div>
 </div>
+
+<script src="{{ asset('js/pdf-search-bulk-indexing-v95-1.js') }}?v={{ filemtime(public_path('js/pdf-search-bulk-indexing-v95-1.js')) }}" defer></script>
 @endsection

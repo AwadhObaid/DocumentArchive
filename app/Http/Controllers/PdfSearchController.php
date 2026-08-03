@@ -12,6 +12,7 @@ use App\Services\ActivityLogger;
 use App\Services\AttachmentIndexInventoryService;
 use App\Services\PdfTextExtractionService;
 use App\Services\PdfTextIndexingService;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Validation\Rule;
@@ -99,6 +100,65 @@ class PdfSearchController extends Controller
             'hasIndexTable',
             'sourceOptions'
         ));
+    }
+
+    public function selection(
+        Request $request,
+        AttachmentIndexInventoryService $inventory
+    ): JsonResponse {
+        abort_unless(auth()->user()?->hasPermission('pdf_search.index'), 403, 'ليست لديك صلاحية تحديد مرفقات الفهرسة.');
+
+        $permittedSources = $this->permittedSources();
+        abort_if($permittedSources === [], 403, 'لا توجد لديك صلاحية لعرض أي مصدر قابل للفهرسة.');
+
+        $sourceOptions = $this->sourceOptions($permittedSources);
+        $source = (string) $request->input('source', 'all');
+        $status = (string) $request->input('status', 'all');
+        $query = trim((string) $request->input('q', ''));
+
+        if (! array_key_exists($source, $sourceOptions)) {
+            $source = 'all';
+        }
+
+        if (! in_array($status, [
+            'all',
+            'unindexed',
+            'indexed',
+            'needs_ocr',
+            'failed',
+            'missing',
+            'pending',
+            'skipped',
+            'unsupported',
+        ], true)) {
+            $status = 'all';
+        }
+
+        $visibleSourceTypes = array_column($permittedSources, 'type');
+        $selectedSourceType = $source === 'all'
+            ? 'all'
+            : self::SOURCE_CONFIG[$source]['type'];
+
+        $limit = max(1, min(500, (int) $request->input('limit', 500)));
+        $selection = $inventory->selection($visibleSourceTypes, [
+            'q' => $query,
+            'source_type' => $selectedSourceType,
+            'status' => $status,
+        ], $limit);
+
+        $selection['items'] = collect($selection['items'])
+            ->map(static function (array $item): array {
+                $item['index_url'] = route('pdf-search.index-attachment', [
+                    $item['source_type'],
+                    $item['attachment_id'],
+                ]);
+
+                return $item;
+            })
+            ->values()
+            ->all();
+
+        return response()->json($selection);
     }
 
     public function run(Request $request, PdfTextIndexingService $indexingService)
@@ -235,7 +295,22 @@ class PdfSearchController extends Controller
             'force' => $force,
         ]);
 
-        return back()->with('success', 'تمت معالجة المرفق. الحالة: ' . $index->status_name . '.');
+        $message = 'تمت معالجة المرفق. الحالة: ' . $index->status_name . '.';
+
+        if ($request->expectsJson()) {
+            return response()->json([
+                'ok' => true,
+                'source_type' => $sourceType,
+                'attachment_id' => $attachmentId,
+                'status' => (string) $index->index_status,
+                'status_name' => (string) $index->status_name,
+                'text_length' => (int) $index->text_length,
+                'needs_ocr' => (bool) $index->needs_ocr,
+                'message' => $message,
+            ]);
+        }
+
+        return back()->with('success', $message);
     }
 
     public function indexRecord(

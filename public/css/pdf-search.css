@@ -52,3 +52,237 @@
 .attachment-index-mini-btn { padding:5px 9px; border-radius:9px; font-size:11px; font-weight:900; }
 .da-indexing-progress { width:100%; height:9px; border-radius:999px; overflow:hidden; background:rgba(148,163,184,.18); margin-top:10px; }
 .da-indexing-progress > span { display:block; height:100%; background:linear-gradient(90deg,#22c55e,#38bdf8); border-radius:inherit; }
+
+/* PDF_BULK_INDEXING_V95_1 */
+.pdf-results-heading {
+    display: flex;
+    justify-content: space-between;
+    gap: 12px;
+    flex-wrap: wrap;
+    align-items: center;
+    margin-bottom: 12px;
+}
+
+.pdf-bulk-index-panel {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    margin-bottom: 14px;
+    padding: 14px;
+    border: 1px solid rgba(59, 130, 246, .28);
+    border-radius: 16px;
+    background: rgba(30, 64, 175, .09);
+}
+
+.pdf-bulk-index-intro {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 12px;
+    flex-wrap: wrap;
+}
+
+.pdf-bulk-index-intro > div {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.pdf-bulk-index-intro strong {
+    color: #f8fafc;
+    font-size: 15px;
+    font-weight: 950;
+}
+
+.pdf-bulk-index-intro span {
+    color: #cbd5e1;
+    font-size: 12px;
+    line-height: 1.7;
+}
+
+.pdf-bulk-selected-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    padding: 7px 11px;
+    border-radius: 999px;
+    background: rgba(59, 130, 246, .15);
+    border: 1px solid rgba(59, 130, 246, .30);
+    color: #dbeafe !important;
+    white-space: nowrap;
+}
+
+.pdf-bulk-selected-badge strong {
+    color: #fff;
+    font-size: 14px;
+}
+
+.pdf-bulk-index-actions {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+
+.pdf-bulk-ocr-option,
+.pdf-inline-ocr-option,
+.pdf-bulk-master-label {
+    display: inline-flex;
+    gap: 6px;
+    align-items: center;
+    color: #cbd5e1;
+    font-size: 12px;
+    font-weight: 850;
+}
+
+.pdf-bulk-ocr-option {
+    padding: 7px 10px;
+    border-radius: 10px;
+    border: 1px solid rgba(148, 163, 184, .22);
+    background: rgba(15, 23, 42, .42);
+}
+
+.pdf-bulk-checkbox-column {
+    width: 74px;
+    min-width: 74px;
+    text-align: center !important;
+}
+
+.pdf-bulk-item-checkbox,
+.pdf-bulk-master-label input,
+.pdf-bulk-ocr-option input,
+.pdf-inline-ocr-option input {
+    width: 17px;
+    height: 17px;
+    accent-color: #2563eb;
+    cursor: pointer;
+}
+
+.pdf-bulk-item-checkbox:disabled,
+.pdf-bulk-master-label input:disabled {
+    cursor: not-allowed;
+    opacity: .55;
+}
+
+.pdf-bulk-checkbox-placeholder {
+    color: #64748b;
+}
+
+.pdf-bulk-progress {
+    display: flex;
+    flex-direction: column;
+    gap: 7px;
+}
+
+.pdf-bulk-progress[hidden] {
+    display: none;
+}
+
+.pdf-bulk-progress-head {
+    display: flex;
+    justify-content: space-between;
+    gap: 10px;
+    align-items: center;
+    color: #dbeafe;
+    font-size: 12px;
+    font-weight: 850;
+}
+
+.pdf-bulk-progress-head span {
+    min-width: 0;
+    overflow-wrap: anywhere;
+}
+
+.pdf-bulk-progress-track {
+    width: 100%;
+    height: 10px;
+    overflow: hidden;
+    border-radius: 999px;
+    background: rgba(148, 163, 184, .20);
+}
+
+.pdf-bulk-progress-track > span {
+    display: block;
+    height: 100%;
+    border-radius: inherit;
+    background: linear-gradient(90deg, #2563eb, #22c55e);
+    transition: width .25s ease;
+}
+
+.pdf-bulk-message {
+    min-height: 20px;
+    color: #cbd5e1;
+    font-size: 12px;
+    font-weight: 850;
+    line-height: 1.7;
+}
+
+.pdf-bulk-message:empty {
+    min-height: 0;
+}
+
+.pdf-bulk-message[data-tone="success"],
+.pdf-bulk-row-state[data-tone="success"] {
+    color: #86efac;
+}
+
+.pdf-bulk-message[data-tone="warning"],
+.pdf-bulk-row-state[data-tone="warning"] {
+    color: #fde68a;
+}
+
+.pdf-bulk-message[data-tone="error"],
+.pdf-bulk-row-state[data-tone="error"] {
+    color: #fca5a5;
+}
+
+.pdf-bulk-message[data-tone="info"],
+.pdf-bulk-row-state[data-tone="info"],
+.pdf-bulk-row-state[data-tone="processing"] {
+    color: #93c5fd;
+}
+
+.pdf-bulk-row-state {
+    margin-top: 6px;
+    font-size: 11px;
+    font-weight: 900;
+    line-height: 1.55;
+}
+
+.pdf-record-title {
+    color: #94a3b8;
+    max-width: 240px;
+    overflow-wrap: anywhere;
+}
+
+.pdf-file-name small,
+.pdf-processing-method {
+    color: #94a3b8;
+    font-size: 12px;
+}
+
+.pdf-processing-method {
+    margin-top: 6px;
+}
+
+.pdf-pagination-wrap {
+    margin-top: 14px;
+}
+
+.pdf-search-table {
+    min-width: 1190px;
+}
+
+@media (max-width: 720px) {
+    .pdf-bulk-index-intro,
+    .pdf-bulk-progress-head {
+        align-items: flex-start;
+        flex-direction: column;
+    }
+
+    .pdf-bulk-index-actions > .btn,
+    .pdf-bulk-ocr-option {
+        width: 100%;
+        justify-content: center;
+    }
+}

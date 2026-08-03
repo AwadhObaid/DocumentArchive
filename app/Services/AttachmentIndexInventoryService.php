@@ -77,6 +77,45 @@ class AttachmentIndexInventoryService
         ]);
     }
 
+    public function selection(array $sourceTypes, array $filters, int $limit = 500): array
+    {
+        $limit = max(1, min(500, $limit));
+        $query = $this->inventoryQuery($sourceTypes);
+        $this->applyFilters($query, $filters);
+
+        $hasIndexTable = Schema::hasTable('attachment_text_indexes');
+        $query->whereRaw($this->pdfCondition('inventory'));
+        $query->whereRaw($this->resolvedStatusExpression($hasIndexTable) . " <> 'indexed'");
+
+        $total = (clone $query)->count();
+        $items = $query
+            ->orderByRaw("CASE WHEN resolved_status = 'unindexed' THEN 0 WHEN resolved_status = 'needs_ocr' THEN 1 WHEN resolved_status IN ('failed', 'missing') THEN 2 ELSE 3 END")
+            ->orderByDesc('attachment_created_at')
+            ->orderByDesc('attachment_id')
+            ->limit($limit)
+            ->get()
+            ->map(static function (object $row): array {
+                return [
+                    'source_type' => (string) $row->source_type,
+                    'attachment_id' => (int) $row->attachment_id,
+                    'status' => (string) $row->resolved_status,
+                    'label' => trim((string) ($row->original_name ?: $row->file_name ?: $row->record_number ?: $row->attachment_id)),
+                    'record_number' => (string) ($row->record_number ?? ''),
+                    'record_title' => (string) ($row->record_title ?? ''),
+                ];
+            })
+            ->values()
+            ->all();
+
+        return [
+            'items' => $items,
+            'total' => $total,
+            'returned' => count($items),
+            'limit' => $limit,
+            'limited' => $total > $limit,
+        ];
+    }
+
     public function statistics(array $sourceTypes): array
     {
         $query = $this->inventoryQuery($sourceTypes);
