@@ -208,6 +208,8 @@ class ApplyRoutePermissions
         'pdf-search.index' => 'pdf_search.view',
         'pdf-search.run' => 'pdf_search.index',
         'pdf-search.reindex' => 'pdf_search.index',
+        'pdf-search.index-attachment' => 'pdf_search.index',
+        'pdf-search.index-record' => 'pdf_search.index',
 
         'users.*' => 'users.manage',
 

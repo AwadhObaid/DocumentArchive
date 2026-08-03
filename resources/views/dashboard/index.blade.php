@@ -534,6 +534,46 @@
     </div>
 
 
+    @if($hasPermission('pdf_search.view') && $routeExists('pdf-search.index'))
+        <div class="da-card" style="margin-top:14px;">
+            <div class="da-section-title">
+                <div>
+                    <h2>فهرسة المرفقات</h2>
+                    <span class="da-section-hint">تغطية فهرسة ملفات PDF في الكتب والمذكرات والتعاميم والكتب المتفرقة</span>
+                </div>
+                <a class="da-btn da-btn-soft" href="{{ route('pdf-search.index', ['status' => 'unindexed']) }}">فتح غير المفهرسة</a>
+            </div>
+
+            <div class="da-grid da-grid-secondary" style="margin-top:12px;">
+                <div class="da-stat">
+                    <div class="da-stat-icon">📄</div>
+                    <div class="da-stat-label">قابلة للفهرسة</div>
+                    <div class="da-stat-value" data-live-sync-count="indexable_attachments_total">{{ $num(da_dashboard_value($stats, 'indexable_attachments_total', 0)) }}</div>
+                    <div class="da-stat-note">كل مرفقات PDF الفعالة في الوحدات الأربع.</div>
+                </div>
+                <div class="da-stat">
+                    <div class="da-stat-icon">✅</div>
+                    <div class="da-stat-label">مفهرسة</div>
+                    <div class="da-stat-value" data-live-sync-count="indexed_attachments_total">{{ $num(da_dashboard_value($stats, 'indexed_attachments_total', 0)) }}</div>
+                    <div class="da-stat-note">تحتوي نصًا مستخرجًا وقابلًا للبحث.</div>
+                </div>
+                <div class="da-stat">
+                    <div class="da-stat-icon">🕒</div>
+                    <div class="da-stat-label">غير مفهرسة</div>
+                    <div class="da-stat-value" data-live-sync-count="unindexed_attachments_total">{{ $num(da_dashboard_value($stats, 'unindexed_attachments_total', 0)) }}</div>
+                    <div class="da-stat-note">لم يُنشأ لها سجل فهرسة حتى الآن.</div>
+                </div>
+                <div class="da-stat">
+                    <div class="da-stat-icon">📊</div>
+                    <div class="da-stat-label">اكتمال الفهرسة</div>
+                    <div class="da-stat-value"><span data-live-sync-count="indexing_coverage_percent">{{ number_format((float) da_dashboard_value($stats, 'indexing_coverage_percent', 0), 1) }}</span>%</div>
+                    <div class="da-indexing-progress"><span data-live-sync-progress="indexing_coverage_percent" style="width:{{ min(100, max(0, (float) da_dashboard_value($stats, 'indexing_coverage_percent', 0))) }}%"></span></div>
+                    <div class="da-stat-note">ملفات تحتاج مراجعة: <span data-live-sync-count="indexing_attention_total">{{ $num(da_dashboard_value($stats, 'indexing_attention_total', 0)) }}</span></div>
+                </div>
+            </div>
+        </div>
+    @endif
+
     @php
         $canViewMemos = $hasPermission('memos.view') && $routeExists('memos.index');
         $canViewCirculars = $hasPermission('circulars.view') && $routeExists('circulars.index');

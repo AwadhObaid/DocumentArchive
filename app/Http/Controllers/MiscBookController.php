@@ -6,6 +6,7 @@ use App\Models\ArchiveCategory;
 use App\Models\MiscBook;
 use App\Models\MiscBookAttachment;
 use App\Services\ActivityLogger;
+use App\Services\AttachmentIndexInventoryService;
 use App\Services\MiscBookNumberGenerator;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -321,6 +322,8 @@ class MiscBookController extends Controller
             ->orderByDesc('misc_sequence')
             ->paginate(15)
             ->withQueryString();
+
+        app(AttachmentIndexInventoryService::class)->decoratePaginator($records, 'misc_book');
 
         $stats = [
             'total' => MiscBook::query()->count(),

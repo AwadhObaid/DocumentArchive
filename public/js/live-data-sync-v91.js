@@ -173,6 +173,11 @@
                 }
             });
 
+            document.querySelectorAll(`[data-live-sync-progress="${CSS.escape(key)}"]`).forEach((node) => {
+                const width = Math.max(0, Math.min(100, numericValue));
+                node.style.width = `${width}%`;
+            });
+
             document.querySelectorAll(`[data-live-sync-alert-count="${CSS.escape(key)}"]`).forEach((node) => {
                 if (node.textContent.trim() !== next) {
                     node.textContent = next;

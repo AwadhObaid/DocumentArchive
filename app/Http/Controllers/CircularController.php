@@ -6,6 +6,7 @@ use App\Models\ArchiveCategory;
 use App\Models\Circular;
 use App\Models\CircularAttachment;
 use App\Services\ActivityLogger;
+use App\Services\AttachmentIndexInventoryService;
 use App\Services\CircularNumberGenerator;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -324,6 +325,8 @@ class CircularController extends Controller
             ->orderByDesc('circular_sequence')
             ->paginate(15)
             ->withQueryString();
+
+        app(AttachmentIndexInventoryService::class)->decoratePaginator($records, 'circular');
 
         $stats = [
             'total' => Circular::query()->count(),

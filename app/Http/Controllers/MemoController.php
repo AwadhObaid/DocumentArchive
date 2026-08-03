@@ -6,6 +6,7 @@ use App\Models\Department;
 use App\Models\Memo;
 use App\Models\MemoAttachment;
 use App\Services\ActivityLogger;
+use App\Services\AttachmentIndexInventoryService;
 use App\Services\MemoNumberGenerator;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -78,6 +79,8 @@ class MemoController extends Controller
         };
 
         $memos = $query->paginate(15)->withQueryString();
+
+        app(AttachmentIndexInventoryService::class)->decoratePaginator($memos, 'memo');
 
         $stats = [
             'total' => Memo::query()->count(),

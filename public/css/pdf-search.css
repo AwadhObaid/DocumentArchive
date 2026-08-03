@@ -42,3 +42,13 @@
 @media (max-width: 640px) {
     .pdf-search-stats, .pdf-search-tools { grid-template-columns: 1fr; }
 }
+
+/* UNIFIED_ATTACHMENT_INDEXING_V95 */
+.pdf-search-stats { grid-template-columns: repeat(auto-fit, minmax(145px, 1fr)); }
+.attachment-index-summary { display:flex; flex-direction:column; gap:6px; align-items:flex-start; min-width:135px; }
+.attachment-index-summary small { color:#94a3b8; font-size:11px; line-height:1.45; }
+.attachment-index-actions { display:flex; gap:6px; flex-wrap:wrap; align-items:center; }
+.attachment-index-actions form { margin:0; }
+.attachment-index-mini-btn { padding:5px 9px; border-radius:9px; font-size:11px; font-weight:900; }
+.da-indexing-progress { width:100%; height:9px; border-radius:999px; overflow:hidden; background:rgba(148,163,184,.18); margin-top:10px; }
+.da-indexing-progress > span { display:block; height:100%; background:linear-gradient(90deg,#22c55e,#38bdf8); border-radius:inherit; }

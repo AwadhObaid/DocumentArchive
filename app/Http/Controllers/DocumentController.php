@@ -16,6 +16,7 @@ use App\Services\BookAttachmentSmartPathService;
 use App\Services\SmartAttachmentBrowserService;
 use App\Services\FileBridgeService;
 use App\Services\ActivityLogger;
+use App\Services\AttachmentIndexInventoryService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -265,6 +266,8 @@ class DocumentController extends Controller
             ->orderByDesc('documents.id')
             ->paginate($perPage)
             ->withQueryString();
+
+        app(AttachmentIndexInventoryService::class)->decoratePaginator($documents, 'document');
 
         $filteredTotal = (int) (clone $filteredCountQuery)->count();
 

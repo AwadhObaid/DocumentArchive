@@ -3,12 +3,16 @@
 namespace App\Http\Controllers;
 
 use App\Models\AttachmentTextIndex;
+use App\Models\CircularAttachment;
+use App\Models\DocumentAttachment;
+use App\Models\MemoAttachment;
+use App\Models\MiscBookAttachment;
 use App\Models\Setting;
 use App\Services\ActivityLogger;
+use App\Services\AttachmentIndexInventoryService;
 use App\Services\PdfTextExtractionService;
 use App\Services\PdfTextIndexingService;
 use Illuminate\Http\Request;
-use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Validation\Rule;
 
@@ -37,8 +41,11 @@ class PdfSearchController extends Controller
         ],
     ];
 
-    public function index(Request $request, PdfTextExtractionService $extractor)
-    {
+    public function index(
+        Request $request,
+        PdfTextExtractionService $extractor,
+        AttachmentIndexInventoryService $inventory
+    ) {
         $permittedSources = $this->permittedSources();
         $sourceOptions = $this->sourceOptions($permittedSources);
 
@@ -52,125 +59,34 @@ class PdfSearchController extends Controller
             $filters['source'] = 'all';
         }
 
-        if (! in_array($filters['status'], ['all', 'indexed', 'needs_ocr', 'failed', 'missing', 'pending', 'skipped'], true)) {
+        if (! in_array($filters['status'], [
+            'all',
+            'unindexed',
+            'indexed',
+            'needs_ocr',
+            'failed',
+            'missing',
+            'pending',
+            'skipped',
+            'unsupported',
+        ], true)) {
             $filters['status'] = 'all';
         }
 
-        $hasIndexTable = Schema::hasTable('attachment_text_indexes');
-
-        if (! $hasIndexTable) {
-            $indexes = new LengthAwarePaginator([], 0, 15, 1, [
-                'path' => $request->url(),
-                'query' => $request->query(),
-            ]);
-            $stats = ['total' => 0, 'indexed' => 0, 'needs_ocr' => 0, 'failed' => 0];
-            $tools = $extractor->toolsStatus();
-            $canIndex = auth()->user()?->hasPermission('pdf_search.index')
-                && $permittedSources !== [];
-
-            return view('pdf-search.index', compact(
-                'indexes',
-                'filters',
-                'stats',
-                'tools',
-                'canIndex',
-                'hasIndexTable',
-                'sourceOptions'
-            ));
-        }
-
         $visibleSourceTypes = array_column($permittedSources, 'type');
+        $selectedSourceType = $filters['source'] === 'all'
+            ? 'all'
+            : self::SOURCE_CONFIG[$filters['source']]['type'];
 
-        $query = AttachmentTextIndex::query()
-            ->with([
-                'document.department',
-                'memo.department',
-                'circular.category',
-                'miscBook.category',
-                'documentAttachment',
-                'memoAttachment',
-                'circularAttachment',
-                'miscBookAttachment',
-            ])
-            ->latest('last_indexed_at')
-            ->latest('id');
+        $indexes = $inventory->paginate($visibleSourceTypes, [
+            'q' => $filters['q'],
+            'source_type' => $selectedSourceType,
+            'status' => $filters['status'],
+        ], 15)->withQueryString();
 
-        $this->applyVisibleSourceScope($query, $visibleSourceTypes);
-
-        if ($filters['source'] !== 'all') {
-            $query->where('source_type', self::SOURCE_CONFIG[$filters['source']]['type']);
-        }
-
-        if ($filters['status'] !== 'all') {
-            $query->where('index_status', $filters['status']);
-        }
-
-        if ($filters['q'] !== '') {
-            $q = $filters['q'];
-
-            $query->where(function ($builder) use ($q) {
-                $builder->where('indexed_text', 'like', '%' . $q . '%')
-                    ->orWhere('original_name', 'like', '%' . $q . '%')
-                    ->orWhere('file_name', 'like', '%' . $q . '%')
-                    ->orWhere(function ($sourceQuery) use ($q) {
-                        $sourceQuery->where('source_type', 'document')
-                            ->whereHas('document', function ($documentQuery) use ($q) {
-                                $documentQuery->where('reference_number', 'like', '%' . $q . '%')
-                                    ->orWhere('title', 'like', '%' . $q . '%')
-                                    ->orWhere('subject', 'like', '%' . $q . '%')
-                                    ->orWhere('sender', 'like', '%' . $q . '%')
-                                    ->orWhere('receiver', 'like', '%' . $q . '%');
-                            });
-                    })
-                    ->orWhere(function ($sourceQuery) use ($q) {
-                        $sourceQuery->where('source_type', 'memo')
-                            ->whereHas('memo', function ($memoQuery) use ($q) {
-                                $memoQuery->where('memo_number', 'like', '%' . $q . '%')
-                                    ->orWhere('subject', 'like', '%' . $q . '%')
-                                    ->orWhere('sender', 'like', '%' . $q . '%')
-                                    ->orWhere('receiver', 'like', '%' . $q . '%');
-                            });
-                    })
-                    ->orWhere(function ($sourceQuery) use ($q) {
-                        $sourceQuery->where('source_type', 'circular')
-                            ->whereHas('circular', function ($circularQuery) use ($q) {
-                                $circularQuery->where('circular_number', 'like', '%' . $q . '%')
-                                    ->orWhere('original_number', 'like', '%' . $q . '%')
-                                    ->orWhere('subject', 'like', '%' . $q . '%')
-                                    ->orWhere('issuing_entity', 'like', '%' . $q . '%')
-                                    ->orWhere('scope', 'like', '%' . $q . '%')
-                                    ->orWhere('keywords', 'like', '%' . $q . '%');
-                            });
-                    })
-                    ->orWhere(function ($sourceQuery) use ($q) {
-                        $sourceQuery->where('source_type', 'misc_book')
-                            ->whereHas('miscBook', function ($miscBookQuery) use ($q) {
-                                $miscBookQuery->where('misc_number', 'like', '%' . $q . '%')
-                                    ->orWhere('original_number', 'like', '%' . $q . '%')
-                                    ->orWhere('subject', 'like', '%' . $q . '%')
-                                    ->orWhere('sender', 'like', '%' . $q . '%')
-                                    ->orWhere('receiver', 'like', '%' . $q . '%')
-                                    ->orWhere('employee_name', 'like', '%' . $q . '%')
-                                    ->orWhere('authority_name', 'like', '%' . $q . '%')
-                                    ->orWhere('keywords', 'like', '%' . $q . '%');
-                            });
-                    });
-            });
-        }
-
-        $indexes = $query->paginate(15)->withQueryString();
-
-        $statsQuery = AttachmentTextIndex::query();
-        $this->applyVisibleSourceScope($statsQuery, $visibleSourceTypes);
-
-        $stats = [
-            'total' => (clone $statsQuery)->count(),
-            'indexed' => (clone $statsQuery)->where('index_status', 'indexed')->count(),
-            'needs_ocr' => (clone $statsQuery)->where('index_status', 'needs_ocr')->count(),
-            'failed' => (clone $statsQuery)->whereIn('index_status', ['failed', 'missing'])->count(),
-        ];
-
+        $stats = $inventory->statistics($visibleSourceTypes);
         $tools = $extractor->toolsStatus();
+        $hasIndexTable = Schema::hasTable('attachment_text_indexes');
         $canIndex = auth()->user()?->hasPermission('pdf_search.index')
             && $permittedSources !== [];
 
@@ -284,6 +200,94 @@ class PdfSearchController extends Controller
         return back()->with('success', 'تمت إعادة فهرسة المرفق بنجاح.');
     }
 
+    public function indexAttachment(
+        string $sourceType,
+        int $attachmentId,
+        Request $request,
+        PdfTextIndexingService $indexingService
+    ) {
+        abort_unless(auth()->user()?->hasPermission('pdf_search.index'), 403, 'ليست لديك صلاحية فهرسة المرفقات.');
+        $this->authorizeSourceType($sourceType);
+
+        $enableOcr = $request->boolean('enable_ocr')
+            || ((string) Setting::getValue('pdf_search_enable_ocr', '0') === '1');
+        $force = $request->boolean('force');
+
+        $attachment = match ($sourceType) {
+            'document' => DocumentAttachment::query()->findOrFail($attachmentId),
+            'memo' => MemoAttachment::query()->findOrFail($attachmentId),
+            'circular' => CircularAttachment::query()->findOrFail($attachmentId),
+            'misc_book' => MiscBookAttachment::query()->findOrFail($attachmentId),
+        };
+
+        $index = match ($sourceType) {
+            'document' => $indexingService->indexDocumentAttachment($attachment, $force, $enableOcr),
+            'memo' => $indexingService->indexMemoAttachment($attachment, $force, $enableOcr),
+            'circular' => $indexingService->indexCircularAttachment($attachment, $force, $enableOcr),
+            'misc_book' => $indexingService->indexMiscBookAttachment($attachment, $force, $enableOcr),
+        };
+
+        ActivityLogger::log('pdf_search.attachment_indexed', 'تمت فهرسة مرفق واحد.', $attachment, [
+            'source_type' => $sourceType,
+            'attachment_id' => $attachmentId,
+            'index_status' => $index->index_status,
+            'enable_ocr' => $enableOcr,
+            'force' => $force,
+        ]);
+
+        return back()->with('success', 'تمت معالجة المرفق. الحالة: ' . $index->status_name . '.');
+    }
+
+    public function indexRecord(
+        string $sourceType,
+        int $sourceId,
+        Request $request,
+        PdfTextIndexingService $indexingService
+    ) {
+        abort_unless(auth()->user()?->hasPermission('pdf_search.index'), 403, 'ليست لديك صلاحية فهرسة المرفقات.');
+        $this->authorizeSourceType($sourceType);
+
+        $enableOcr = $request->boolean('enable_ocr')
+            || ((string) Setting::getValue('pdf_search_enable_ocr', '0') === '1');
+
+        $summary = $indexingService->indexRecord(
+            $sourceType,
+            $sourceId,
+            $request->boolean('force'),
+            $enableOcr
+        );
+
+        ActivityLogger::log('pdf_search.record_indexed', 'تم تشغيل فهرسة مرفقات سجل واحد.', null, $summary + [
+            'source_type' => $sourceType,
+            'source_id' => $sourceId,
+            'enable_ocr' => $enableOcr,
+        ]);
+
+        return back()->with(
+            'success',
+            'تمت معالجة ' . $summary['processed'] . ' مرفق؛ مفهرس: ' . $summary['indexed']
+            . '، يحتاج OCR: ' . $summary['needs_ocr']
+            . '، فشل أو مفقود: ' . ($summary['failed'] + $summary['missing']) . '.'
+        );
+    }
+
+    private function authorizeSourceType(string $sourceType): void
+    {
+        $sourceKey = match ($sourceType) {
+            'document' => 'documents',
+            'memo' => 'memos',
+            'circular' => 'circulars',
+            'misc_book' => 'misc_books',
+            default => null,
+        };
+
+        abort_unless(
+            $sourceKey !== null && array_key_exists($sourceKey, $this->permittedSources()),
+            403,
+            'ليست لديك صلاحية فهرسة هذا المصدر.'
+        );
+    }
+
     private function permittedSources(): array
     {
         $user = auth()->user();
@@ -309,14 +313,4 @@ class PdfSearchController extends Controller
         return $options;
     }
 
-    private function applyVisibleSourceScope($query, array $visibleSourceTypes): void
-    {
-        if ($visibleSourceTypes === []) {
-            $query->whereRaw('1 = 0');
-
-            return;
-        }
-
-        $query->whereIn('source_type', $visibleSourceTypes);
-    }
 }

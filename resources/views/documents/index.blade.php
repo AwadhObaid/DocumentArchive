@@ -520,6 +520,7 @@
                     <th>الاعتماد</th>
                     <th>الأولوية</th>
                     <th>المرفقات</th>
+                    <th>الفهرسة</th>
                     <th>حالة السجل</th>
                     <th>إجراءات</th>
                 </tr>
@@ -568,6 +569,7 @@
                                 <span class="pill pill-muted">لا يوجد</span>
                             @endif
                         </td>
+                        <td>@include('partials.attachment-index-status', ['record' => $document, 'sourceType' => 'document'])</td>
                         <td>
                             @if($isTrashed)
                                 <span class="pill pill-danger">محذوف</span>
@@ -622,7 +624,7 @@
                     </tr>
                 @empty
                     <tr>
-                        <td colspan="13" class="empty-documents">لا توجد كتب مطابقة لمعايير البحث الحالية.</td>
+                        <td colspan="14" class="empty-documents">لا توجد كتب مطابقة لمعايير البحث الحالية.</td>
                     </tr>
                 @endforelse
                 </tbody>
@@ -647,6 +649,7 @@
                             <div class="mobile-info-item"><span>الإدارة</span><strong>{{ $document->department?->name ?? '-' }}</strong></div>
                             <div class="mobile-info-item"><span>النوع</span><strong>{{ $document->documentType?->name ?? '-' }}</strong></div>
                             <div class="mobile-info-item"><span>المرفقات</span><strong>{{ $attachmentsCount > 0 ? $attachmentsCount . ' مرفق' : 'لا يوجد' }}</strong></div>
+                            <div class="mobile-info-item"><span>الفهرسة</span><div>@include('partials.attachment-index-status', ['record' => $document, 'sourceType' => 'document'])</div></div>
                             <div class="mobile-info-item"><span>حالة السجل</span><strong>{{ $isTrashed ? 'محذوف' : 'نشط' }}</strong></div>
                             <div class="mobile-info-item"><span>الاعتماد</span><strong>{{ $document->workflow_status_name ?? \App\Models\WorkflowAction::statusName($document->workflow_status ?? 'draft') }}</strong></div>
                         </div>

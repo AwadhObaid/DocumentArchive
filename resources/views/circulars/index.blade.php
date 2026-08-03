@@ -95,6 +95,7 @@
                         <th>السريان</th>
                         <th>الحالة</th>
                         <th>المرفقات</th>
+                        <th>الفهرسة</th>
                         <th>الإجراءات</th>
                     </tr>
                 </thead>
@@ -114,6 +115,7 @@
                             </td>
                             <td><span class="archive-module-badge {{ $circular->status }}">{{ $circular->status_name }}</span></td>
                             <td>{{ number_format($circular->attachments_count ?? 0) }}</td>
+                            <td>@include('partials.attachment-index-status', ['record' => $circular, 'sourceType' => 'circular'])</td>
                             <td>
                                 <div class="archive-module-actions">
                                     @if($isTrash)
@@ -147,7 +149,7 @@
                             </td>
                         </tr>
                     @empty
-                        <tr><td colspan="9">{{ $isTrash ? 'سلة التعاميم فارغة.' : 'لا توجد تعاميم مطابقة.' }}</td></tr>
+                        <tr><td colspan="10">{{ $isTrash ? 'سلة التعاميم فارغة.' : 'لا توجد تعاميم مطابقة.' }}</td></tr>
                     @endforelse
                 </tbody>
             </table>

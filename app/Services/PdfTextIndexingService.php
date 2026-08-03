@@ -135,6 +135,55 @@ class PdfTextIndexingService
         );
     }
 
+    public function indexRecord(
+        string $sourceType,
+        int $sourceId,
+        bool $force = false,
+        bool $enableOcr = false
+    ): array {
+        $summary = [
+            'processed' => 0,
+            'indexed' => 0,
+            'needs_ocr' => 0,
+            'failed' => 0,
+            'missing' => 0,
+            'skipped' => 0,
+        ];
+
+        $attachments = match ($sourceType) {
+            'document' => $this->pdfAttachmentsQuery(
+                DocumentAttachment::query()->where('document_id', $sourceId),
+                $force
+            )->get(),
+            'memo' => $this->pdfAttachmentsQuery(
+                MemoAttachment::query()->where('memo_id', $sourceId),
+                $force
+            )->get(),
+            'circular' => $this->pdfAttachmentsQuery(
+                CircularAttachment::query()->where('circular_id', $sourceId),
+                $force
+            )->get(),
+            'misc_book' => $this->pdfAttachmentsQuery(
+                MiscBookAttachment::query()->where('misc_book_id', $sourceId),
+                $force
+            )->get(),
+            default => collect(),
+        };
+
+        foreach ($attachments as $attachment) {
+            $index = match ($sourceType) {
+                'document' => $this->indexDocumentAttachment($attachment, $force, $enableOcr),
+                'memo' => $this->indexMemoAttachment($attachment, $force, $enableOcr),
+                'circular' => $this->indexCircularAttachment($attachment, $force, $enableOcr),
+                'misc_book' => $this->indexMiscBookAttachment($attachment, $force, $enableOcr),
+            };
+
+            $this->applySummary($summary, $index);
+        }
+
+        return $summary;
+    }
+
     private function indexAttachment(
         string $sourceType,
         Model $attachment,

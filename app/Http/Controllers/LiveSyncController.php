@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Services\AttachmentIndexInventoryService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
@@ -44,6 +45,18 @@ class LiveSyncController extends Controller
                     'misc_books_total' => 'misc_books.view',
                 ] as $key => $permission) {
                     if (! $this->userCan($request, $permission)) {
+                        unset($dashboardCounts[$key]);
+                    }
+                }
+
+                if (! $this->userCan($request, 'pdf_search.view')) {
+                    foreach ([
+                        'indexable_attachments_total',
+                        'indexed_attachments_total',
+                        'unindexed_attachments_total',
+                        'indexing_attention_total',
+                        'indexing_coverage_percent',
+                    ] as $key) {
                         unset($dashboardCounts[$key]);
                     }
                 }
@@ -168,7 +181,22 @@ class LiveSyncController extends Controller
             'misc_books_total' => $this->countActiveRows('misc_books'),
         ];
 
-        return array_map(static fn ($value): int => (int) $value, $counts);
+        $counts = array_map(static fn ($value): int => (int) $value, $counts);
+
+        try {
+            $indexing = app(AttachmentIndexInventoryService::class)
+                ->statistics(['document', 'memo', 'circular', 'misc_book']);
+
+            $counts['indexable_attachments_total'] = (int) $indexing['eligible'];
+            $counts['indexed_attachments_total'] = (int) $indexing['indexed'];
+            $counts['unindexed_attachments_total'] = (int) $indexing['unindexed'];
+            $counts['indexing_attention_total'] = (int) $indexing['attention'];
+            $counts['indexing_coverage_percent'] = (float) $indexing['coverage_percent'];
+        } catch (Throwable $e) {
+            report($e);
+        }
+
+        return $counts;
     }
 
     private function countRows(string $table): int

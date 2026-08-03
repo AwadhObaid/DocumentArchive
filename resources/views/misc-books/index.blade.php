@@ -95,6 +95,7 @@
                         <th>الطبيعة</th>
                         <th>الطرف المرتبط</th>
                         <th>المرفقات</th>
+                        <th>الفهرسة</th>
                         <th>الإجراءات</th>
                     </tr>
                 </thead>
@@ -109,6 +110,7 @@
                             <td>{{ $miscBook->nature_name }}</td>
                             <td>{{ $miscBook->employee_name ?: ($miscBook->authority_name ?: ($miscBook->sender ?: '-')) }}</td>
                             <td>{{ number_format($miscBook->attachments_count ?? 0) }}</td>
+                            <td>@include('partials.attachment-index-status', ['record' => $miscBook, 'sourceType' => 'misc_book'])</td>
                             <td>
                                 <div class="archive-module-actions">
                                     @if($isTrash)
@@ -142,7 +144,7 @@
                             </td>
                         </tr>
                     @empty
-                        <tr><td colspan="9">{{ $isTrash ? 'السلة فارغة.' : 'لا توجد كتب متفرقة مطابقة.' }}</td></tr>
+                        <tr><td colspan="10">{{ $isTrash ? 'السلة فارغة.' : 'لا توجد كتب متفرقة مطابقة.' }}</td></tr>
                     @endforelse
                 </tbody>
             </table>

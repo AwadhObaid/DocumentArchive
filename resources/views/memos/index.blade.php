@@ -297,6 +297,7 @@
                         <th>الإدارة</th>
                         <th>الواردة من</th>
                         <th>المرفقات</th>
+                        <th>الفهرسة</th>
                         <th>الحالة</th>
                         <th>الاعتماد</th>
                         <th>إجراءات</th>
@@ -311,6 +312,7 @@
                             <td>{{ $memo->department?->name ?: '-' }}</td>
                             <td>{{ $memo->sender ?: '-' }}</td>
                             <td>{{ number_format($memo->attachments_count ?? 0) }}</td>
+                            <td>@include('partials.attachment-index-status', ['record' => $memo, 'sourceType' => 'memo'])</td>
                             <td><span class="memo-status {{ $memo->status }}">{{ $memo->status_name }}</span></td>
                             <td><span class="workflow-status-badge workflow-status-{{ $memo->workflow_status ?: 'draft' }}">{{ $memo->workflow_status_name ?? \App\Models\WorkflowAction::statusName($memo->workflow_status ?? 'draft') }}</span></td>
                             <td>
@@ -342,7 +344,7 @@
                             </td>
                         </tr>
                     @empty
-                        <tr><td colspan="9">لا توجد مذكرات مطابقة.</td></tr>
+                        <tr><td colspan="10">لا توجد مذكرات مطابقة.</td></tr>
                     @endforelse
                 </tbody>
             </table>

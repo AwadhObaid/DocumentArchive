@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Services\AttachmentIndexInventoryService;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Route;
@@ -9,7 +10,7 @@ use Illuminate\Support\Facades\Schema;
 
 class DashboardController extends Controller
 {
-    public function index()
+    public function index(AttachmentIndexInventoryService $indexInventory)
     {
         /* DASHBOARD_POLISH_CONTROLLER */
         $stats = [
@@ -33,6 +34,15 @@ class DashboardController extends Controller
             'circulars_total' => $this->countActiveRows('circulars'),
             'misc_books_total' => $this->countActiveRows('misc_books'),
         ];
+
+        $indexingStats = $indexInventory->statistics(['document', 'memo', 'circular', 'misc_book']);
+        $stats = array_merge($stats, [
+            'indexable_attachments_total' => $indexingStats['eligible'],
+            'indexed_attachments_total' => $indexingStats['indexed'],
+            'unindexed_attachments_total' => $indexingStats['unindexed'],
+            'indexing_attention_total' => $indexingStats['attention'],
+            'indexing_coverage_percent' => $indexingStats['coverage_percent'],
+        ]);
 
         $latestDocuments = $this->latestDocuments();
         $latestActivities = $this->latestActivities();

@@ -8,12 +8,14 @@
 @php
     $statusOptions = [
         'all' => 'كل الحالات',
+        'unindexed' => 'غير مفهرس',
         'indexed' => 'مفهرس بنجاح',
         'needs_ocr' => 'يحتاج تعرفًا ضوئيًا',
         'failed' => 'فشلت الفهرسة',
         'missing' => 'الملف غير موجود',
         'pending' => 'بانتظار الفهرسة',
         'skipped' => 'تم تجاوزه',
+        'unsupported' => 'نوع غير قابل للفهرسة',
     ];
     $sourceOptions = $sourceOptions ?? [
         'all' => 'جميع المصادر المتاحة',
@@ -65,10 +67,14 @@
                 ملفات PDF النصية تُفهرس مباشرة، أما ملفات السكانر والصور فتحتاج إلى <strong>التعرف الضوئي على النصوص</strong>.
             </p>
             <div class="pdf-search-stats" style="margin-top:14px;">
-                <div class="pdf-search-stat"><span>إجمالي الفهارس</span><strong>{{ number_format($stats['total']) }}</strong></div>
+                <div class="pdf-search-stat"><span>إجمالي المرفقات</span><strong>{{ number_format($stats['total']) }}</strong></div>
+                <div class="pdf-search-stat"><span>القابلة للفهرسة</span><strong>{{ number_format($stats['eligible']) }}</strong></div>
                 <div class="pdf-search-stat"><span>مفهرسة بنجاح</span><strong>{{ number_format($stats['indexed']) }}</strong></div>
+                <div class="pdf-search-stat"><span>غير مفهرسة</span><strong>{{ number_format($stats['unindexed']) }}</strong></div>
                 <div class="pdf-search-stat"><span>تحتاج تعرفًا ضوئيًا</span><strong>{{ number_format($stats['needs_ocr']) }}</strong></div>
-                <div class="pdf-search-stat"><span>فاشلة أو مفقودة</span><strong>{{ number_format($stats['failed']) }}</strong></div>
+                <div class="pdf-search-stat"><span>فاشلة أو مفقودة</span><strong>{{ number_format($stats['failed'] + $stats['missing']) }}</strong></div>
+                <div class="pdf-search-stat"><span>غير مدعومة</span><strong>{{ number_format($stats['unsupported']) }}</strong></div>
+                <div class="pdf-search-stat"><span>اكتمال الفهرسة</span><strong>{{ number_format($stats['coverage_percent'], 1) }}%</strong></div>
             </div>
         </div>
 
@@ -205,39 +211,48 @@
                             @php($route = $index->recordRoute())
                             <tr>
                                 <td>
-                                    <strong>{{ $index->source_label }}</strong><br>
+                                    <strong>{{ $index->sourceLabel() }}</strong><br>
                                     @if($route)
-                                        <a href="{{ $route }}" class="pdf-source-number">{{ $index->recordNumber() }}</a>
+                                        <a href="{{ $route }}" class="pdf-source-number">{{ $index->record_number ?: $index->source_id }}</a>
                                     @else
-                                        <span class="pdf-source-number">{{ $index->recordNumber() }}</span>
+                                        <span class="pdf-source-number">{{ $index->record_number ?: $index->source_id }}</span>
                                     @endif
-                                    <div style="color:#94a3b8; max-width:240px; word-break:break-word;">{{ $index->recordTitle() }}</div>
+                                    <div style="color:#94a3b8; max-width:240px; word-break:break-word;">{{ $index->record_title ?: '-' }}</div>
                                 </td>
                                 <td class="pdf-file-name">
                                     {{ $index->original_name ?: $index->file_name ?: '-' }}<br>
-                                    <small style="color:#94a3b8;">{{ strtoupper($index->extension ?: 'PDF') }} / {{ number_format($index->text_length) }} حرف مستخرج</small>
+                                    <small style="color:#94a3b8;">{{ strtoupper($index->extension ?: '-') }} / {{ number_format((int) $index->index_text_length) }} حرف مستخرج</small>
                                 </td>
                                 <td>
-                                    <span class="pdf-status-pill pdf-status-{{ $index->status_class }}">{{ $index->status_name }}</span>
+                                    <span class="pdf-status-pill pdf-status-{{ $index->statusClass() }}">{{ $index->statusName() }}</span>
                                     @if($index->extractor)
-                                        <div style="color:#94a3b8;font-size:12px;margin-top:6px;">طريقة المعالجة: {{ $index->extractor_name }}</div>
+                                        <div style="color:#94a3b8;font-size:12px;margin-top:6px;">طريقة المعالجة: {{ $index->extractorName() }}</div>
                                     @endif
                                     @if($index->error_message)
                                         <div class="pdf-error-box">{{ $index->friendlyErrorMessage() }}</div>
                                     @endif
                                 </td>
                                 <td class="pdf-snippet">{{ $index->snippet($filters['q']) ?: 'لا يوجد نص مستخرج بعد.' }}</td>
-                                <td>{{ $index->last_indexed_at?->format('Y-m-d H:i') ?: '-' }}</td>
+                                <td>{{ $index->lastIndexedAt()?->format('Y-m-d H:i') ?: '-' }}</td>
                                 @if($canIndex)
                                     <td class="no-print">
-                                        <form method="POST" action="{{ route('pdf-search.reindex', $index) }}" class="pdf-inline-form">
-                                            @csrf
-                                            <label style="display:flex; gap:5px; align-items:center; font-size:12px; color:#cbd5e1;">
-                                                <input type="checkbox" name="enable_ocr" value="1">
-                                                تشغيل التعرف الضوئي
-                                            </label>
-                                            <button type="submit" class="btn btn-sm btn-secondary">إعادة الفهرسة</button>
-                                        </form>
+                                        @if((int) $index->is_indexable === 1)
+                                            <form method="POST" action="{{ route('pdf-search.index-attachment', [$index->source_type, $index->attachment_id]) }}" class="pdf-inline-form">
+                                                @csrf
+                                                @if($index->resolved_status !== 'unindexed')
+                                                    <input type="hidden" name="force" value="1">
+                                                @endif
+                                                <label style="display:flex; gap:5px; align-items:center; font-size:12px; color:#cbd5e1;">
+                                                    <input type="checkbox" name="enable_ocr" value="1">
+                                                    تشغيل التعرف الضوئي
+                                                </label>
+                                                <button type="submit" class="btn btn-sm {{ $index->resolved_status === 'unindexed' ? 'btn-primary' : 'btn-secondary' }}">
+                                                    {{ $index->resolved_status === 'unindexed' ? 'فهرسة المرفق' : 'إعادة الفهرسة' }}
+                                                </button>
+                                            </form>
+                                        @else
+                                            <span class="pdf-status-pill pdf-status-muted">غير مدعوم</span>
+                                        @endif
                                     </td>
                                 @endif
                             </tr>
@@ -248,7 +263,7 @@
 
             <div style="margin-top:14px;">{{ $indexes->links() }}</div>
         @else
-            <p class="empty-state">لا توجد نتائج بعد. شغّل الفهرسة أولاً أو غيّر شروط البحث.</p>
+            <p class="empty-state">لا توجد مرفقات مطابقة لشروط البحث الحالية.</p>
         @endif
     </div>
 </div>
