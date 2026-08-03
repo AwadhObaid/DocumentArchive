@@ -1,4 +1,4 @@
-/* DocumentArchive Global Operation Loading V90.0.1 - File Bridge compatibility */
+/* DocumentArchive Global Operation Loading V90.0.2 - File Bridge and download compatibility */
 (() => {
     'use strict';
 
@@ -159,10 +159,48 @@
         state.finishTimer = window.setTimeout(hideImmediately, 1500);
     };
 
+    const resolveAnchorUrl = (anchor) => {
+        if (!anchor) return null;
+
+        try {
+            return new URL(anchor.href, window.location.href);
+        } catch (_) {
+            return null;
+        }
+    };
+
+    const isDownloadLikeLink = (anchor, event = null) => {
+        if (!anchor) return false;
+        if (event && (event.defaultPrevented || event.button !== 0)) return false;
+        if (event && (event.metaKey || event.ctrlKey || event.shiftKey || event.altKey)) return false;
+
+        if (anchor.matches('[download], [data-da-download], [data-file-download]')) {
+            return true;
+        }
+
+        const url = resolveAnchorUrl(anchor);
+        if (!url || !/^https?:$/.test(url.protocol) || url.origin !== window.location.origin) {
+            return false;
+        }
+
+        const pathname = decodeURIComponent(url.pathname || '').replace(/\/+$/, '');
+
+        return /(?:^|\/)(?:download|downloads)(?:\/|$)/i.test(pathname)
+            || /\/(?:export|download)[-_](?:pdf|word|docx|excel|xlsx|csv)(?:\/|$)/i.test(pathname)
+            || /\/(?:pdf|word|docx|excel|xlsx|csv)$/i.test(pathname);
+    };
+
+    const releaseDownloadNavigationGuard = () => {
+        window.setTimeout(() => {
+            window.__daSkipNextBeforeUnloadLoading = false;
+            hideImmediately();
+        }, 1800);
+    };
+
     const isSafeNavigationLink = (anchor, event) => {
         if (!anchor || event.defaultPrevented || event.button !== 0) return false;
         if (event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return false;
-        if (anchor.matches('[download], [data-da-loading="off"], [data-no-loading]')) return false;
+        if (anchor.matches('[download], [data-da-download], [data-file-download], [data-da-loading="off"], [data-no-loading]')) return false;
         if (anchor.closest('[data-no-global-loading]')) return false;
         if (anchor.target && anchor.target.toLowerCase() !== '_self') return false;
 
@@ -170,20 +208,25 @@
         if (!rawHref || rawHref.startsWith('#')) return false;
         if (/^(javascript:|mailto:|tel:)/i.test(rawHref)) return false;
 
-        let url;
-        try {
-            url = new URL(anchor.href, window.location.href);
-        } catch (_) {
-            return false;
-        }
+        const url = resolveAnchorUrl(anchor);
+        if (!url) return false;
 
         if (!/^https?:$/.test(url.protocol) || url.origin !== window.location.origin) return false;
         if (url.href === window.location.href) return false;
+        if (isDownloadLikeLink(anchor)) return false;
         return true;
     };
 
     document.addEventListener('click', (event) => {
         const anchor = event.target.closest?.('a[href]');
+
+        if (isDownloadLikeLink(anchor, event)) {
+            window.__daSkipNextBeforeUnloadLoading = true;
+            hideImmediately();
+            releaseDownloadNavigationGuard();
+            return;
+        }
+
         if (!isSafeNavigationLink(anchor, event)) return;
 
         const message = anchor.dataset.loadingText || 'جارٍ تحميل الصفحة...';
@@ -229,6 +272,16 @@
     });
 
     window.addEventListener('pageshow', hideImmediately);
+    window.addEventListener('focus', () => {
+        if (window.__daSkipNextBeforeUnloadLoading === true) {
+            hideImmediately();
+        }
+    });
+    document.addEventListener('visibilitychange', () => {
+        if (!document.hidden && window.__daSkipNextBeforeUnloadLoading === true) {
+            hideImmediately();
+        }
+    });
 
     document.addEventListener('da:loading:start', (event) => {
         const detail = event.detail || {};
