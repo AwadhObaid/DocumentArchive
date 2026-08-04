@@ -10,6 +10,8 @@ use App\Models\Memo;
 use App\Models\MemoAttachment;
 use App\Models\MessageTemplate;
 use App\Services\ActivityLogger;
+use App\Services\BookAttachmentSmartPathService;
+use App\Services\EmailSettingsService;
 use App\Services\SecureAttachmentLinkService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -208,6 +210,16 @@ class EmailController extends Controller
                 ->withInput();
         }
 
+        try {
+            // V95.3: load SMTP credentials and sender identity from the
+            // encrypted system settings before creating the mail transport.
+            $mailRuntimeSettings = app(EmailSettingsService::class)->apply();
+        } catch (\Throwable $exception) {
+            return back()
+                ->withErrors(['email' => app(EmailSettingsService::class)->friendlyError($exception)])
+                ->withInput();
+        }
+
         $secureAttachmentLink = null;
         $body = (string) $validated['body'];
 
@@ -261,13 +273,21 @@ class EmailController extends Controller
             'status' => 'pending',
         ]);
 
+        $mailTimeoutSeconds = max(5, min(120, (int) ($mailRuntimeSettings['timeout'] ?? config('mail.mailers.smtp.timeout', 30))));
+        $previousSocketTimeout = ini_get('default_socket_timeout');
+
+        // V95.2: prevent a stalled SMTP connection from leaving the browser request open indefinitely.
+        @ini_set('default_socket_timeout', (string) $mailTimeoutSeconds);
+
+        $bookAttachmentPathService = app(BookAttachmentSmartPathService::class);
+
         try {
             Mail::send('emails.mail.document', [
                 'document' => $document,
                 'memo' => $memo,
                 'bodyText' => $body,
                 'emailMessage' => $emailMessage,
-            ], function ($message) use ($to, $cc, $bcc, $validated, $attachments) {
+            ], function ($message) use ($to, $cc, $bcc, $validated, $attachments, $bookAttachmentPathService) {
                 $message->to($to)->subject($validated['subject']);
 
                 if ($cc !== []) {
@@ -279,9 +299,30 @@ class EmailController extends Controller
                 }
 
                 foreach ($attachments as $attachment) {
-                    $disk = Storage::disk($attachment->disk ?: 'local');
                     $fileName = $attachment->original_name ?: $attachment->file_name;
                     $mimeType = $attachment->mime_type ?: 'application/octet-stream';
+
+                    // V95.2.2: book attachments may use the virtual
+                    // book_attachment_custom_path marker. Resolve them through
+                    // BookAttachmentSmartPathService instead of Storage::disk().
+                    if ($attachment instanceof DocumentAttachment) {
+                        $absolutePath = $bookAttachmentPathService->absolutePathForAttachment($attachment);
+
+                        if ($absolutePath === null || ! is_file($absolutePath)) {
+                            throw new \RuntimeException(
+                                'تعذر الوصول إلى مرفق الكتاب على مسار التخزين: ' . $fileName
+                            );
+                        }
+
+                        $message->attach($absolutePath, [
+                            'as' => $fileName,
+                            'mime' => $mimeType,
+                        ]);
+
+                        continue;
+                    }
+
+                    $disk = Storage::disk($attachment->disk ?: 'local');
 
                     if (method_exists($disk, 'path')) {
                         $message->attach($disk->path($attachment->file_path), [
@@ -343,9 +384,15 @@ class EmailController extends Controller
                 ]
             );
 
+            $userMessage = app(EmailSettingsService::class)->friendlyError($exception);
+
             return redirect()
                 ->route('emails.show', $emailMessage)
-                ->withErrors(['email' => 'فشل إرسال البريد. راجع إعدادات البريد أو تفاصيل الخطأ في سجل الإرسال.']);
+                ->withErrors(['email' => $userMessage]);
+        } finally {
+            if ($previousSocketTimeout !== false && $previousSocketTimeout !== '') {
+                @ini_set('default_socket_timeout', (string) $previousSocketTimeout);
+            }
         }
     }
 

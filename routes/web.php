@@ -10,6 +10,7 @@ use App\Http\Controllers\DepartmentController;
 use App\Http\Controllers\DocumentController;
 use App\Http\Controllers\DocumentTypeController;
 use App\Http\Controllers\EmailController;
+use App\Http\Controllers\EmailSettingsController;
 use App\Http\Controllers\ContactController;
 use App\Http\Controllers\MessageTemplateController;
 use App\Http\Controllers\MemoController;
@@ -243,6 +244,15 @@ Route::middleware(['auth', ApplyRoutePermissions::class])->group(function () {
 
     Route::post('/settings', [SettingsController::class, 'update'])
         ->name('settings.update');
+
+    // email-settings-management-v95-3:start
+    Route::get('/settings/email', [EmailSettingsController::class, 'edit'])
+        ->name('settings.email.edit');
+    Route::post('/settings/email', [EmailSettingsController::class, 'update'])
+        ->name('settings.email.update');
+    Route::post('/settings/email/test', [EmailSettingsController::class, 'test'])
+        ->name('settings.email.test');
+    // email-settings-management-v95-3:end
 
     Route::get('/settings/book-attachment-storage/roots', [SettingsController::class, 'bookAttachmentStorageRoots'])
         ->name('settings.book-attachment-storage.roots');

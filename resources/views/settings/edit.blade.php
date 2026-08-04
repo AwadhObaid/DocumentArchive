@@ -556,6 +556,8 @@
         </div>
 
         <div style="display:flex; gap:10px; flex-wrap:wrap;">
+            <a href="{{ route('settings.email.edit') }}" class="btn btn-primary">📧 إعدادات البريد الإلكتروني</a>
+
             @if(auth()->user()?->hasPermission('dashboard.view'))
                 <a href="{{ route('dashboard') }}" class="btn btn-secondary">لوحة التحكم</a>
             @endif
@@ -578,6 +580,7 @@
                 <span class="settings-polish-badge">🔎 بحث PDF/OCR: {{ $printSummary['pdf_search'] }}</span>
                 <span class="settings-polish-badge">💬 الدردشة الداخلية: {{ $printSummary['internal_chat'] }}</span>
                 <span class="settings-polish-badge">📁 مسار مرفقات الكتب: {{ $printSummary['book_attachment_storage'] }}</span>
+                <a href="{{ route('settings.email.edit') }}" class="settings-polish-badge" style="text-decoration:none;">📧 إدارة SMTP والبريد</a>
             </div>
         </div>
 

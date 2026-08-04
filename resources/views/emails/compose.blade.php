@@ -47,6 +47,7 @@
 
     <div class="email-compose-layout">
         <form class="email-panel email-form" method="POST" action="{{ route('emails.send') }}"
+              data-loading-text="جارٍ إرسال البريد الإلكتروني..."
               data-confirm-title="تأكيد إرسال البريد الإلكتروني"
               data-confirm="سيتم إرسال الرسالة إلى العناوين المحددة مع بيانات الكتاب والمرفقات المختارة. هل تريد المتابعة؟"
               data-confirm-extra="راجع البريد الإلكتروني والمرفقات قبل الإرسال، لأن العملية سيتم تسجيلها في سجل البريد."
@@ -217,7 +218,7 @@
             @endif
 
             <div class="email-actions-row">
-                <button type="submit" class="btn btn-primary">إرسال البريد الآن</button>
+                <button type="submit" class="btn btn-primary" data-loading-text="جارٍ إرسال البريد الإلكتروني...">إرسال البريد الآن</button>
                 <a href="{{ route('emails.index') }}" class="btn btn-light">إلغاء</a>
             </div>
         </form>
@@ -251,6 +252,7 @@
 
             <div class="email-note-box" style="margin-top:14px;">
                 <strong>تنبيه:</strong> إذا كان إعداد البريد في ملف <code>.env</code> مضبوطًا على <code>MAIL_MAILER=log</code> فسيتم تسجيل الرسالة في ملف السجل بدل إرسالها فعليًا، وهذا مناسب للتجربة الأولى.
+                عند تعذر اتصال SMTP، ينهي النظام المحاولة تلقائيًا بدل إبقاء شاشة الانتظار مفتوحة دون نهاية.
             </div>
         </aside>
     </div>

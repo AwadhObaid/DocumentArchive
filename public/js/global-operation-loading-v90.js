@@ -1,4 +1,4 @@
-/* DocumentArchive Global Operation Loading V90.0.2 - File Bridge and download compatibility */
+/* DocumentArchive Global Operation Loading V90.0.3 - Confirmation dialog compatibility (V95.2.1) */
 (() => {
     'use strict';
 
@@ -238,6 +238,13 @@
         if (!(form instanceof HTMLFormElement)) return;
         if (form.matches('[data-da-loading="off"], [data-no-loading]')) return;
         if (form.closest('[data-no-global-loading]')) return;
+
+        // V95.2.1: forms using the asynchronous confirmation dialog must not
+        // show the global loading overlay until the user accepts confirmation.
+        // app.js sets data-confirm-accepted="1" immediately before requestSubmit().
+        if (form.matches('[data-confirm]') && form.dataset.confirmAccepted !== '1') {
+            return;
+        }
 
         queueMicrotask(() => {
             if (event.defaultPrevented || !form.checkValidity()) return;
