@@ -1,29 +1,30 @@
-/* DocumentArchive Global Operation Loading V90.0.0 */
+/* DocumentArchive Unified Non-Blocking Operation Feedback V95.5 */
 :root {
     --da-loading-accent: #2563eb;
-    --da-loading-accent-soft: rgba(37, 99, 235, 0.18);
-    --da-loading-panel: rgba(255, 255, 255, 0.96);
+    --da-loading-accent-soft: rgba(37, 99, 235, 0.16);
+    --da-loading-panel: rgba(255, 255, 255, 0.98);
     --da-loading-text: #0f172a;
     --da-loading-muted: #64748b;
-    --da-loading-backdrop: rgba(15, 23, 42, 0.38);
-    --da-loading-shadow: 0 24px 70px rgba(15, 23, 42, 0.24);
+    --da-loading-border: rgba(37, 99, 235, 0.22);
+    --da-loading-shadow: 0 16px 44px rgba(15, 23, 42, 0.18);
 }
 
 html[data-theme="dark"] {
     --da-loading-accent: #60a5fa;
-    --da-loading-accent-soft: rgba(96, 165, 250, 0.2);
-    --da-loading-panel: rgba(15, 23, 42, 0.96);
+    --da-loading-accent-soft: rgba(96, 165, 250, 0.18);
+    --da-loading-panel: rgba(15, 23, 42, 0.98);
     --da-loading-text: #f8fafc;
     --da-loading-muted: #cbd5e1;
-    --da-loading-backdrop: rgba(2, 6, 23, 0.62);
-    --da-loading-shadow: 0 24px 80px rgba(0, 0, 0, 0.48);
+    --da-loading-border: rgba(96, 165, 250, 0.24);
+    --da-loading-shadow: 0 16px 50px rgba(0, 0, 0, 0.36);
 }
 
+/* Thin global progress indicator. It never blocks pointer interaction. */
 .da-page-progress {
     position: fixed;
     inset: 0 0 auto 0;
     z-index: 2147483646;
-    height: 4px;
+    height: 3px;
     overflow: hidden;
     pointer-events: none;
     opacity: 0;
@@ -35,7 +36,7 @@ html[data-theme="dark"] {
     width: 100%;
     height: 100%;
     background: linear-gradient(90deg, #38bdf8, var(--da-loading-accent), #818cf8);
-    box-shadow: 0 0 14px var(--da-loading-accent);
+    box-shadow: 0 0 12px var(--da-loading-accent);
     transform: scaleX(0);
     transform-origin: right center;
     transition: transform 220ms ease-out;
@@ -45,76 +46,92 @@ html.da-loading-running .da-page-progress {
     opacity: 1;
 }
 
+/*
+ * V95.5: the former full-screen overlay is intentionally converted into a
+ * compact non-blocking status toast. The existing HTML/API are preserved for
+ * compatibility with older modules.
+ */
 .da-global-loading {
     position: fixed;
-    inset: 0;
+    top: 18px;
+    left: 18px;
     z-index: 2147483645;
-    display: grid;
-    place-items: center;
-    padding: 22px;
+    width: min(370px, calc(100vw - 36px));
     visibility: hidden;
     opacity: 0;
+    transform: translateY(-10px);
     pointer-events: none;
-    transition: opacity 160ms ease, visibility 0s linear 160ms;
+    transition:
+        opacity 150ms ease,
+        transform 150ms ease,
+        visibility 0s linear 150ms;
 }
 
 .da-global-loading.is-visible {
     visibility: visible;
     opacity: 1;
-    pointer-events: auto;
+    transform: translateY(0);
     transition-delay: 0s;
 }
 
+/* The old backdrop remains in the layout for backward compatibility only. */
 .da-global-loading__backdrop {
-    position: absolute;
-    inset: 0;
-    background: var(--da-loading-backdrop);
-    -webkit-backdrop-filter: blur(2px);
-    backdrop-filter: blur(2px);
+    display: none !important;
 }
 
 .da-global-loading__panel {
     position: relative;
-    width: min(92vw, 390px);
+    width: 100%;
     display: grid;
-    justify-items: center;
-    gap: 14px;
-    padding: 26px 28px 24px;
+    grid-template-columns: 30px minmax(0, 1fr) auto;
+    grid-template-areas:
+        "spinner message percent"
+        "spinner hint percent"
+        "track track track";
+    align-items: center;
+    column-gap: 11px;
+    row-gap: 4px;
+    padding: 13px 14px 12px;
     color: var(--da-loading-text);
     background: var(--da-loading-panel);
-    border: 1px solid var(--da-loading-accent-soft);
-    border-radius: 22px;
+    border: 1px solid var(--da-loading-border);
+    border-radius: 15px;
     box-shadow: var(--da-loading-shadow);
-    text-align: center;
+    text-align: right;
 }
 
 .da-global-loading__spinner {
-    width: 52px;
-    height: 52px;
-    border: 5px solid var(--da-loading-accent-soft);
+    grid-area: spinner;
+    width: 28px;
+    height: 28px;
+    border: 3px solid var(--da-loading-accent-soft);
     border-top-color: var(--da-loading-accent);
     border-radius: 50%;
     animation: da-loading-spin 0.78s linear infinite;
 }
 
 .da-global-loading__message {
-    max-width: 100%;
-    font-size: 1rem;
+    grid-area: message;
+    min-width: 0;
+    font-size: 0.9rem;
     font-weight: 800;
-    line-height: 1.7;
+    line-height: 1.45;
     overflow-wrap: anywhere;
 }
 
 .da-global-loading__hint {
-    margin-top: -8px;
+    grid-area: hint;
+    margin: 0;
     color: var(--da-loading-muted);
-    font-size: 0.82rem;
-    line-height: 1.6;
+    font-size: 0.74rem;
+    line-height: 1.4;
 }
 
 .da-global-loading__track {
+    grid-area: track;
     width: 100%;
-    height: 8px;
+    height: 4px;
+    margin-top: 4px;
     overflow: hidden;
     background: var(--da-loading-accent-soft);
     border-radius: 999px;
@@ -132,19 +149,53 @@ html.da-loading-running .da-page-progress {
 }
 
 .da-global-loading__percent {
+    grid-area: percent;
+    align-self: start;
     color: var(--da-loading-muted);
-    font-size: 0.82rem;
+    font-size: 0.72rem;
     font-variant-numeric: tabular-nums;
+    white-space: nowrap;
+}
+
+.da-global-loading.is-error .da-global-loading__panel {
+    border-color: rgba(220, 38, 38, 0.38);
 }
 
 .da-global-loading.is-error .da-global-loading__spinner {
     animation: none;
-    border-color: rgba(220, 38, 38, 0.22);
+    border-color: rgba(220, 38, 38, 0.20);
     border-top-color: #dc2626;
 }
 
-body.da-loading-active {
-    cursor: progress;
+.da-global-loading.is-success .da-global-loading__panel {
+    border-color: rgba(22, 163, 74, 0.34);
+}
+
+.da-global-loading.is-success .da-global-loading__spinner {
+    animation: none;
+    border-color: rgba(22, 163, 74, 0.22);
+    border-top-color: #16a34a;
+}
+
+/* Only the initiating control appears busy; the page is never blocked. */
+.da-action-busy {
+    pointer-events: none !important;
+    opacity: 0.78;
+    cursor: progress !important;
+}
+
+button.da-action-busy::before,
+a.da-action-busy::before {
+    content: "";
+    display: inline-block;
+    width: 0.82em;
+    height: 0.82em;
+    margin-left: 0.45em;
+    vertical-align: -0.08em;
+    border: 2px solid currentColor;
+    border-top-color: transparent;
+    border-radius: 50%;
+    animation: da-loading-spin 0.72s linear infinite;
 }
 
 @keyframes da-loading-spin {
@@ -152,15 +203,15 @@ body.da-loading-active {
 }
 
 @media (max-width: 640px) {
-    .da-global-loading__panel {
-        width: min(94vw, 360px);
-        padding: 22px 20px 20px;
-        border-radius: 18px;
+    .da-global-loading {
+        top: 12px;
+        left: 12px;
+        width: calc(100vw - 24px);
     }
 
-    .da-global-loading__spinner {
-        width: 46px;
-        height: 46px;
+    .da-global-loading__panel {
+        border-radius: 13px;
+        padding: 11px 12px 10px;
     }
 }
 
@@ -172,7 +223,9 @@ body.da-loading-active {
         transition: none !important;
     }
 
-    .da-global-loading__spinner {
-        animation-duration: 1.6s;
+    .da-global-loading__spinner,
+    button.da-action-busy::before,
+    a.da-action-busy::before {
+        animation-duration: 1.5s;
     }
 }
