@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Support\AttachmentUploadLimits;
 use App\Models\Department;
 use App\Models\Memo;
 use App\Models\MemoAttachment;
@@ -385,7 +386,7 @@ class MemoController extends Controller
             'status' => ['required', 'in:active,archived,cancelled'],
             'notes' => ['nullable', 'string'],
             'attachments' => ['nullable', 'array'],
-            'attachments.*' => ['file', 'max:20480'],
+            'attachments.*' => ['file', 'max:' . AttachmentUploadLimits::MAX_KB],
         ];
     }
 
@@ -394,7 +395,7 @@ class MemoController extends Controller
         return [
             'memo_date.required' => 'تاريخ المذكرة مطلوب.',
             'subject.required' => 'موضوع المذكرة مطلوب.',
-            'attachments.*.max' => 'حجم كل مرفق يجب ألا يتجاوز 20 MB.',
+            'attachments.*.max' => 'حجم كل مرفق يجب ألا يتجاوز ' . AttachmentUploadLimits::MAX_MB . ' MB.',
         ];
     }
 

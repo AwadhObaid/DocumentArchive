@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Support\AttachmentUploadLimits;
 use App\Models\Document;
 use App\Models\InternalMessage;
 use App\Models\InternalMessageAttachment;
@@ -100,12 +101,12 @@ class InternalMessageController extends Controller
             'document_id' => ['nullable', 'integer', 'exists:documents,id'],
             'memo_id' => ['nullable', 'integer', 'exists:memos,id'],
             'attachments' => ['nullable', 'array', 'max:10'],
-            'attachments.*' => ['nullable', 'file', 'max:20480'],
+            'attachments.*' => ['nullable', 'file', 'max:' . AttachmentUploadLimits::MAX_KB],
         ], [
             'receiver_id.required' => 'يرجى اختيار المستلم.',
             'receiver_id.not_in' => 'لا يمكن إرسال رسالة داخلية لنفس المستخدم.',
             'subject.required' => 'يرجى كتابة عنوان الرسالة.',
-            'attachments.*.max' => 'حجم كل مرفق يجب ألا يتجاوز 20 MB.',
+            'attachments.*.max' => 'حجم كل مرفق يجب ألا يتجاوز ' . AttachmentUploadLimits::MAX_MB . ' MB.',
         ]);
 
         $message = DB::transaction(function () use ($request, $validated, $currentUserId) {

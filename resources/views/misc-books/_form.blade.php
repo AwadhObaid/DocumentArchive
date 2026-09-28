@@ -99,7 +99,7 @@
     <div class="form-group full">
         <label>المرفقات</label>
         <input type="file" name="attachments[]" multiple accept=".pdf,.jpg,.jpeg,.png,.gif,.webp,.bmp,.tif,.tiff,.doc,.docx,.xls,.xlsx">
-        <small>يمكن رفع أكثر من ملف، بحد أقصى 20 MB لكل ملف.</small>
+        <small>يمكن رفع أكثر من ملف، بحد أقصى 50 MB لكل ملف.</small>
     </div>
 
     <div class="form-group full">

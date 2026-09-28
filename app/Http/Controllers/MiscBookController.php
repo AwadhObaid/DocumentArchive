@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Support\AttachmentUploadLimits;
 use App\Models\ArchiveCategory;
 use App\Models\MiscBook;
 use App\Models\MiscBookAttachment;
@@ -377,7 +378,7 @@ class MiscBookController extends Controller
             'keywords' => ['nullable', 'string'],
             'notes' => ['nullable', 'string'],
             'attachments' => ['nullable', 'array'],
-            'attachments.*' => ['file', 'max:20480'],
+            'attachments.*' => ['file', 'max:' . AttachmentUploadLimits::MAX_KB],
         ];
     }
 
@@ -386,7 +387,7 @@ class MiscBookController extends Controller
         return [
             'book_date.required' => 'تاريخ الكتاب مطلوب.',
             'subject.required' => 'موضوع الكتاب المتفرق مطلوب.',
-            'attachments.*.max' => 'حجم كل مرفق يجب ألا يتجاوز 20 MB.',
+            'attachments.*.max' => 'حجم كل مرفق يجب ألا يتجاوز ' . AttachmentUploadLimits::MAX_MB . ' MB.',
         ];
     }
 

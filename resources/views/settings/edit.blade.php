@@ -893,15 +893,16 @@
                     </div>
 
                     <div class="form-group">
-                        <label>الحد الأقصى لحجم الملف MB</label>
+                        <label>الحد الأقصى لحجم الملف (MB)</label>
                         <input
                             type="number"
                             name="smart_attachment_max_file_mb"
-                            value="{{ old('smart_attachment_max_file_mb', $settings['smart_attachment_max_file_mb'] ?? 20) }}"
+                            value="{{ old('smart_attachment_max_file_mb', $settings['smart_attachment_max_file_mb'] ?? 50) }}"
                             min="1"
                             max="100"
                             required
                         >
+                        <small class="settings-small-note">الافتراضي 50 MB، ويمكن رفع الحد حتى 100 MB عند الحاجة.</small>
                     </div>
                 </div>
 
@@ -956,15 +957,16 @@
                     </div>
 
                     <div class="form-group">
-                        <label>الحد الأقصى لحجم الملف MB</label>
+                        <label>الحد الأقصى لحجم الملف (MB)</label>
                         <input
                             type="number"
                             name="file_bridge_max_file_mb"
-                            value="{{ old('file_bridge_max_file_mb', $settings['file_bridge_max_file_mb'] ?? 20) }}"
+                            value="{{ old('file_bridge_max_file_mb', $settings['file_bridge_max_file_mb'] ?? 50) }}"
                             min="1"
                             max="100"
                             required
                         >
+                        <small class="settings-small-note">الافتراضي 50 MB، ويمكن رفع الحد حتى 100 MB عند الحاجة.</small>
                     </div>
                 </div>
 

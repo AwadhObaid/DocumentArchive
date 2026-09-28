@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use App\Support\AttachmentUploadLimits;
 use App\Models\ActivityLog;
 use App\Models\Document;
 use App\Models\DocumentAttachment;
@@ -66,7 +67,7 @@ class FileBridgeService
     {
         $configured = Setting::getInt(
             self::SETTING_MAX_FILE_MB,
-            Setting::getInt(SmartAttachmentBrowserService::SETTING_MAX_FILE_MB, 20)
+            Setting::getInt(SmartAttachmentBrowserService::SETTING_MAX_FILE_MB, AttachmentUploadLimits::MAX_MB)
         );
 
         return max(1, min(100, $configured));

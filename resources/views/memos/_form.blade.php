@@ -48,7 +48,7 @@
     <div class="form-group full">
         <label>مرفقات المذكرة</label>
         <input type="file" name="attachments[]" multiple accept=".pdf,.jpg,.jpeg,.png,.gif,.webp,.bmp,.tif,.tiff,.doc,.docx,.xls,.xlsx">
-        <small>يمكن رفع أكثر من مرفق. الحد الأقصى لكل ملف 20 MB.</small>
+        <small>يمكن رفع أكثر من مرفق. الحد الأقصى لكل ملف 50 MB.</small>
     </div>
 
     <div class="form-group full">

@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Support\AttachmentUploadLimits;
 use App\Models\BookSubject;
 use App\Models\BookAttachmentCompany;
 use App\Models\BookAttachmentOperation;
@@ -457,7 +458,7 @@ class DocumentController extends Controller
             'document_type_id' => ['nullable', 'exists:document_types,id'],
             'confidentiality' => ['required', 'in:normal,confidential,very_confidential'],
             'priority' => ['required', 'in:normal,high,urgent'],
-            'attachment' => ['nullable', 'file', 'max:20480'],
+            'attachment' => ['nullable', 'file', 'max:' . AttachmentUploadLimits::MAX_KB],
             'smart_attachment_token' => ['nullable', 'string', 'max:12000'],
             'file_bridge_token' => ['nullable', 'string', 'max:12000'],
             'notes' => ['nullable', 'string'],
@@ -608,7 +609,7 @@ class DocumentController extends Controller
             'confidentiality' => ['required', 'in:normal,confidential,very_confidential'],
             'priority' => ['required', 'in:normal,high,urgent'],
             'status' => ['required', 'in:active,archived,cancelled'],
-            'attachment' => ['nullable', 'file', 'max:20480'],
+            'attachment' => ['nullable', 'file', 'max:' . AttachmentUploadLimits::MAX_KB],
             'smart_attachment_token' => ['nullable', 'string', 'max:12000'],
             'file_bridge_token' => ['nullable', 'string', 'max:12000'],
             'notes' => ['nullable', 'string'],

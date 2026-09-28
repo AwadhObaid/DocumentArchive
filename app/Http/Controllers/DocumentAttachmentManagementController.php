@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Support\AttachmentUploadLimits;
 use App\Models\Document;
 use App\Models\DocumentAttachment;
 use App\Services\ActivityLogger;
@@ -59,7 +60,7 @@ class DocumentAttachmentManagementController extends Controller
         $this->authorizeManage($document);
 
         $validated = $request->validate([
-            'replacement_file' => ['required', 'file', 'max:20480'],
+            'replacement_file' => ['required', 'file', 'max:' . AttachmentUploadLimits::MAX_KB],
             'replacement_reason' => ['required', 'string', 'min:5', 'max:1000'],
         ]);
 

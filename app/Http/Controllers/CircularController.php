@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Support\AttachmentUploadLimits;
 use App\Models\ArchiveCategory;
 use App\Models\Circular;
 use App\Models\CircularAttachment;
@@ -376,7 +377,7 @@ class CircularController extends Controller
             'keywords' => ['nullable', 'string'],
             'notes' => ['nullable', 'string'],
             'attachments' => ['nullable', 'array'],
-            'attachments.*' => ['file', 'max:20480'],
+            'attachments.*' => ['file', 'max:' . AttachmentUploadLimits::MAX_KB],
         ];
     }
 
@@ -385,7 +386,7 @@ class CircularController extends Controller
         return [
             'circular_date.required' => 'تاريخ التعميم مطلوب.',
             'subject.required' => 'موضوع التعميم مطلوب.',
-            'attachments.*.max' => 'حجم كل مرفق يجب ألا يتجاوز 20 MB.',
+            'attachments.*.max' => 'حجم كل مرفق يجب ألا يتجاوز ' . AttachmentUploadLimits::MAX_MB . ' MB.',
         ];
     }
 

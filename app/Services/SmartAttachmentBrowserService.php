@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use App\Support\AttachmentUploadLimits;
 use App\Models\Setting;
 use Illuminate\Support\Facades\Crypt;
 use Illuminate\Support\Str;
@@ -63,7 +64,7 @@ class SmartAttachmentBrowserService
 
     public function maxFileMegabytes(): int
     {
-        return max(1, min(100, Setting::getInt(self::SETTING_MAX_FILE_MB, 20)));
+        return max(1, min(100, Setting::getInt(self::SETTING_MAX_FILE_MB, AttachmentUploadLimits::MAX_MB)));
     }
 
     public function maxFileBytes(): int
@@ -99,7 +100,7 @@ class SmartAttachmentBrowserService
             self::SETTING_RECURSIVE => Setting::getValue(self::SETTING_RECURSIVE, '1'),
             self::SETTING_RESULT_LIMIT => Setting::getValue(self::SETTING_RESULT_LIMIT, '80'),
             self::SETTING_TIMEOUT_SECONDS => Setting::getValue(self::SETTING_TIMEOUT_SECONDS, '8'),
-            self::SETTING_MAX_FILE_MB => Setting::getValue(self::SETTING_MAX_FILE_MB, '20'),
+            self::SETTING_MAX_FILE_MB => Setting::getValue(self::SETTING_MAX_FILE_MB, AttachmentUploadLimits::MAX_MB),
         ];
     }
 
