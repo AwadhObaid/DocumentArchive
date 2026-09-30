@@ -25,6 +25,12 @@
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
     <meta name="csrf-token" content="{{ csrf_token() }}">
     <meta name="theme-color" content="#07111f">
+    <meta name="description" content="{{ $liteSystemName }} - نسخة الهاتف لايت">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="{{ $liteSystemName }} لايت">
+    <link rel="manifest" href="{{ asset('manifest-lite.json') }}?v=1">
     <link rel="icon" type="image/svg+xml" href="{{ asset('favicon.svg') }}?v=20260705">
     <link rel="shortcut icon" href="{{ asset('favicon.ico') }}?v=20260705">
     <link rel="apple-touch-icon" href="{{ asset('apple-touch-icon.png') }}?v=20260705">
@@ -53,6 +59,7 @@
                 </span>
             </a>
             <div class="lite-user-actions">
+                <button class="lite-icon-btn lite-install-btn" type="button" data-lite-install aria-label="تثبيت التطبيق" hidden>⬇️</button>
                 <a class="lite-icon-btn" href="{{ route('lite.notifications.index') }}" aria-label="الإشعارات">
                     🔔 <span class="lite-badge" data-lite-unread-count style="{{ $liteUnread < 1 ? 'display:none' : '' }}">{{ $liteUnread }}</span>
                 </a>
@@ -92,5 +99,6 @@
 
     <script src="{{ asset('js/lite-notifications.js') }}?v={{ filemtime(public_path('js/lite-notifications.js')) }}" defer></script>
     <script src="{{ asset('js/auto-logout.js') }}?v={{ filemtime(public_path('js/auto-logout.js')) }}" defer></script>
+    <script src="{{ asset('js/lite-pwa.js') }}?v=1" defer></script>
 </body>
 </html>

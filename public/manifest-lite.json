@@ -1,0 +1,22 @@
+{
+  "id": "/lite/",
+  "name": "DocumentArchive Lite",
+  "short_name": "الأرشيف لايت",
+  "description": "نسخة الهاتف الخفيفة لنظام الأرشيف الإلكتروني",
+  "lang": "ar",
+  "dir": "rtl",
+  "start_url": "/lite/",
+  "scope": "/lite/",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#07111f",
+  "theme_color": "#07111f",
+  "icons": [
+    {
+      "src": "/lite-icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}
